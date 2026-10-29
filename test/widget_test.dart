@@ -91,4 +91,24 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+  testWidgets('theme selection is saved and restored', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.themeMode': 'dark',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 4));
+    await tester.pumpAndSettle();
+
+    final initialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(initialApp.themeMode, ThemeMode.dark);
+
+    await tester.tap(find.text('روشن'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('darsyar.themeMode'), 'light');
+    final updatedApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(updatedApp.themeMode, ThemeMode.light);
+  });
+
 }
