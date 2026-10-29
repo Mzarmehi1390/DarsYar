@@ -25,11 +25,7 @@ void main() {
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
   testWidgets('study tasks can be created and edited', (WidgetTester tester) async {
-    await tester.pumpWidget(const DarsYarApp());
-    await tester.pumpAndSettle();
-
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('nav-planner')));
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     expect(find.text('فهرست وظایف'), findsOneWidget);
