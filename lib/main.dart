@@ -268,26 +268,68 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<bool> _saveCurrentState() async {
+    SharedPreferences? prefs;
+    Map<String, String?>? previousValues;
+    const storageKeys = <String>[
+      'darsyar.tasks',
+      'darsyar.exams',
+      'darsyar.activeExamId',
+      'darsyar.results',
+      'darsyar.studySessions',
+    ];
+
+    Future<void> rollbackStoredValues(
+      SharedPreferences store,
+      Map<String, String?> previous,
+    ) async {
+      for (final entry in previous.entries) {
+        try {
+          if (entry.value == null) {
+            await store.remove(entry.key);
+          } else {
+            await store.setString(entry.key, entry.value!);
+          }
+        } catch (_) {
+          // Best-effort rollback: never hide the original save failure.
+        }
+      }
+    }
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final writes = await Future.wait<bool>([
-        prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList())),
-        prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList())),
-        prefs.setString('darsyar.activeExamId', activeExamId),
-        prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList())),
-        prefs.setString('darsyar.studySessions', jsonEncode(studySessions.map((session) => session.toJson()).toList())),
-      ]);
+      // Serialize everything before touching storage, so a bad model cannot
+      // leave only some sections updated.
+      final values = <String, String>{
+        'darsyar.tasks': jsonEncode(tasks.map((e) => e.toJson()).toList()),
+        'darsyar.exams': jsonEncode(exams.map((exam) => exam.toJson()).toList()),
+        'darsyar.activeExamId': activeExamId,
+        'darsyar.results': jsonEncode(results.map((result) => result.toJson()).toList()),
+        'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
+      };
+
+      prefs = await SharedPreferences.getInstance();
+      previousValues = {
+        for (final key in storageKeys) key: prefs!.getString(key),
+      };
+
+      final writes = await Future.wait<bool>(
+        values.entries.map((entry) => prefs!.setString(entry.key, entry.value)),
+      );
       if (writes.every((saved) => saved)) return true;
+
+      await rollbackStoredValues(prefs!, previousValues);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ فضای ذخیره‌سازی را بررسی کن.')),
+          SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
         );
       }
       return false;
     } catch (_) {
+      if (prefs != null && previousValues != null) {
+        await rollbackStoredValues(prefs!, previousValues);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تغییرات ممکن است باقی نمانند.')),
+          SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
         );
       }
       return false;
