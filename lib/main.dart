@@ -1239,8 +1239,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (existing == null) {
         tasks.add(StudyTask(DateTime.now().microsecondsSinceEpoch.toString(), result.$1, subject));
       } else {
-        existing.title = result.$1;
-        existing.subject = subject;
+        final index = tasks.indexWhere((task) => task.id == existing.id);
+        if (index >= 0) {
+          tasks[index] = StudyTask(existing.id, result.$1, subject, done: existing.done);
+        }
       }
     });
     await save();
