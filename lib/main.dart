@@ -88,6 +88,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   int _remainingExamSeconds = 0;
   int _selectedDurationMinutes = 30;
   bool _examTimerRunning = false;
+  bool _savingExamResult = false;
   String? _timerExamId;
 
   @override
@@ -208,7 +209,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  Future<void> save() async {
+  Future<bool> save() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final writes = await Future.wait<bool>([
@@ -218,18 +219,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList())),
         prefs.setString('darsyar.studySessions', jsonEncode(studySessions.map((session) => session.toJson()).toList())),
       ]);
-      if (writes.every((saved) => saved)) return;
+      if (writes.every((saved) => saved)) return true;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ فضای ذخیره‌سازی را بررسی کن.')),
         );
       }
+      return false;
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تغییرات ممکن است باقی نمانند.')),
         );
       }
+      return false;
     }
   }
 
@@ -630,8 +633,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
-          onPressed: saveExamResult,
-          icon: const Icon(Icons.save_alt_rounded),
+          onPressed: _savingExamResult ? null : saveExamResult,
+          icon: _savingExamResult
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.save_alt_rounded),
           label: const Text('ثبت نتیجه در تاریخچه'),
         ),
       ),
@@ -657,6 +662,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ]);
 
   Future<void> saveExamResult() async {
+    if (_savingExamResult) return;
     final score = calculateAnswerScore(
       answers: answers,
       answerKey: answerKey,
@@ -668,6 +674,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
       return;
     }
+
     final result = ExamResult(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       examName: activeExam.name,
@@ -679,15 +686,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       keyedQuestions: score.keyedQuestions,
       percentage: score.percentage,
     );
+
     setState(() {
+      _savingExamResult = true;
       results.add(result);
       tab = 3;
     });
-    await save();
+    final saved = await save();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
-    );
+    setState(() => _savingExamResult = false);
+    if (saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
+      );
+    }
   }
 
   Widget resultsHistory() {
