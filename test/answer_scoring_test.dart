@@ -56,5 +56,31 @@ void main() {
       expect(score.unanswered, 1);
       expect(score.keyedQuestions, 1);
     });
+    test('ignores invalid option values and out-of-range answers', () {
+      final score = calculateAnswerScore(
+        answers: {1: 0, 2: 8, 3: 2, 7: 1},
+        answerKey: {1: 0, 2: 1, 3: -1, 4: 2, 7: 1},
+        questionCount: 4,
+      );
+
+      expect(score.correct, 1);
+      expect(score.wrong, 0);
+      expect(score.keyedQuestions, 2);
+      expect(score.unanswered, 3);
+      expect(score.percentage, 50);
+    });
+
+    test('handles a negative question count safely', () {
+      final score = calculateAnswerScore(
+        answers: {1: 0},
+        answerKey: {1: 0},
+        questionCount: -2,
+      );
+
+      expect(score.keyedQuestions, 0);
+      expect(score.unanswered, 0);
+      expect(score.percentage, 0);
+    });
+
   });
 }
