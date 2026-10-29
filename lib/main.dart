@@ -1217,27 +1217,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> addTask([StudyTask? existing]) async {
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final subjectController = TextEditingController(text: existing?.subject ?? '');
-    final result = await showDialog<(String, String)>(context: context, builder: (context) => AlertDialog(
-      title: Text(existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: titleController, autofocus: true, maxLength: 100,
-          decoration: const InputDecoration(labelText: 'عنوان وظیفه')),
-        const SizedBox(height: 10),
-        TextField(controller: subjectController, maxLength: 50,
-          decoration: const InputDecoration(labelText: 'درس')),
-      ]),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
-        FilledButton(onPressed: () {
-          final title = titleController.text.trim();
-          if (title.isNotEmpty) Navigator.pop(context, (title, subjectController.text.trim()));
-        }, child: Text(existing == null ? 'افزودن' : 'ذخیره')),
-      ],
-    ));
-    titleController.dispose();
-    subjectController.dispose();
+    final result = await showDialog<(String, String)>(
+      context: context,
+      builder: (_) => _TaskEditorDialog(existing: existing),
+    );
     if (result == null || !mounted) return;
     setState(() {
       final subject = result.$2.isEmpty ? 'عمومی' : result.$2;
@@ -1252,4 +1235,67 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save();
   }
+}
+
+
+class _TaskEditorDialog extends StatefulWidget {
+  const _TaskEditorDialog({this.existing});
+
+  final StudyTask? existing;
+
+  @override
+  State<_TaskEditorDialog> createState() => _TaskEditorDialogState();
+}
+
+class _TaskEditorDialogState extends State<_TaskEditorDialog> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _subjectController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.existing?.title ?? '');
+    _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _subjectController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
+    content: Column(mainAxisSize: MainAxisSize.min, children: [
+      TextField(
+        controller: _titleController,
+        autofocus: true,
+        maxLength: 100,
+        decoration: const InputDecoration(labelText: 'عنوان وظیفه'),
+      ),
+      const SizedBox(height: 10),
+      TextField(
+        controller: _subjectController,
+        maxLength: 50,
+        decoration: const InputDecoration(labelText: 'درس'),
+      ),
+    ]),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: () {
+          final title = _titleController.text.trim();
+          if (title.isNotEmpty) {
+            Navigator.pop(context, (title, _subjectController.text.trim()));
+          }
+        },
+        child: Text(widget.existing == null ? 'افزودن' : 'ذخیره'),
+      ),
+    ],
+  );
 }
