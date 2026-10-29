@@ -585,6 +585,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
         icon: Icon(Icons.edit_outlined, color: purple)),
       IconButton(tooltip: 'حذف جلسه', onPressed: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('حذف جلسه مطالعه'),
+            content: Text('جلسه «${session.title}» حذف شود؟'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text('حذف'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !mounted) return;
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
         await save();
       }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -612,7 +630,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ])),
       IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
         icon: Icon(Icons.edit_outlined, color: purple)),
-      IconButton(tooltip: 'حذف', onPressed: () async { setState(() => tasks.removeWhere((e) => e.id == task.id)); await save(); },
+      IconButton(tooltip: 'حذف', onPressed: () async {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('حذف وظیفه'),
+            content: Text('وظیفه «${task.title}» حذف شود؟'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text('انصراف'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text('حذف'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !mounted) return;
+        setState(() => tasks.removeWhere((e) => e.id == task.id));
+        await save();
+      },
         icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
 
