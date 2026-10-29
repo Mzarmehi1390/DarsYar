@@ -27,27 +27,40 @@ class ExamSheet {
       };
 
   factory ExamSheet.fromJson(Map<String, dynamic> json) {
+    final count = ((json['questionCount'] as num?)?.toInt() ?? 20)
+        .clamp(1, 200)
+        .toInt();
+
     Map<int, int> parseAnswers(Object? value) {
       if (value is! Map) return <int, int>{};
-      return value.map((key, answer) => MapEntry(
-            int.parse(key.toString()),
-            (answer as num).toInt(),
-          ));
+      final parsed = <int, int>{};
+      for (final entry in value.entries) {
+        final question = int.tryParse(entry.key.toString());
+        final answer = entry.value is num ? (entry.value as num).toInt() : -1;
+        if (question == null || question < 1 || question > count) continue;
+        // Options are stored as 0..3. Invalid saved values should not crash
+        // the answer sheet when its selected option is displayed.
+        if (answer < 0 || answer > 3) continue;
+        parsed[question] = answer;
+      }
+      return parsed;
     }
 
     Set<int> parseMarked(Object? value) {
       if (value is! List) return <int>{};
-      return value.map((item) => (item as num).toInt()).toSet();
+      return value
+          .whereType<num>()
+          .map((item) => item.toInt())
+          .where((question) => question >= 1 && question <= count)
+          .toSet();
     }
 
-    final count = (json['questionCount'] as num?)?.toInt() ?? 20;
     return ExamSheet(
-      id: json['id'] as String,
+      id: json['id'] as String? ?? 'default',
       name: json['name'] as String? ?? 'آزمون',
-      questionCount: count.clamp(1, 200).toInt(),
+      questionCount: count,
       answers: parseAnswers(json['answers']),
       answerKey: parseAnswers(json['answerKey']),
       marked: parseMarked(json['marked']),
     );
-  }
 }
