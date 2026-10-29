@@ -1427,7 +1427,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final oldExams = List<ExamSheet>.from(exams);
     final oldResults = List<ExamResult>.from(results);
     final oldActiveExamId = activeExamId;
+
+    // A countdown belongs to the exam data that was active before restore.
+    // Stop it before replacing that data so a stale timer cannot carry over
+    // to an imported exam that happens to reuse the same identifier.
+    _examTimer?.cancel();
     setState(() {
+      _examTimerRunning = false;
+      _remainingExamSeconds = 0;
+      _timerExamId = null;
+      _examDeadline = null;
       tasks..clear()..addAll(importedTasks);
       studySessions..clear()..addAll(importedSessions);
       exams..clear()..addAll(importedExams);
