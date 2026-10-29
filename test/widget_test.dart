@@ -111,4 +111,30 @@ void main() {
     expect(updatedApp.themeMode, ThemeMode.light);
   });
 
+  testWidgets('cancelling task deletion keeps the task', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.tasks': jsonEncode([
+        {'id': 'task-1', 'title': 'مرور علوم', 'subject': 'علوم', 'done': false},
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('مرور علوم'), findsOneWidget);
+    await tester.tap(find.byTooltip('حذف').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('حذف وظیفه'), findsOneWidget);
+    await tester.tap(find.text('انصراف').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('مرور علوم'), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    final savedTasks = jsonDecode(prefs.getString('darsyar.tasks')!) as List;
+    expect(savedTasks, hasLength(1));
+    expect(savedTasks.single['title'], 'مرور علوم');
+  });
+
+
 }
