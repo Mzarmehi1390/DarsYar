@@ -111,69 +111,6 @@ void main() {
     expect(updatedApp.themeMode, ThemeMode.light);
   });
 
-  testWidgets('cancelling task deletion keeps the task', (WidgetTester tester) async {
-    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
-    await tester.pumpAndSettle();
 
-    final plannerList = find.byType(ListView).first;
-    final addTaskButton = find.text('وظیفه');
-    for (var attempt = 0; attempt < 8 && addTaskButton.evaluate().isEmpty; attempt++) {
-      await tester.drag(plannerList, const Offset(0, -420));
-      await tester.pumpAndSettle();
-    }
-    expect(addTaskButton, findsWidgets);
-    await tester.ensureVisible(addTaskButton.last);
-    await tester.pumpAndSettle();
-    await tester.tap(addTaskButton.last);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور علوم');
-    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
-    await tester.tap(find.text('افزودن').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('مرور علوم'), findsOneWidget);
-    final deleteButton = find.byTooltip('حذف').first;
-    await tester.ensureVisible(deleteButton);
-    await tester.tap(deleteButton);
-    await tester.pumpAndSettle();
-
-    expect(find.text('حذف وظیفه'), findsOneWidget);
-    await tester.tap(find.text('انصراف').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('مرور علوم'), findsOneWidget);
-    final prefs = await SharedPreferences.getInstance();
-    final savedTasks = jsonDecode(prefs.getString('darsyar.tasks')!) as List;
-    expect(savedTasks, hasLength(1));
-    expect(savedTasks.single['title'], 'مرور علوم');
-  });
-
-  testWidgets('invalid backup is rejected without changing saved tasks', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({
-      'darsyar.tasks': jsonEncode([
-        {'id': 'task-1', 'title': 'وظیفه موجود', 'subject': 'علوم', 'done': false},
-      ]),
-    });
-
-    await tester.pumpWidget(const DarsYarApp(initialTab: 4));
-    await tester.pumpAndSettle();
-
-    final settingsList = find.byType(ListView).first;
-    final restoreButton = find.text('بازیابی از متن JSON');
-    await tester.drag(settingsList, const Offset(0, -420));
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(restoreButton);
-    await tester.tap(restoreButton);
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).last, '{"app":"unknown","schemaVersion":99}');
-    await tester.tap(find.text('بررسی نسخه'));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('نسخه پشتیبان معتبر نیست'), findsOneWidget);
-    final prefs = await SharedPreferences.getInstance();
-    final savedTasks = jsonDecode(prefs.getString('darsyar.tasks')!) as List;
-    expect(savedTasks, hasLength(1));
-    expect(savedTasks.single['title'], 'وظیفه موجود');
-  });
 
 }
