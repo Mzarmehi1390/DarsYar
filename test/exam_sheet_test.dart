@@ -40,4 +40,18 @@ void main() {
       expect(restored.marked, isEmpty);
     });
   });
+  test('ignores malformed and out-of-range saved answers', () {
+    final restored = ExamSheet.fromJson({
+      'id': 'exam-3',
+      'questionCount': 3,
+      'answers': {'1': 2, '2': 9, '4': 1, 'bad': 0, '3': 'x'},
+      'answerKey': {'1': 2, '2': -1, '5': 0},
+      'marked': [1, 3, 4, 'bad', 0],
+    });
+
+    expect(restored.answers, {1: 2});
+    expect(restored.answerKey, {1: 2});
+    expect(restored.marked, {1, 3});
+  });
+
 }
