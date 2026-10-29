@@ -44,11 +44,11 @@ class StudySession {
         id: json['id'] as String,
         title: json['title'] as String,
         subject: json['subject'] as String? ?? 'عمومی',
-        weekday: ((json['weekday'] as num?)?.toInt() ?? 0).clamp(0, 6),
+        weekday: ((json['weekday'] as num?)?.toInt() ?? 0).clamp(0, 6).toInt(),
         startMinutes: ((json['startMinutes'] as num?)?.toInt() ?? 960)
-            .clamp(0, 1439),
+            .clamp(0, 1439).toInt(),
         durationMinutes: ((json['durationMinutes'] as num?)?.toInt() ?? 55)
-            .clamp(1, 1440),
+            .clamp(1, 1440).toInt(),
         completed: json['completed'] as bool? ?? false,
       );
 }
