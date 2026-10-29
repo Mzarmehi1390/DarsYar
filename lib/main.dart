@@ -920,8 +920,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         _examTimerRunning = false;
         _examDeadline = null;
       });
-      if (_remainingExamSeconds == 0) {
-        _updateExamTimer();
+      if (remaining <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+        );
       }
       return;
     }
