@@ -47,7 +47,7 @@ class ExamSheet {
       questionCount: count.clamp(1, 200),
       answers: parseAnswers(json['answers']),
       answerKey: parseAnswers(json['answerKey']),
-      marked: parseMarked(json['marked')),
+      marked: parseMarked(json['marked']),
     );
   }
 }
