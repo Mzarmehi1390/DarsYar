@@ -372,7 +372,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return;
     }
     final copies = sourceSessions.map((session) => StudySession(
-      id: '${DateTime.now().microsecondsSinceEpoch}-${session.id}-${targetDay}',
+      id: '${DateTime.now().microsecondsSinceEpoch}-${session.id}-$targetDay',
       title: session.title,
       subject: session.subject,
       weekday: targetDay,
