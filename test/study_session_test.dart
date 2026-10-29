@@ -50,4 +50,18 @@ void main() {
     expect(studySessionsOverlap(first, touchesEnd), isFalse);
     expect(studySessionsOverlap(first, anotherDay), isFalse);
   });
+  test('clamps restored duration so a session cannot cross midnight', () {
+    final restored = StudySession.fromJson({
+      'id': 'late-session',
+      'title': 'مطالعه شبانه',
+      'weekday': 6,
+      'startMinutes': 1430,
+      'durationMinutes': 120,
+    });
+
+    expect(restored.startMinutes, 1430);
+    expect(restored.durationMinutes, 10);
+    expect(restored.startMinutes + restored.durationMinutes, 1440);
+  });
+
 }
