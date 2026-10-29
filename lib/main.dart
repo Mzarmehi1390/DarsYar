@@ -405,7 +405,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget resultsHistory() {
     final sorted = results.toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final chartResults = sorted.reversed.take(7).toList();
+    final chartResults = sorted.take(7).reversed.toList();
     final average = results.isEmpty
         ? 0.0
         : results.map((result) => result.percentage).reduce((a, b) => a + b) /
