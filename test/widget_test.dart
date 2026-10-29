@@ -17,5 +17,10 @@ void main() {
     expect(find.text('درس‌یار'), findsOneWidget);
     expect(find.text('برنامه‌ریزی'), findsOneWidget);
     expect(find.text('پاسخ‌برگ'), findsOneWidget);
+
+    await tester.tap(find.text('برنامه‌ریزی').last);
+    await tester.pumpAndSettle();
+    expect(find.text('نمای کلی هفته'), findsOneWidget);
+    expect(find.text('جلسه جدید'), findsOneWidget);
   });
 }
