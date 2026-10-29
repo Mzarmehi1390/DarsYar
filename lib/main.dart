@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,6 +69,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ExamSheet(id: 'default', name: 'آزمون اول'),
   ];
   String activeExamId = 'default';
+
+  Timer? _examTimer;
+  int _remainingExamSeconds = 0;
+  int _selectedDurationMinutes = 30;
+  bool _examTimerRunning = false;
+  String? _timerExamId;
+
+  @override
+  void dispose() {
+    _examTimer?.cancel();
+    super.dispose();
+  }
 
   ExamSheet get activeExam => exams.firstWhere((exam) => exam.id == activeExamId, orElse: () => exams.first);
   int get count => activeExam.questionCount;
@@ -270,6 +283,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
         onChanged: (value) async {
           if (value == null) return;
+          if (value != activeExamId && _examTimerRunning) {
+            _examTimer?.cancel();
+            _examTimerRunning = false;
+            _remainingExamSeconds = 0;
+            _timerExamId = null;
+          }
           setState(() => activeExamId = value);
           await save();
         },
@@ -277,6 +296,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       const SizedBox(height: 8),
       OutlinedButton.icon(onPressed: addExam, icon: const Icon(Icons.add_rounded), label: const Text('ساخت پاسخ‌برگ جدید')),
     ]))),
+    const SizedBox(height: 12),
+    _buildExamTimerCard(),
     const SizedBox(height: 12),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
       const Expanded(child: Text('تعداد سؤال‌ها', style: TextStyle(fontWeight: FontWeight.w700))),
@@ -327,6 +348,159 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Text('پاسخ‌ها: ${answers.length} از $count  •  علامت مرور: ${marked.length}',
       style: const TextStyle(color: muted, fontSize: 13)),
   ]);
+
+  String _formatDuration(int totalSeconds) {
+    final minutes = (totalSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
+  void _startExamTimer() {
+    _examTimer?.cancel();
+    setState(() {
+      _remainingExamSeconds = _selectedDurationMinutes * 60;
+      _timerExamId = activeExamId;
+      _examTimerRunning = true;
+    });
+    _examTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_remainingExamSeconds <= 1) {
+        timer.cancel();
+        setState(() {
+          _remainingExamSeconds = 0;
+          _examTimerRunning = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+        );
+        return;
+      }
+      setState(() => _remainingExamSeconds--);
+    });
+  }
+
+  void _toggleExamTimer() {
+    if (_examTimerRunning) {
+      _examTimer?.cancel();
+      setState(() => _examTimerRunning = false);
+      return;
+    }
+    if (_remainingExamSeconds > 0 && _timerExamId == activeExamId) {
+      setState(() => _examTimerRunning = true);
+      _examTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        if (_remainingExamSeconds <= 1) {
+          timer.cancel();
+          setState(() {
+            _remainingExamSeconds = 0;
+            _examTimerRunning = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+          );
+          return;
+        }
+        setState(() => _remainingExamSeconds--);
+      });
+    } else {
+      _startExamTimer();
+    }
+  }
+
+  void _resetExamTimer() {
+    _examTimer?.cancel();
+    setState(() {
+      _examTimerRunning = false;
+      _remainingExamSeconds = 0;
+      _timerExamId = null;
+    });
+  }
+
+  Widget _buildExamTimerCard() {
+    final isForActiveExam = _timerExamId == activeExamId;
+    final remaining = isForActiveExam ? _remainingExamSeconds : 0;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(children: [
+              Icon(Icons.timer_outlined, color: purple),
+              SizedBox(width: 8),
+              Text('زمان‌سنج آزمون', style: TextStyle(fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(
+                child: Text(
+                  _formatDuration(remaining),
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                    color: remaining > 0 && remaining <= 60
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              if (_examTimerRunning && isForActiveExam)
+                const Chip(label: Text('در حال اجرا'))
+              else if (remaining > 0 && isForActiveExam)
+                const Chip(label: Text('متوقف')),
+            ]),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final minutes in [15, 30, 45, 60])
+                  ChoiceChip(
+                    label: Text('$minutes دقیقه'),
+                    selected: _selectedDurationMinutes == minutes,
+                    onSelected: _examTimerRunning
+                        ? null
+                        : (_) => setState(() => _selectedDurationMinutes = minutes),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              FilledButton.icon(
+                onPressed: _toggleExamTimer,
+                icon: Icon(_examTimerRunning && isForActiveExam
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded),
+                label: Text(_examTimerRunning && isForActiveExam
+                    ? 'توقف موقت'
+                    : remaining > 0 && isForActiveExam
+                        ? 'ادامه'
+                        : 'شروع'),
+              ),
+              OutlinedButton.icon(
+                onPressed: remaining > 0 || (_examTimerRunning && isForActiveExam)
+                    ? _resetExamTimer
+                    : null,
+                icon: const Icon(Icons.restart_alt_rounded),
+                label: const Text('از نو'),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            const Text(
+              'زمان‌سنج هنگام جابه‌جایی بین بخش‌های برنامه هم ادامه پیدا می‌کند؛ با بستن برنامه از نو شروع می‌شود.',
+              style: TextStyle(color: muted, fontSize: 11, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget legend(Color color, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
