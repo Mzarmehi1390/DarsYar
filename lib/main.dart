@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
 import 'exam_sheet.dart';
 import 'exam_result.dart';
+import 'study_session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +68,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   bool loading = true;
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
+  final studySessions = <StudySession>[];
+  int selectedStudyDay = DateTime.now().weekday % 7;
+  static const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
   final exams = <ExamSheet>[
     ExamSheet(id: 'default', name: 'آزمون اول'),
   ];
@@ -100,6 +104,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       final raw = prefs.getString('darsyar.tasks');
       if (raw != null) {
         tasks.addAll((jsonDecode(raw) as List<dynamic>).map((e) => StudyTask.fromJson(Map<String, dynamic>.from(e as Map))));
+      }
+      final rawSessions = prefs.getString('darsyar.studySessions');
+      if (rawSessions != null) {
+        studySessions.addAll((jsonDecode(rawSessions) as List<dynamic>).map(
+          (item) => StudySession.fromJson(Map<String, dynamic>.from(item as Map)),
+        ));
       }
       final rawResults = prefs.getString('darsyar.results');
       if (rawResults != null) {
@@ -158,6 +168,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList()));
     await prefs.setString('darsyar.activeExamId', activeExamId);
     await prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList()));
+    await prefs.setString('darsyar.studySessions', jsonEncode(studySessions.map((session) => session.toJson()).toList()));
   }
 
   int get completed => tasks.where((e) => e.done).length;
@@ -179,8 +190,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ],
       ),
       floatingActionButton: tab == 1 ? FloatingActionButton.extended(
-        onPressed: addTask, backgroundColor: purple, foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded), label: const Text('وظیفه جدید')) : null,
+        onPressed: addStudySession, backgroundColor: purple, foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded), label: const Text('جلسه جدید')) : null,
     );
   }
 
@@ -233,19 +244,77 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted, fontSize: 12)),
         ]))));
 
-  Widget planner() => ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
-    const Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
-    const SizedBox(height: 6), const Text('کارهایت را ثبت کن و پیشرفتت را دنبال کن.', style: TextStyle(color: muted)),
-    const SizedBox(height: 20),
-    Row(children: [
-      Expanded(child: summary('همه وظایف', tasks.length, Icons.list_alt_rounded)),
-      const SizedBox(width: 8), Expanded(child: summary('انجام‌شده', completed, Icons.check_circle_outline)),
-      const SizedBox(width: 8), Expanded(child: summary('باقی‌مانده', tasks.length - completed, Icons.pending_actions)),
+  Widget planner() {
+    final daySessions = studySessions.where((session) => session.weekday == selectedStudyDay).toList()
+      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+    final completedSessions = studySessions.where((session) => session.completed).length;
+    final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
+    return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
+      const Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
+      const SizedBox(height: 6),
+      const Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: muted)),
+      const SizedBox(height: 18),
+      Row(children: [
+        Expanded(child: summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded)),
+        const SizedBox(width: 8),
+        Expanded(child: summary('انجام‌شده', completedSessions, Icons.check_circle_outline)),
+        const SizedBox(width: 8),
+        Expanded(child: summary('دقیقه امروز', totalMinutes, Icons.timer_outlined)),
+      ]),
+      const SizedBox(height: 20),
+      const Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+      const SizedBox(height: 10),
+      Wrap(spacing: 6, runSpacing: 6, children: List.generate(7, (day) => ChoiceChip(
+        label: Text(weekDays[day]),
+        selected: selectedStudyDay == day,
+        onSelected: (_) => setState(() => selectedStudyDay = day),
+      ))),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(child: Text(weekDays[selectedStudyDay], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+        TextButton.icon(onPressed: addTask, icon: const Icon(Icons.checklist_rounded), label: const Text('وظیفه')),
+      ]),
+      if (daySessions.isEmpty)
+        emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
+      else ...daySessions.map(studySessionTile),
+      const SizedBox(height: 22),
+      const Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
+      const SizedBox(height: 10),
+      if (tasks.isEmpty)
+        emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، از دکمه «وظیفه» استفاده کن.')
+      else ...tasks.map(taskTile),
+    ]);
+  }
+
+  Widget studySessionTile(StudySession session) => Container(
+    margin: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
+    child: Row(children: [
+      Checkbox(value: session.completed, activeColor: purple, onChanged: (value) async {
+        final index = studySessions.indexWhere((item) => item.id == session.id);
+        if (index < 0) return;
+        setState(() => studySessions[index] = session.copyWith(completed: value ?? false));
+        await save();
+      }),
+      Container(width: 4, height: 42, decoration: BoxDecoration(color: purple, borderRadius: BorderRadius.circular(4))),
+      const SizedBox(width: 10),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(session.title, style: TextStyle(fontWeight: FontWeight.w800,
+          decoration: session.completed ? TextDecoration.lineThrough : null)),
+        const SizedBox(height: 4),
+        Text('${session.subject} • ${_formatStudyTime(session.startMinutes)} • ${session.durationMinutes} دقیقه',
+          style: const TextStyle(fontSize: 12, color: muted)),
+      ])),
+      IconButton(tooltip: 'حذف جلسه', onPressed: () async {
+        setState(() => studySessions.removeWhere((item) => item.id == session.id));
+        await save();
+      }, icon: const Icon(Icons.delete_outline_rounded, color: muted)),
     ]),
-    const SizedBox(height: 20),
-    if (tasks.isEmpty) emptyState(Icons.edit_calendar_rounded, 'برنامه‌ات را بساز', 'با دکمه «وظیفه جدید» یک کار درسی اضافه کن.')
-    else ...tasks.map(taskTile),
-  ]);
+  );
+
+  String _formatStudyTime(int minutes) =>
+      '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
   Widget summary(String label, int value, IconData icon) => Container(padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
@@ -405,7 +474,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget resultsHistory() {
     final sorted = results.toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final chartResults = sorted.take(7).reversed.toList();
+    final chartResults = sorted.take(7).toList().reversed.toList();
     final average = results.isEmpty
         ? 0.0
         : results.map((result) => result.percentage).reduce((a, b) => a + b) /
@@ -874,6 +943,83 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
       const SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: muted, fontSize: 12, height: 1.6)),
     ]));
+
+  Future<void> addStudySession() async {
+    final titleController = TextEditingController();
+    final subjectController = TextEditingController();
+    var weekday = selectedStudyDay;
+    var startMinutes = 16 * 60;
+    var durationMinutes = 55;
+    final result = await showDialog<StudySession>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, dialogSetState) => AlertDialog(
+        title: const Text('جلسه مطالعه جدید'),
+        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: titleController, autofocus: true,
+            decoration: const InputDecoration(labelText: 'عنوان جلسه', hintText: 'مثلاً حل تمرین فصل اول')),
+          const SizedBox(height: 10),
+          TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'درس')),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<int>(
+            value: weekday,
+            decoration: const InputDecoration(labelText: 'روز هفته'),
+            items: List.generate(7, (day) => DropdownMenuItem(value: day, child: Text(weekDays[day]))),
+            onChanged: (value) { if (value != null) dialogSetState(() => weekday = value); },
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('ساعت شروع'),
+            subtitle: Text(_formatStudyTime(startMinutes)),
+            trailing: const Icon(Icons.schedule_rounded),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: dialogContext,
+                initialTime: TimeOfDay(hour: startMinutes ~/ 60, minute: startMinutes % 60),
+              );
+              if (picked != null) dialogSetState(() => startMinutes = picked.hour * 60 + picked.minute);
+            },
+          ),
+          DropdownButtonFormField<int>(
+            value: durationMinutes,
+            decoration: const InputDecoration(labelText: 'مدت جلسه'),
+            items: const [
+              DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
+              DropdownMenuItem(value: 45, child: Text('۴۵ دقیقه')),
+              DropdownMenuItem(value: 55, child: Text('۵۵ دقیقه')),
+              DropdownMenuItem(value: 60, child: Text('۶۰ دقیقه')),
+              DropdownMenuItem(value: 90, child: Text('۹۰ دقیقه')),
+              DropdownMenuItem(value: 120, child: Text('۱۲۰ دقیقه')),
+            ],
+            onChanged: (value) { if (value != null) dialogSetState(() => durationMinutes = value); },
+          ),
+        ])),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
+          FilledButton(onPressed: () {
+            final title = titleController.text.trim();
+            if (title.isEmpty) return;
+            Navigator.pop(dialogContext, StudySession(
+              id: DateTime.now().microsecondsSinceEpoch.toString(),
+              title: title,
+              subject: subjectController.text.trim().isEmpty ? 'عمومی' : subjectController.text.trim(),
+              weekday: weekday,
+              startMinutes: startMinutes,
+              durationMinutes: durationMinutes,
+            ));
+          }, child: const Text('افزودن')),
+        ],
+      )),
+    );
+    titleController.dispose();
+    subjectController.dispose();
+    if (result == null) return;
+    setState(() {
+      studySessions.add(result);
+      selectedStudyDay = result.weekday;
+    });
+    await save();
+  }
 
   Future<void> addTask() async {
     final titleController = TextEditingController();
