@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
+import 'backup_codec.dart';
 import 'exam_sheet.dart';
 import 'exam_result.dart';
 import 'study_session.dart';
@@ -1251,20 +1252,19 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
 
-  Map<String, dynamic> _createBackupPayload() => {
-    'app': 'DarsYar',
-    'schemaVersion': 1,
-    'exportedAt': DateTime.now().toUtc().toIso8601String(),
-    'activeExamId': activeExamId,
-    'tasks': tasks.map((item) => item.toJson()).toList(),
-    'studySessions': studySessions.map((item) => item.toJson()).toList(),
-    'exams': exams.map((item) => item.toJson()).toList(),
-    'results': results.map((item) => item.toJson()).toList(),
-  };
+  Map<String, dynamic> _createBackupPayload() =>
+      DarsYarBackupCodec.createPayload(
+        exportedAt: DateTime.now().toUtc().toIso8601String(),
+        activeExamId: activeExamId,
+        tasks: tasks.map((item) => item.toJson()).toList(),
+        studySessions: studySessions.map((item) => item.toJson()).toList(),
+        exams: exams.map((item) => item.toJson()).toList(),
+        results: results.map((item) => item.toJson()).toList(),
+      );
 
   Future<void> exportBackup() async {
     try {
-      final backup = const JsonEncoder.withIndent('  ').convert(_createBackupPayload());
+      final backup = DarsYarBackupCodec.encode(_createBackupPayload());
       await Clipboard.setData(ClipboardData(text: backup));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1321,18 +1321,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     List<ExamResult> importedResults;
     String importedActiveExamId;
     try {
-      final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic> ||
-          decoded['app'] != 'DarsYar' ||
-          decoded['schemaVersion'] != 1) {
-        throw const FormatException('Unsupported backup format');
-      }
+      final decoded = DarsYarBackupCodec.decode(raw);
 
-      List<dynamic> readList(String key) {
-        final value = decoded[key];
-        if (value is! List) throw FormatException('Invalid $key');
-        return value;
-      }
+      List<dynamic> readList(String key) =>
+          decoded[key] as List<dynamic>;
 
       importedTasks = readList('tasks').map((item) {
         if (item is! Map) throw const FormatException('Invalid task');
@@ -1357,11 +1349,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (importedExams.isEmpty) {
         throw const FormatException('Backup has no exam sheets');
       }
-      final ids = importedExams.map((exam) => exam.id).toSet();
-      final requestedActiveId = decoded['activeExamId'];
-      importedActiveExamId = requestedActiveId is String && ids.contains(requestedActiveId)
-          ? requestedActiveId
-          : importedExams.first.id;
+      importedActiveExamId = decoded['activeExamId'] as String;
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان معتبر نیست یا با این نسخه از درس‌یار سازگار نیست؛ اطلاعات فعلی تغییر نکرد.')),
