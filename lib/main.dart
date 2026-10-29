@@ -179,7 +179,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         const SizedBox(height: 8),
         const Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.', style: TextStyle(color: Colors.white70)),
         const SizedBox(height: 22),
-        Text('وظایف انجام‌شده: ' + completed.toString() + ' از ' + tasks.length.toString(), style: const TextStyle(color: Colors.white)),
+        Text('وظایف انجام‌شده: $completed از ${tasks.length}', style: const TextStyle(color: Colors.white)),
         const SizedBox(height: 10),
         ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(
           minHeight: 7, value: tasks.isEmpty ? 0 : completed / tasks.length, backgroundColor: Colors.white30, color: Colors.white)),
@@ -264,7 +264,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ),
       ]),
       DropdownButtonFormField<String>(
-        value: activeExamId,
+        initialValue: activeExamId,
         isExpanded: true,
         decoration: const InputDecoration(labelText: 'آزمون فعال', border: OutlineInputBorder()),
         items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
@@ -318,13 +318,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final bg = isMarked ? const Color(0xFFFFE9CF) : answered ? const Color(0xFFDCF4E8) : Theme.of(context).cardColor;
         return Material(color: bg, borderRadius: BorderRadius.circular(14), child: InkWell(borderRadius: BorderRadius.circular(14), onTap: () => editAnswer(n),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text(n.toString(), style: const TextStyle(fontWeight: FontWeight.w800)),
+            Text('$n', style: const TextStyle(fontWeight: FontWeight.w800)),
             if (answered) Text(['الف', 'ب', 'ج', 'د'][answers[n]!], style: const TextStyle(fontSize: 11, color: muted)),
             if (isMarked) const Icon(Icons.flag_rounded, size: 12, color: Color(0xFFB86C11)),
           ])));
       }),
     const SizedBox(height: 16),
-    Text('پاسخ‌ها: ' + answers.length.toString() + ' از ' + count.toString() + '  •  علامت مرور: ' + marked.length.toString(),
+    Text('پاسخ‌ها: ${answers.length} از $count  •  علامت مرور: ${marked.length}',
       style: const TextStyle(color: muted, fontSize: 13)),
   ]);
 
@@ -429,7 +429,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     bool flag = marked.contains(number);
     final result = await showDialog<({int? answer, bool marked})>(context: context, builder: (context) =>
       StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: Text('سؤال ' + number.toString()),
+        title: Text('سؤال $number'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           const Align(alignment: Alignment.centerRight, child: Text('گزینهٔ پاسخ')),
           const SizedBox(height: 8),
@@ -475,7 +475,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('شروع')),
         ],
       ));
-      if (confirmed != true) return;
+      if (!mounted || confirmed != true) return;
     }
     final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
       final draft = Map<int, int>.from(answerKey);
@@ -516,12 +516,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     const SizedBox(height: 18),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
-      RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.system, groupValue: widget.mode, title: const Text('مطابق دستگاه'),
-        onChanged: (v) { if (v != null) widget.onModeChanged(v); }),
-      RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.light, groupValue: widget.mode, title: const Text('روشن'),
-        onChanged: (v) { if (v != null) widget.onModeChanged(v); }),
-      RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.dark, groupValue: widget.mode, title: const Text('تیره'),
-        onChanged: (v) { if (v != null) widget.onModeChanged(v); }),
+      RadioGroup<ThemeMode>(
+        groupValue: widget.mode,
+        onChanged: (value) {
+          if (value != null) widget.onModeChanged(value);
+        },
+        child: const Column(children: [
+          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.system, title: Text('مطابق دستگاه')),
+          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.light, title: Text('روشن')),
+          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.dark, title: Text('تیره')),
+        ]),
+      ),
     ]))),
     const SizedBox(height: 12),
     const Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: purple), title: Text('ذخیره‌سازی محلی'),
