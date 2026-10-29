@@ -88,9 +88,16 @@ class _DarsYarAppState extends State<DarsYarApp> {
       themeMode: mode,
       theme: ThemeData(useMaterial3: true, colorScheme: lightScheme, scaffoldBackgroundColor: canvas,
         appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink),
-        cardTheme: CardThemeData(elevation: 0, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)))),
-      darkTheme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark), brightness: Brightness.dark),
-      builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? const SizedBox()),
+        cardTheme: CardThemeData(elevation: 0, color: lightScheme.surface, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)))),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF11101A),
+        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF11101A), foregroundColor: Colors.white),
+        cardTheme: CardThemeData(elevation: 0, color: const Color(0xFF201D2C), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))),
+      ),
+      builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
     );
   }
@@ -263,14 +270,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (writes.every((saved) => saved)) return true;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ فضای ذخیره‌سازی را بررسی کن.')),
+          SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ فضای ذخیره‌سازی را بررسی کن.')),
         );
       }
       return false;
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تغییرات ممکن است باقی نمانند.')),
+          SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تغییرات ممکن است باقی نمانند.')),
         );
       }
       return false;
@@ -283,7 +290,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget build(BuildContext context) {
     final pages = [dashboard(), planner(), answerSheet(), resultsHistory(), settings()];
     return Scaffold(
-      body: SafeArea(child: loading ? const Center(child: CircularProgressIndicator()) : pages[tab]),
+      body: SafeArea(child: loading ? Center(child: CircularProgressIndicator()) : pages[tab]),
       // Keep navigation and creation actions unavailable until stored data
       // has been restored, otherwise a fast tap can race the initial load.
       bottomNavigationBar: loading ? null : NavigationBar(
@@ -299,57 +306,57 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
       floatingActionButton: !loading && tab == 1 ? FloatingActionButton.extended(
         onPressed: addStudySession, backgroundColor: purple, foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded), label: const Text('جلسه جدید')) : null,
+        icon: Icon(Icons.add_rounded), label: Text('جلسه جدید')) : null,
     );
   }
 
   Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
-    const Row(children: [
+    Row(children: [
       CircleAvatar(backgroundColor: Color(0xFFECE7FF), child: Icon(Icons.auto_stories_rounded, color: purple)),
       SizedBox(width: 12),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('درس‌یار', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: ink)),
-        Text('برنامه‌ریزی هوشمند برای یادگیری بهتر', style: TextStyle(fontSize: 12, color: muted)),
+        Text('درس‌یار', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+        Text('برنامه‌ریزی هوشمند برای یادگیری بهتر', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]),
     ]),
-    const SizedBox(height: 24),
+    SizedBox(height: 24),
     Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(
       gradient: const LinearGradient(colors: [Color(0xFF8067E8), Color(0xFF5D43BD)], begin: Alignment.topRight, end: Alignment.bottomLeft),
       borderRadius: BorderRadius.circular(26)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('هر روز، یک قدم به هدفت نزدیک‌تر', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
-        const Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.', style: TextStyle(color: Colors.white70)),
-        const SizedBox(height: 22),
-        Text('وظایف انجام‌شده: $completed از ${tasks.length}', style: const TextStyle(color: Colors.white)),
-        const SizedBox(height: 10),
+        Text('هر روز، یک قدم به هدفت نزدیک‌تر', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+        SizedBox(height: 8),
+        Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.', style: TextStyle(color: Colors.white70)),
+        SizedBox(height: 22),
+        Text('وظایف انجام‌شده: $completed از ${tasks.length}', style: TextStyle(color: Colors.white)),
+        SizedBox(height: 10),
         ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(
           minHeight: 7, value: tasks.isEmpty ? 0 : completed / tasks.length, backgroundColor: Colors.white30, color: Colors.white)),
       ]),
     ),
-    const SizedBox(height: 24),
-    const Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
-    const SizedBox(height: 12),
+    SizedBox(height: 24),
+    Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+    SizedBox(height: 12),
     Row(children: [
       Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', () => setState(() => tab = 1), const Color(0xFFECE7FF))),
-      const SizedBox(width: 12),
+      SizedBox(width: 12),
       Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFE0F5ED))),
     ]),
-    const SizedBox(height: 24),
-    Row(children: [const Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink))),
-      TextButton(onPressed: () => setState(() => tab = 1), child: const Text('مشاهده همه'))]),
+    SizedBox(height: 24),
+    Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
+      TextButton(onPressed: () => setState(() => tab = 1), child: Text('مشاهده همه'))]),
     if (tasks.where((e) => !e.done).isEmpty)
       emptyState(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
     else ...tasks.where((e) => !e.done).take(3).map(taskTile),
   ]);
 
   Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) => Material(
-    color: Colors.white, borderRadius: BorderRadius.circular(22), child: InkWell(
+    color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(22), child: InkWell(
       onTap: action, borderRadius: BorderRadius.circular(22), child: Padding(padding: const EdgeInsets.all(16), child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(width: 44, height: 44, decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(14)), child: Icon(icon, color: purple)),
-          const SizedBox(height: 14), Text(title, style: const TextStyle(color: ink, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4), Text(subtitle, style: const TextStyle(color: muted, fontSize: 12)),
+          SizedBox(height: 14), Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
+          SizedBox(height: 4), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
         ]))));
 
   Widget planner() {
@@ -358,37 +365,37 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final completedSessions = studySessions.where((session) => session.completed).length;
     final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
     return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
-      const Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
-      const SizedBox(height: 6),
-      const Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: muted)),
-      const SizedBox(height: 18),
+      Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+      SizedBox(height: 6),
+      Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      SizedBox(height: 18),
       Row(children: [
         Expanded(child: summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded)),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Expanded(child: summary('انجام‌شده', completedSessions, Icons.check_circle_outline)),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         Expanded(child: summary('دقیقه امروز', totalMinutes, Icons.timer_outlined)),
       ]),
-      const SizedBox(height: 20),
-      const Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-      const SizedBox(height: 10),
+      SizedBox(height: 20),
+      Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+      SizedBox(height: 10),
       Wrap(spacing: 6, runSpacing: 6, children: List.generate(7, (day) => ChoiceChip(
         label: Text(weekDays[day]),
         selected: selectedStudyDay == day,
         onSelected: (_) => setState(() => selectedStudyDay = day),
       ))),
-      const SizedBox(height: 20),
-      const Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-      const SizedBox(height: 10),
+      SizedBox(height: 20),
+      Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+      SizedBox(height: 10),
       Wrap(spacing: 10, runSpacing: 10, children: List.generate(7, weekOverviewCard)),
-      const SizedBox(height: 16),
+      SizedBox(height: 16),
       weeklyReportCard(),
-      const SizedBox(height: 20),
+      SizedBox(height: 20),
       Row(children: [
-        Expanded(child: Text(weekDays[selectedStudyDay], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+        Expanded(child: Text(weekDays[selectedStudyDay], style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
         PopupMenuButton<int>(
           tooltip: 'کپی برنامه این روز',
-          icon: const Icon(Icons.copy_all_rounded),
+          icon: Icon(Icons.copy_all_rounded),
           onSelected: copySelectedDayTo,
           itemBuilder: (context) => List.generate(7, (day) => PopupMenuItem<int>(
             value: day,
@@ -396,14 +403,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             child: Text('کپی برنامه به ${weekDays[day]}'),
           )),
         ),
-        TextButton.icon(onPressed: addTask, icon: const Icon(Icons.checklist_rounded), label: const Text('وظیفه')),
+        TextButton.icon(onPressed: addTask, icon: Icon(Icons.checklist_rounded), label: Text('وظیفه')),
       ]),
       if (daySessions.isEmpty)
         emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
       else ...daySessions.map(studySessionTile),
-      const SizedBox(height: 22),
-      const Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: ink)),
-      const SizedBox(height: 10),
+      SizedBox(height: 22),
+      Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+      SizedBox(height: 10),
       if (tasks.isEmpty)
         emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، از دکمه «وظیفه» استفاده کن.')
       else ...tasks.map(taskTile),
@@ -426,18 +433,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Row(children: [
+        Row(children: [
           Icon(Icons.insights_rounded, color: purple),
           SizedBox(width: 8),
           Text('گزارش هفتگی مطالعه', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         ]),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         Row(children: [
           Expanded(child: _weeklyMetric('برنامه‌ریزی‌شده', plannedMinutes, 'دقیقه')),
           Expanded(child: _weeklyMetric('مطالعه تکمیل‌شده', completedMinutes, 'دقیقه')),
           Expanded(child: _weeklyMetric('پیشرفت', (completion * 100).round(), '٪')),
         ]),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
@@ -446,12 +453,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(
           studySessions.isEmpty
               ? 'با افزودن جلسه‌ها، گزارش اینجا نمایش داده می‌شود.'
               : '${studySessions.where((session) => session.completed).length} از ${studySessions.length} جلسه تکمیل شده است.',
-          style: const TextStyle(fontSize: 12, color: muted),
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ]),
     );
@@ -460,10 +467,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget _weeklyMetric(String label, int value, String unit) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text('$value', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: purple)),
-      Text(unit, style: const TextStyle(fontSize: 11, color: muted)),
-      const SizedBox(height: 3),
-      Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+      Text('$value', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: purple)),
+      Text(unit, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      SizedBox(height: 3),
+      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ],
   );
 
@@ -475,7 +482,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     if (sourceSessions.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('برای کپی‌کردن، ابتدا در این روز جلسه‌ای بساز.')),
+        SnackBar(content: Text('برای کپی‌کردن، ابتدا در این روز جلسه‌ای بساز.')),
       );
       return;
     }
@@ -524,11 +531,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               Row(children: [
                 Expanded(child: Text(weekDays[day], style: TextStyle(
                   fontWeight: FontWeight.w800, color: selected ? purple : null))),
-                if (selected) const Icon(Icons.check_circle_rounded, color: purple, size: 18),
+                if (selected) Icon(Icons.check_circle_rounded, color: purple, size: 18),
               ]),
-              const SizedBox(height: 8),
-              Text('${sessions.length} جلسه • $minutes دقیقه', style: const TextStyle(fontSize: 12, color: muted)),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
+              Text('${sessions.length} جلسه • $minutes دقیقه', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
@@ -537,9 +544,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               Text(sessions.isEmpty ? 'بدون برنامه' : '$done از ${sessions.length} انجام‌شده',
-                style: const TextStyle(fontSize: 11, color: muted)),
+                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ]),
           ),
         ),
@@ -559,20 +566,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         await save();
       }),
       Container(width: 4, height: 42, decoration: BoxDecoration(color: purple, borderRadius: BorderRadius.circular(4))),
-      const SizedBox(width: 10),
+      SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(session.title, style: TextStyle(fontWeight: FontWeight.w800,
           decoration: session.completed ? TextDecoration.lineThrough : null)),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text('${session.subject} • ${_formatStudyTime(session.startMinutes)} • ${session.durationMinutes} دقیقه',
-          style: const TextStyle(fontSize: 12, color: muted)),
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
       IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
-        icon: const Icon(Icons.edit_outlined, color: purple)),
+        icon: Icon(Icons.edit_outlined, color: purple)),
       IconButton(tooltip: 'حذف جلسه', onPressed: () async {
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
         await save();
-      }, icon: const Icon(Icons.delete_outline_rounded, color: muted)),
+      }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]),
   );
 
@@ -582,9 +589,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget summary(String label, int value, IconData icon) => Container(padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, color: purple), const SizedBox(height: 8),
-      Text(value.toString(), style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
-      Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+      Icon(icon, color: purple), SizedBox(height: 8),
+      Text(value.toString(), style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
 
   Widget taskTile(StudyTask task) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -593,21 +600,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Checkbox(value: task.done, activeColor: purple, onChanged: (value) async { setState(() => task.done = value ?? false); await save(); }),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
-        const SizedBox(height: 4), Text(task.subject, style: const TextStyle(fontSize: 12, color: muted)),
+        SizedBox(height: 4), Text(task.subject, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
       IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
-        icon: const Icon(Icons.edit_outlined, color: purple)),
+        icon: Icon(Icons.edit_outlined, color: purple)),
       IconButton(tooltip: 'حذف', onPressed: () async { setState(() => tasks.removeWhere((e) => e.id == task.id)); await save(); },
-        icon: const Icon(Icons.delete_outline_rounded, color: muted)),
+        icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
 
   Widget answerSheet() => ListView(padding: const EdgeInsets.all(20), children: [
-    const Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
-    const SizedBox(height: 6), const Text('برای هر آزمون پاسخ‌ها و کلید جداگانه نگه‌داری می‌شود.', style: TextStyle(color: muted, height: 1.6)),
-    const SizedBox(height: 12),
+    Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+    SizedBox(height: 6), Text('برای هر آزمون پاسخ‌ها و کلید جداگانه نگه‌داری می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.6)),
+    SizedBox(height: 12),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Expanded(child: Text(activeExam.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
+        Expanded(child: Text(activeExam.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
         PopupMenuButton<String>(
           tooltip: 'مدیریت آزمون',
           onSelected: (action) {
@@ -623,7 +630,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       DropdownButtonFormField<String>(
         initialValue: activeExamId,
         isExpanded: true,
-        decoration: const InputDecoration(labelText: 'آزمون فعال', border: OutlineInputBorder()),
+        decoration: InputDecoration(labelText: 'آزمون فعال', border: OutlineInputBorder()),
         items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
         onChanged: (value) async {
           if (value == null) return;
@@ -640,32 +647,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           await save();
         },
       ),
-      const SizedBox(height: 8),
-      OutlinedButton.icon(onPressed: addExam, icon: const Icon(Icons.add_rounded), label: const Text('ساخت پاسخ‌برگ جدید')),
+      SizedBox(height: 8),
+      OutlinedButton.icon(onPressed: addExam, icon: Icon(Icons.add_rounded), label: Text('ساخت پاسخ‌برگ جدید')),
     ]))),
-    const SizedBox(height: 12),
+    SizedBox(height: 12),
     _buildExamTimerCard(),
-    const SizedBox(height: 12),
+    SizedBox(height: 12),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
-      const Expanded(child: Text('تعداد سؤال‌ها', style: TextStyle(fontWeight: FontWeight.w700))),
-      IconButton(onPressed: count > 1 ? () => resize(count - 1) : null, icon: const Icon(Icons.remove_circle_outline)),
-      Text(count.toString(), style: const TextStyle(fontWeight: FontWeight.w800)),
-      IconButton(onPressed: count < 200 ? () => resize(count + 1) : null, icon: const Icon(Icons.add_circle_outline)),
+      Expanded(child: Text('تعداد سؤال‌ها', style: TextStyle(fontWeight: FontWeight.w700))),
+      IconButton(onPressed: count > 1 ? () => resize(count - 1) : null, icon: Icon(Icons.remove_circle_outline)),
+      Text(count.toString(), style: TextStyle(fontWeight: FontWeight.w800)),
+      IconButton(onPressed: count < 200 ? () => resize(count + 1) : null, icon: Icon(Icons.add_circle_outline)),
     ]))),
-    const SizedBox(height: 12),
+    SizedBox(height: 12),
     Wrap(spacing: 12, children: [
       legend(const Color(0xFFDCF4E8), 'پاسخ‌داده‌شده'),
       legend(const Color(0xFFFFE9CF), 'نیازمند مرور'),
       legend(Theme.of(context).cardColor, 'بدون پاسخ'),
     ]),
-    const SizedBox(height: 12),
+    SizedBox(height: 12),
     Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        const Expanded(child: Text('کلید و نتیجه آزمون', style: TextStyle(fontWeight: FontWeight.w800))),
-        TextButton.icon(onPressed: editAnswerKey, icon: const Icon(Icons.key_rounded), label: const Text('تنظیم کلید')),
+        Expanded(child: Text('کلید و نتیجه آزمون', style: TextStyle(fontWeight: FontWeight.w800))),
+        TextButton.icon(onPressed: editAnswerKey, icon: Icon(Icons.key_rounded), label: Text('تنظیم کلید')),
       ]),
-      Text('کلید ثبت‌شده: ${answerKey.length} از $count سؤال', style: const TextStyle(color: muted, fontSize: 12)),
-      const SizedBox(height: 10),
+      Text('کلید ثبت‌شده: ${answerKey.length} از $count سؤال', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+      SizedBox(height: 10),
       Builder(builder: (context) {
         final score = calculateAnswerScore(answers: answers, answerKey: answerKey, questionCount: count);
         return Row(children: [
@@ -675,19 +682,19 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           Expanded(child: _scoreMetric('درصد', score.percentage.round(), purple, suffix: '%')),
         ]);
       }),
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
       SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
           onPressed: _savingExamResult ? null : saveExamResult,
           icon: _savingExamResult
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : const Icon(Icons.save_alt_rounded),
-          label: const Text('ثبت نتیجه در تاریخچه'),
+              ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : Icon(Icons.save_alt_rounded),
+          label: Text('ثبت نتیجه در تاریخچه'),
         ),
       ),
     ]))),
-    const SizedBox(height: 16),
+    SizedBox(height: 16),
     GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: count,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 9, crossAxisSpacing: 9, childAspectRatio: 1.35),
       itemBuilder: (context, index) {
@@ -697,14 +704,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final bg = isMarked ? const Color(0xFFFFE9CF) : answered ? const Color(0xFFDCF4E8) : Theme.of(context).cardColor;
         return Material(color: bg, borderRadius: BorderRadius.circular(14), child: InkWell(borderRadius: BorderRadius.circular(14), onTap: () => editAnswer(n),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('$n', style: const TextStyle(fontWeight: FontWeight.w800)),
-            if (answered) Text(['الف', 'ب', 'ج', 'د'][answers[n]!], style: const TextStyle(fontSize: 11, color: muted)),
-            if (isMarked) const Icon(Icons.flag_rounded, size: 12, color: Color(0xFFB86C11)),
+            Text('$n', style: TextStyle(fontWeight: FontWeight.w800)),
+            if (answered) Text(['الف', 'ب', 'ج', 'د'][answers[n]!], style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            if (isMarked) Icon(Icons.flag_rounded, size: 12, color: Color(0xFFB86C11)),
           ])));
       }),
-    const SizedBox(height: 16),
+    SizedBox(height: 16),
     Text('پاسخ‌ها: ${answers.length} از $count  •  علامت مرور: ${marked.length}',
-      style: const TextStyle(color: muted, fontSize: 13)),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
   ]);
 
   Future<void> saveExamResult() async {
@@ -716,7 +723,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (score.keyedQuestions == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ابتدا کلید پاسخ را ثبت کن تا نتیجه قابل محاسبه باشد.')),
+        SnackBar(content: Text('ابتدا کلید پاسخ را ثبت کن تا نتیجه قابل محاسبه باشد.')),
       );
       return;
     }
@@ -743,7 +750,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() => _savingExamResult = false);
     if (saved) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
+        SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
       );
     }
   }
@@ -759,27 +766,27 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
       children: [
-        const Text('تاریخچه و پیشرفت', style: TextStyle(
-          fontSize: 25, fontWeight: FontWeight.w800, color: ink,
+        Text('تاریخچه و پیشرفت', style: TextStyle(
+          fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
         )),
-        const SizedBox(height: 6),
-        const Text('نتایج ذخیره‌شده آزمون‌ها و روند درصدها را دنبال کن.',
-          style: TextStyle(color: muted)),
-        const SizedBox(height: 18),
+        SizedBox(height: 6),
+        Text('نتایج ذخیره‌شده آزمون‌ها و روند درصدها را دنبال کن.',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        SizedBox(height: 18),
         Row(children: [
           Expanded(child: summary('آزمون‌ها', results.length, Icons.assignment_turned_in_outlined)),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(child: summary('میانگین درصد', average.round(), Icons.insights_rounded)),
         ]),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         if (results.isEmpty)
           emptyState(Icons.show_chart_rounded, 'هنوز نتیجه‌ای ذخیره نشده',
             'به بخش پاسخ‌برگ برو، کلید پاسخ را تنظیم کن و «ثبت نتیجه در تاریخچه» را بزن.')
         else ...[
-          const Text('روند ۷ نتیجه اخیر', style: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w800, color: ink,
+          Text('روند ۷ نتیجه اخیر', style: TextStyle(
+            fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
           )),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(14),
@@ -790,7 +797,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       padding: const EdgeInsets.symmetric(vertical: 7),
                       child: Row(children: [
                         SizedBox(width: 26, child: Text('${i + 1}',
-                          style: const TextStyle(color: muted))),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))),
                         Expanded(child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
@@ -799,11 +806,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                           ),
                         )),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         SizedBox(width: 46, child: Text(
                           '${chartResults[i].percentage.round()}%',
                           textAlign: TextAlign.end,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+                          style: TextStyle(fontWeight: FontWeight.w800),
                         )),
                       ]),
                     ),
@@ -811,11 +818,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
-          const Text('همه نتایج', style: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w800, color: ink,
+          SizedBox(height: 20),
+          Text('همه نتایج', style: TextStyle(
+            fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
           )),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           for (final result in sorted)
             Card(
               margin: const EdgeInsets.only(bottom: 10),
@@ -828,25 +835,25 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       color: purple.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.assignment_turned_in_outlined, color: purple),
+                    child: Icon(Icons.assignment_turned_in_outlined, color: purple),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(result.examName, style: const TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 4),
+                      Text(result.examName, style: TextStyle(fontWeight: FontWeight.w800)),
+                      SizedBox(height: 4),
                       Text(
                         '${result.dateTime.day.toString().padLeft(2, '0')}/${result.dateTime.month.toString().padLeft(2, '0')}/${result.dateTime.year}',
-                        style: const TextStyle(color: muted, fontSize: 12),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Text('درست: ${result.correct}  •  غلط: ${result.wrong}  •  بی‌پاسخ: ${result.unanswered}',
-                        style: const TextStyle(fontSize: 12)),
+                        style: TextStyle(fontSize: 12)),
                     ],
                   )),
                   Text('${result.percentage.round()}%',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: purple)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: purple)),
                 ]),
               ),
             ),
@@ -898,7 +905,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         _examDeadline = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+        SnackBar(content: Text('زمان آزمون به پایان رسید.')),
       );
       return;
     }
@@ -922,7 +929,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       });
       if (remaining <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+          SnackBar(content: Text('زمان آزمون به پایان رسید.')),
         );
       }
       return;
@@ -960,12 +967,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(children: [
+            Row(children: [
               Icon(Icons.timer_outlined, color: purple),
               SizedBox(width: 8),
               Text('زمان‌سنج آزمون', style: TextStyle(fontWeight: FontWeight.w800)),
             ]),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Row(children: [
               Expanded(
                 child: Text(
@@ -980,11 +987,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
               ),
               if (_examTimerRunning && isForActiveExam)
-                const Chip(label: Text('در حال اجرا'))
+                Chip(label: Text('در حال اجرا'))
               else if (remaining > 0 && isForActiveExam)
-                const Chip(label: Text('متوقف')),
+                Chip(label: Text('متوقف')),
             ]),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -999,7 +1006,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   ),
               ],
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Wrap(spacing: 8, runSpacing: 8, children: [
               FilledButton.icon(
                 onPressed: _toggleExamTimer,
@@ -1016,14 +1023,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 onPressed: remaining > 0 || (_examTimerRunning && isForActiveExam)
                     ? _resetExamTimer
                     : null,
-                icon: const Icon(Icons.restart_alt_rounded),
-                label: const Text('از نو'),
+                icon: Icon(Icons.restart_alt_rounded),
+                label: Text('از نو'),
               ),
             ]),
-            const SizedBox(height: 4),
-            const Text(
+            SizedBox(height: 4),
+            Text(
               'زمان‌سنج هنگام جابه‌جایی بین بخش‌های برنامه هم ادامه پیدا می‌کند؛ با بستن برنامه از نو شروع می‌شود.',
-              style: TextStyle(color: muted, fontSize: 11, height: 1.5),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.5),
             ),
           ],
         ),
@@ -1033,7 +1040,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget legend(Color color, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
-    const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+    SizedBox(width: 5), Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
   ]);
 
   Map<int, int> _readIntMap(String? raw) {
@@ -1077,16 +1084,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> deleteExam() async {
     if (exams.length == 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
+        SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
       );
       return;
     }
     final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-      title: const Text('حذف پاسخ‌برگ'),
+      title: Text('حذف پاسخ‌برگ'),
       content: Text('«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text('حذف')),
       ],
     ));
     if (confirmed != true) return;
@@ -1110,18 +1117,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
         title: Text('سؤال $number'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Align(alignment: Alignment.centerRight, child: Text('گزینهٔ پاسخ')),
-          const SizedBox(height: 8),
+          Align(alignment: Alignment.centerRight, child: Text('گزینهٔ پاسخ')),
+          SizedBox(height: 8),
           Wrap(spacing: 6, children: List.generate(4, (i) => ChoiceChip(
             label: Text(['الف', 'ب', 'ج', 'د'][i]), selected: answer == i,
             onSelected: (_) => dialogSet(() => answer = answer == i ? null : i)))),
-          CheckboxListTile(contentPadding: EdgeInsets.zero, value: flag, title: const Text('نیاز به مرور دارد'),
+          CheckboxListTile(contentPadding: EdgeInsets.zero, value: flag, title: Text('نیاز به مرور دارد'),
             onChanged: (value) => dialogSet(() => flag = value ?? false)),
-          TextButton(onPressed: () => dialogSet(() => answer = null), child: const Text('پاک کردن پاسخ')),
+          TextButton(onPressed: () => dialogSet(() => answer = null), child: Text('پاک کردن پاسخ')),
         ]),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(context, (answer: answer, marked: flag)), child: const Text('ذخیره')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(context, (answer: answer, marked: flag)), child: Text('ذخیره')),
         ],
       )));
     if (result == null) return;
@@ -1141,17 +1148,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget _scoreMetric(String label, int value, Color color, {String suffix = ''}) => Column(children: [
     Text('$value$suffix', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: color)),
-    Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+    Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
   ]);
 
   Future<void> editAnswerKey() async {
     if (answerKey.length < count) {
       final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-        title: const Text('تنظیم کلید پاسخ'),
+        title: Text('تنظیم کلید پاسخ'),
         content: Text('برای محاسبه نتیجه، گزینه صحیح هر سؤال را وارد کن. فعلاً برای $count سؤال، کلید ${answerKey.length} سؤال ثبت شده است.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('بعداً')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('شروع')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('بعداً')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text('شروع')),
         ],
       ));
       if (!mounted || confirmed != true) return;
@@ -1159,13 +1166,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
       final draft = Map<int, int>.from(answerKey);
       return StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: const Text('کلید پاسخ‌ها'),
+        title: Text('کلید پاسخ‌ها'),
         content: SizedBox(width: 420, height: 420, child: ListView.builder(
           itemCount: count,
           itemBuilder: (context, index) {
             final n = index + 1;
             return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
-              SizedBox(width: 52, child: Text('سؤال $n', style: const TextStyle(fontWeight: FontWeight.w700))),
+              SizedBox(width: 52, child: Text('سؤال $n', style: TextStyle(fontWeight: FontWeight.w700))),
               Expanded(child: Wrap(spacing: 4, children: List.generate(4, (i) => ChoiceChip(
                 visualDensity: VisualDensity.compact,
                 label: Text(['الف', 'ب', 'ج', 'د'][i]),
@@ -1178,9 +1185,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           },
         )),
         actions: [
-          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: const Text('پاک‌کردن کلید')),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(context, draft), child: const Text('ذخیره کلید')),
+          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن کلید')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(context, draft), child: Text('ذخیره کلید')),
         ],
       ));
     });
@@ -1190,34 +1197,34 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget settings() => ListView(padding: const EdgeInsets.all(20), children: [
-    const Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
-    const SizedBox(height: 6), const Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: muted)),
-    const SizedBox(height: 18),
+    Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+    SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    SizedBox(height: 18),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
+      Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
       RadioGroup<ThemeMode>(
         groupValue: widget.mode,
         onChanged: (value) {
           if (value != null) widget.onModeChanged(value);
         },
-        child: const Column(children: [
+        child: Column(children: [
           RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.system, title: Text('مطابق دستگاه')),
           RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.light, title: Text('روشن')),
           RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.dark, title: Text('تیره')),
         ]),
       ),
     ]))),
-    const SizedBox(height: 12),
-    const Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: purple), title: Text('ذخیره‌سازی محلی'),
+    SizedBox(height: 12),
+    Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: purple), title: Text('ذخیره‌سازی محلی'),
       subtitle: Text('وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.'))),
   ]);
 
   Widget emptyState(IconData icon, String title, String subtitle) => Container(padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(22)),
     child: Column(children: [
-      Icon(icon, color: purple, size: 38), const SizedBox(height: 10),
-      Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-      const SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: muted, fontSize: 12, height: 1.6)),
+      Icon(icon, color: purple, size: 38), SizedBox(height: 10),
+      Text(title, style: TextStyle(fontWeight: FontWeight.w800)),
+      SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.6)),
     ]));
 
   bool _hasOverlappingSession(StudySession candidate, {String? excludingId}) {
@@ -1312,19 +1319,19 @@ class _TaskEditorDialogState extends State<_TaskEditorDialog> {
         controller: _titleController,
         autofocus: true,
         maxLength: 100,
-        decoration: const InputDecoration(labelText: 'عنوان وظیفه'),
+        decoration: InputDecoration(labelText: 'عنوان وظیفه'),
       ),
-      const SizedBox(height: 10),
+      SizedBox(height: 10),
       TextField(
         controller: _subjectController,
         maxLength: 50,
-        decoration: const InputDecoration(labelText: 'درس'),
+        decoration: InputDecoration(labelText: 'درس'),
       ),
     ]),
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('انصراف'),
+        child: Text('انصراف'),
       ),
       FilledButton(
         onPressed: () {
@@ -1381,7 +1388,7 @@ class _ExamNameDialogState extends State<_ExamNameDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('انصراف'),
+        child: Text('انصراف'),
       ),
       FilledButton(
         onPressed: _submit,
@@ -1445,20 +1452,20 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
         TextField(
           controller: _titleController,
           autofocus: widget.existing == null,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'عنوان جلسه',
             hintText: 'مثلاً حل تمرین فصل اول',
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         TextField(
           controller: _subjectController,
-          decoration: const InputDecoration(labelText: 'درس'),
+          decoration: InputDecoration(labelText: 'درس'),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         DropdownButtonFormField<int>(
           initialValue: _weekday,
-          decoration: const InputDecoration(labelText: 'روز هفته'),
+          decoration: InputDecoration(labelText: 'روز هفته'),
           items: List.generate(
             7,
             (day) => DropdownMenuItem(value: day, child: Text(widget.weekDays[day])),
@@ -1467,12 +1474,12 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
             if (value != null) setState(() => _weekday = value);
           },
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('ساعت شروع'),
+          title: Text('ساعت شروع'),
           subtitle: Text(_formatTime(_startMinutes)),
-          trailing: const Icon(Icons.schedule_rounded),
+          trailing: Icon(Icons.schedule_rounded),
           onTap: () async {
             final picked = await showTimePicker(
               context: context,
@@ -1488,7 +1495,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
         ),
         DropdownButtonFormField<int>(
           initialValue: _durationMinutes,
-          decoration: const InputDecoration(labelText: 'مدت جلسه'),
+          decoration: InputDecoration(labelText: 'مدت جلسه'),
           items: const [
             DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
             DropdownMenuItem(value: 45, child: Text('۴۵ دقیقه')),
@@ -1506,7 +1513,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.pop(context),
-        child: const Text('انصراف'),
+        child: Text('انصراف'),
       ),
       FilledButton(
         onPressed: _submit,
