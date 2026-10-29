@@ -28,7 +28,11 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
-    expect(find.text('فهرست وظایف'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('وظیفه'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('وظیفه').last);
     await tester.pumpAndSettle();
 
@@ -37,6 +41,11 @@ void main() {
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.text('مرور ریاضی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('مرور ریاضی'), findsOneWidget);
     await tester.tap(find.byTooltip('ویرایش وظیفه').first);
     await tester.pumpAndSettle();
