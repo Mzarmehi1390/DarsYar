@@ -283,7 +283,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final pages = [dashboard(), planner(), answerSheet(), resultsHistory(), settings()];
     return Scaffold(
       body: SafeArea(child: loading ? const Center(child: CircularProgressIndicator()) : pages[tab]),
-      bottomNavigationBar: NavigationBar(
+      // Keep navigation and creation actions unavailable until stored data
+      // has been restored, otherwise a fast tap can race the initial load.
+      bottomNavigationBar: loading ? null : NavigationBar(
         selectedIndex: tab,
         onDestinationSelected: (value) => setState(() => tab = value),
         destinations: const [
@@ -294,7 +296,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           NavigationDestination(icon: Icon(Icons.tune_rounded), label: 'تنظیمات'),
         ],
       ),
-      floatingActionButton: tab == 1 ? FloatingActionButton.extended(
+      floatingActionButton: !loading && tab == 1 ? FloatingActionButton.extended(
         onPressed: addStudySession, backgroundColor: purple, foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded), label: const Text('جلسه جدید')) : null,
     );
