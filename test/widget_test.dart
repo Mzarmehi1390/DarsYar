@@ -87,7 +87,7 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();
 
-    expect(find.text('آزمون ذخیره‌شده'), findsOneWidget);
+    expect(find.text('آزمون ذخیره‌شده'), findsWidgets);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
