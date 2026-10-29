@@ -308,15 +308,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
       prefs = await SharedPreferences.getInstance();
       previousValues = {
-        for (final key in storageKeys) key: prefs!.getString(key),
+        for (final key in storageKeys) key: prefs.getString(key),
       };
 
       final writes = await Future.wait<bool>(
-        values.entries.map((entry) => prefs!.setString(entry.key, entry.value)),
+        values.entries.map((entry) => prefs.setString(entry.key, entry.value)),
       );
       if (writes.every((saved) => saved)) return true;
 
-      await rollbackStoredValues(prefs!, previousValues);
+      await rollbackStoredValues(prefs, previousValues);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
@@ -325,7 +325,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return false;
     } catch (_) {
       if (prefs != null && previousValues != null) {
-        await rollbackStoredValues(prefs!, previousValues);
+        await rollbackStoredValues(prefs, previousValues);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
