@@ -31,7 +31,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('وظیفه').last,
       250,
-      scrollable: find.byType(ListView).first,
+      scrollable: find.descendant(
+        of: find.byType(ListView).first,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     await tester.tap(find.text('وظیفه').last);
     await tester.pumpAndSettle();
@@ -44,7 +47,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('مرور ریاضی'),
       250,
-      scrollable: find.byType(ListView).first,
+      scrollable: find.descendant(
+        of: find.byType(ListView).first,
+        matching: find.byType(Scrollable),
+      ).first,
     );
     expect(find.text('مرور ریاضی'), findsOneWidget);
     await tester.tap(find.byTooltip('ویرایش وظیفه').first);
