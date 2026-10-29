@@ -44,7 +44,7 @@ class ExamSheet {
     return ExamSheet(
       id: json['id'] as String,
       name: json['name'] as String? ?? 'آزمون',
-      questionCount: count.clamp(1, 200),
+      questionCount: count.clamp(1, 200).toInt(),
       answers: parseAnswers(json['answers']),
       answerKey: parseAnswers(json['answerKey']),
       marked: parseMarked(json['marked']),
