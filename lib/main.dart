@@ -269,7 +269,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         selected: selectedStudyDay == day,
         onSelected: (_) => setState(() => selectedStudyDay = day),
       ))),
-      const SizedBox(height: 16),
+      const SizedBox(height: 20),
+      const Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+      const SizedBox(height: 10),
+      Wrap(spacing: 10, runSpacing: 10, children: List.generate(7, weekOverviewCard)),
+      const SizedBox(height: 20),
       Row(children: [
         Expanded(child: Text(weekDays[selectedStudyDay], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
         TextButton.icon(onPressed: addTask, icon: const Icon(Icons.checklist_rounded), label: const Text('وظیفه')),
@@ -284,6 +288,48 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، از دکمه «وظیفه» استفاده کن.')
       else ...tasks.map(taskTile),
     ]);
+  }
+
+  Widget weekOverviewCard(int day) {
+    final sessions = studySessions.where((session) => session.weekday == day).toList();
+    final minutes = sessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
+    final done = sessions.where((session) => session.completed).length;
+    final selected = day == selectedStudyDay;
+    return SizedBox(
+      width: (MediaQuery.of(context).size.width - 54) / 2,
+      child: Material(
+        color: selected ? purple.withValues(alpha: 0.10) : Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => setState(() => selectedStudyDay = day),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text(weekDays[day], style: TextStyle(
+                  fontWeight: FontWeight.w800, color: selected ? purple : null))),
+                if (selected) const Icon(Icons.check_circle_rounded, color: purple, size: 18),
+              ]),
+              const SizedBox(height: 8),
+              Text('${sessions.length} جلسه • ${minutes} دقیقه', style: const TextStyle(fontSize: 12, color: muted)),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  minHeight: 5,
+                  value: sessions.isEmpty ? 0 : done / sessions.length,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(sessions.isEmpty ? 'بدون برنامه' : '$done از ${sessions.length} انجام‌شده',
+                style: const TextStyle(fontSize: 11, color: muted)),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget studySessionTile(StudySession session) => Container(
@@ -306,6 +352,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Text('${session.subject} • ${_formatStudyTime(session.startMinutes)} • ${session.durationMinutes} دقیقه',
           style: const TextStyle(fontSize: 12, color: muted)),
       ])),
+      IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
+        icon: const Icon(Icons.edit_outlined, color: purple)),
       IconButton(tooltip: 'حذف جلسه', onPressed: () async {
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
         await save();
@@ -944,18 +992,29 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       const SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: muted, fontSize: 12, height: 1.6)),
     ]));
 
-  Future<void> addStudySession() async {
-    final titleController = TextEditingController();
-    final subjectController = TextEditingController();
-    var weekday = selectedStudyDay;
-    var startMinutes = 16 * 60;
-    var durationMinutes = 55;
+  bool _hasOverlappingSession(StudySession candidate, {String? excludingId}) {
+    final candidateEnd = candidate.startMinutes + candidate.durationMinutes;
+    return studySessions.any((session) {
+      if (session.id == excludingId || session.weekday != candidate.weekday) return false;
+      final existingEnd = session.startMinutes + session.durationMinutes;
+      return candidate.startMinutes < existingEnd && session.startMinutes < candidateEnd;
+    });
+  }
+
+  Future<void> addStudySession() => editStudySession();
+
+  Future<void> editStudySession([StudySession? existing]) async {
+    final titleController = TextEditingController(text: existing?.title ?? '');
+    final subjectController = TextEditingController(text: existing?.subject ?? '');
+    var weekday = existing?.weekday ?? selectedStudyDay;
+    var startMinutes = existing?.startMinutes ?? 16 * 60;
+    var durationMinutes = existing?.durationMinutes ?? 55;
     final result = await showDialog<StudySession>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, dialogSetState) => AlertDialog(
-        title: const Text('جلسه مطالعه جدید'),
+        title: Text(existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه'),
         content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: titleController, autofocus: true,
+          TextField(controller: titleController, autofocus: existing == null,
             decoration: const InputDecoration(labelText: 'عنوان جلسه', hintText: 'مثلاً حل تمرین فصل اول')),
           const SizedBox(height: 10),
           TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'درس')),
@@ -998,24 +1057,48 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
           FilledButton(onPressed: () {
             final title = titleController.text.trim();
-            if (title.isEmpty) return;
-            Navigator.pop(dialogContext, StudySession(
-              id: DateTime.now().microsecondsSinceEpoch.toString(),
+            if (title.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('عنوان جلسه را وارد کن.')),
+              );
+              return;
+            }
+            if (startMinutes + durationMinutes > 1440) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('جلسه نباید از نیمه‌شب عبور کند؛ ساعت شروع را تغییر بده.')),
+              );
+              return;
+            }
+            final candidate = StudySession(
+              id: existing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
               title: title,
               subject: subjectController.text.trim().isEmpty ? 'عمومی' : subjectController.text.trim(),
               weekday: weekday,
               startMinutes: startMinutes,
               durationMinutes: durationMinutes,
-            ));
-          }, child: const Text('افزودن')),
+              completed: existing?.completed ?? false,
+            );
+            if (_hasOverlappingSession(candidate, excludingId: existing?.id)) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('این زمان با یک جلسهٔ دیگر در همین روز تداخل دارد.')),
+              );
+              return;
+            }
+            Navigator.pop(dialogContext, candidate);
+          }, child: Text(existing == null ? 'افزودن' : 'ذخیره تغییرات')),
         ],
       )),
     );
     titleController.dispose();
     subjectController.dispose();
-    if (result == null) return;
+    if (result == null || !mounted) return;
     setState(() {
-      studySessions.add(result);
+      final index = studySessions.indexWhere((session) => session.id == result.id);
+      if (index < 0) {
+        studySessions.add(result);
+      } else {
+        studySessions[index] = result;
+      }
       selectedStudyDay = result.weekday;
     });
     await save();
