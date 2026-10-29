@@ -141,4 +141,27 @@ void main() {
   });
 
 
+  testWidgets('invalid backup is rejected without changing saved tasks', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.tasks': jsonEncode([
+        {'id': 'task-1', 'title': 'وظیفه موجود', 'subject': 'علوم', 'done': false},
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 4));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('بازیابی از متن JSON'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '{"app":"unknown","schemaVersion":99}');
+    await tester.tap(find.text('بررسی نسخه'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('نسخه پشتیبان معتبر نیست'), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    final savedTasks = jsonDecode(prefs.getString('darsyar.tasks')!) as List;
+    expect(savedTasks, hasLength(1));
+    expect(savedTasks.single['title'], 'وظیفه موجود');
+  });
+
 }
