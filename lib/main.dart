@@ -487,6 +487,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
         const SizedBox(height: 4), Text(task.subject, style: const TextStyle(fontSize: 12, color: muted)),
       ])),
+      IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
+        icon: const Icon(Icons.edit_outlined, color: purple)),
       IconButton(tooltip: 'حذف', onPressed: () async { setState(() => tasks.removeWhere((e) => e.id == task.id)); await save(); },
         icon: const Icon(Icons.delete_outline_rounded, color: muted)),
     ]));
@@ -1209,28 +1211,38 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await save();
   }
 
-  Future<void> addTask() async {
-    final titleController = TextEditingController();
-    final subjectController = TextEditingController();
+  Future<void> addTask([StudyTask? existing]) async {
+    final titleController = TextEditingController(text: existing?.title ?? '');
+    final subjectController = TextEditingController(text: existing?.subject ?? '');
     final result = await showDialog<(String, String)>(context: context, builder: (context) => AlertDialog(
-      title: const Text('وظیفه جدید'),
+      title: Text(existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(controller: titleController, autofocus: true, decoration: const InputDecoration(labelText: 'عنوان وظیفه')),
+        TextField(controller: titleController, autofocus: true, maxLength: 100,
+          decoration: const InputDecoration(labelText: 'عنوان وظیفه')),
         const SizedBox(height: 10),
-        TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'درس')),
+        TextField(controller: subjectController, maxLength: 50,
+          decoration: const InputDecoration(labelText: 'درس')),
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
         FilledButton(onPressed: () {
           final title = titleController.text.trim();
           if (title.isNotEmpty) Navigator.pop(context, (title, subjectController.text.trim()));
-        }, child: const Text('افزودن')),
+        }, child: Text(existing == null ? 'افزودن' : 'ذخیره')),
       ],
     ));
     titleController.dispose();
     subjectController.dispose();
-    if (result == null) return;
-    setState(() => tasks.add(StudyTask(DateTime.now().microsecondsSinceEpoch.toString(), result.$1, result.$2.isEmpty ? 'عمومی' : result.$2)));
+    if (result == null || !mounted) return;
+    setState(() {
+      final subject = result.$2.isEmpty ? 'عمومی' : result.$2;
+      if (existing == null) {
+        tasks.add(StudyTask(DateTime.now().microsecondsSinceEpoch.toString(), result.$1, subject));
+      } else {
+        existing.title = result.$1;
+        existing.subject = subject;
+      }
+    });
     await save();
   }
 }
