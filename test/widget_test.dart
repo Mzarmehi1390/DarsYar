@@ -28,8 +28,9 @@ void main() {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('برنامه‌ریزی').last);
+    await tester.tap(find.text('برنامه‌ریزی درسی').first);
     await tester.pumpAndSettle();
+    expect(find.text('فهرست وظایف'), findsOneWidget);
     await tester.tap(find.text('وظیفه').last);
     await tester.pumpAndSettle();
 
