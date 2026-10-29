@@ -39,6 +39,46 @@ class DarsYarApp extends StatefulWidget {
 
 class _DarsYarAppState extends State<DarsYarApp> {
   ThemeMode mode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
+
+  Future<void> _loadThemeMode() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString('darsyar.themeMode');
+      final restored = switch (stored) {
+        'light' => ThemeMode.light,
+        'dark' => ThemeMode.dark,
+        'system' => ThemeMode.system,
+        _ => null,
+      };
+      if (restored != null && mounted) {
+        setState(() => mode = restored);
+      }
+    } catch (_) {
+      // Theme preferences are optional; keep the system default if unavailable.
+    }
+  }
+
+  Future<void> _setThemeMode(ThemeMode value) async {
+    setState(() => mode = value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = switch (value) {
+        ThemeMode.light => 'light',
+        ThemeMode.dark => 'dark',
+        ThemeMode.system => 'system',
+      };
+      await prefs.setString('darsyar.themeMode', stored);
+    } catch (_) {
+      // The selected theme remains active for this run even if persistence fails.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final lightScheme = ColorScheme.fromSeed(seedColor: purple);
@@ -51,7 +91,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
         cardTheme: CardThemeData(elevation: 0, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)))),
       darkTheme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark), brightness: Brightness.dark),
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? const SizedBox()),
-      home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: (value) => setState(() => mode = value)),
+      home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
     );
   }
 }
