@@ -122,6 +122,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     } catch (_) {
       // Corrupt local data must not stop the app from starting.
     }
+    if (exams.isEmpty) {
+      exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
+    }
+    if (!exams.any((exam) => exam.id == activeExamId)) {
+      activeExamId = exams.first.id;
+    }
     if (mounted) setState(() => loading = false);
   }
 
