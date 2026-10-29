@@ -62,6 +62,25 @@ void main() {
         throwsFormatException);
   });
 
+  test('rejects empty and duplicate exam IDs', () {
+    final duplicateIds = validPayload(exams: [
+      {'id': 'same-id', 'name': 'آزمون اول'},
+      {'id': 'same-id', 'name': 'آزمون دوم'},
+    ]);
+    final emptyId = validPayload(exams: [
+      {'id': '  ', 'name': 'آزمون بدون شناسه'},
+    ]);
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(duplicateIds)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(emptyId)),
+      throwsFormatException,
+    );
+  });
+
   test('falls back to first exam if active exam ID is missing or stale', () {
     final stale = DarsYarBackupCodec.decode(
       jsonEncode(validPayload(activeExamId: 'deleted-exam')),
