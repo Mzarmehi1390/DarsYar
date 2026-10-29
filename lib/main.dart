@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
 import 'exam_sheet.dart';
@@ -1249,6 +1250,178 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await save();
   }
 
+
+  Map<String, dynamic> _createBackupPayload() => {
+    'app': 'DarsYar',
+    'schemaVersion': 1,
+    'exportedAt': DateTime.now().toUtc().toIso8601String(),
+    'activeExamId': activeExamId,
+    'tasks': tasks.map((item) => item.toJson()).toList(),
+    'studySessions': studySessions.map((item) => item.toJson()).toList(),
+    'exams': exams.map((item) => item.toJson()).toList(),
+    'results': results.map((item) => item.toJson()).toList(),
+  };
+
+  Future<void> exportBackup() async {
+    try {
+      final backup = const JsonEncoder.withIndent('  ').convert(_createBackupPayload());
+      await Clipboard.setData(ClipboardData(text: backup));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('نسخه پشتیبان در کلیپ‌بورد کپی شد؛ آن را در یک فایل امن ذخیره کن.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ساخت نسخه پشتیبان انجام نشد. دوباره تلاش کن.')),
+      );
+    }
+  }
+
+  Future<void> importBackup() async {
+    final controller = TextEditingController();
+    final raw = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('بازیابی نسخه پشتیبان'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('متن JSON نسخه پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید با اطلاعات نسخه پشتیبان جایگزین می‌شوند.'),
+              SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                minLines: 5,
+                maxLines: 12,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  hintText: 'محتوای نسخه پشتیبان…',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: Text('بررسی نسخه'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (raw == null || raw.trim().isEmpty || !mounted) return;
+
+    List<StudyTask> importedTasks;
+    List<StudySession> importedSessions;
+    List<ExamSheet> importedExams;
+    List<ExamResult> importedResults;
+    String importedActiveExamId;
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic> ||
+          decoded['app'] != 'DarsYar' ||
+          decoded['schemaVersion'] != 1) {
+        throw const FormatException('Unsupported backup format');
+      }
+
+      List<dynamic> readList(String key) {
+        final value = decoded[key];
+        if (value is! List) throw FormatException('Invalid $key');
+        return value;
+      }
+
+      importedTasks = readList('tasks').map((item) {
+        if (item is! Map) throw const FormatException('Invalid task');
+        return StudyTask.fromJson(Map<String, dynamic>.from(item));
+      }).toList();
+
+      importedSessions = readList('studySessions').map((item) {
+        if (item is! Map) throw const FormatException('Invalid study session');
+        return StudySession.fromJson(Map<String, dynamic>.from(item));
+      }).toList();
+
+      importedExams = readList('exams').map((item) {
+        if (item is! Map) throw const FormatException('Invalid exam sheet');
+        return ExamSheet.fromJson(Map<String, dynamic>.from(item));
+      }).toList();
+
+      importedResults = readList('results').map((item) {
+        if (item is! Map) throw const FormatException('Invalid exam result');
+        return ExamResult.fromJson(Map<String, dynamic>.from(item));
+      }).toList();
+
+      if (importedExams.isEmpty) {
+        throw const FormatException('Backup has no exam sheets');
+      }
+      final ids = importedExams.map((exam) => exam.id).toSet();
+      final requestedActiveId = decoded['activeExamId'];
+      importedActiveExamId = requestedActiveId is String && ids.contains(requestedActiveId)
+          ? requestedActiveId
+          : importedExams.first.id;
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('نسخه پشتیبان معتبر نیست یا با این نسخه از درس‌یار سازگار نیست؛ اطلاعات فعلی تغییر نکرد.')),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('جایگزینی اطلاعات؟'),
+        content: Text(
+          'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
+          '${importedExams.length} پاسخ‌برگ و ${importedResults.length} نتیجه آزمون وجود دارد. '
+          'اطلاعات فعلی با این داده‌ها جایگزین می‌شوند.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text('بازیابی')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final oldTasks = List<StudyTask>.from(tasks);
+    final oldSessions = List<StudySession>.from(studySessions);
+    final oldExams = List<ExamSheet>.from(exams);
+    final oldResults = List<ExamResult>.from(results);
+    final oldActiveExamId = activeExamId;
+    setState(() {
+      tasks..clear()..addAll(importedTasks);
+      studySessions..clear()..addAll(importedSessions);
+      exams..clear()..addAll(importedExams);
+      results..clear()..addAll(importedResults);
+      activeExamId = importedActiveExamId;
+    });
+
+    if (await save()) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('نسخه پشتیبان با موفقیت بازیابی شد.')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      tasks..clear()..addAll(oldTasks);
+      studySessions..clear()..addAll(oldSessions);
+      exams..clear()..addAll(oldExams);
+      results..clear()..addAll(oldResults);
+      activeExamId = oldActiveExamId;
+    });
+    await save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('ذخیره نسخه بازیابی‌شده ناموفق بود؛ اطلاعات قبلی در برنامه بازگردانده شد.')),
+    );
+  }
+
   Widget settings() => ListView(padding: const EdgeInsets.all(20), children: [
     Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1270,6 +1443,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     SizedBox(height: 12),
     Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: purple), title: Text('ذخیره‌سازی محلی'),
       subtitle: Text('وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.'))),
+    SizedBox(height: 12),
+    Card(child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Icon(Icons.backup_outlined, color: purple),
+          SizedBox(width: 8),
+          Expanded(child: Text('پشتیبان‌گیری و بازیابی', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
+        ]),
+        SizedBox(height: 6),
+        Text('از وظایف، برنامه مطالعه، پاسخ‌برگ‌ها و نتایج آزمون نسخه پشتیبان بساز یا آن‌ها را بازیابی کن.',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5)),
+        SizedBox(height: 12),
+        SizedBox(width: double.infinity, child: FilledButton.icon(
+          onPressed: exportBackup,
+          icon: Icon(Icons.copy_all_rounded),
+          label: Text('ساخت نسخه پشتیبان و کپی JSON'),
+        )),
+        SizedBox(height: 8),
+        SizedBox(width: double.infinity, child: OutlinedButton.icon(
+          onPressed: importBackup,
+          icon: Icon(Icons.restore_rounded),
+          label: Text('بازیابی از متن JSON'),
+        )),
+      ]),
+    )),
   ]);
 
   Widget emptyState(IconData icon, String title, String subtitle) => Container(padding: const EdgeInsets.all(24),
