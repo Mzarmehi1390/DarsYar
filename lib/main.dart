@@ -104,7 +104,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
-    final prefs = await SharedPreferences.getInstance();
+    late final SharedPreferences prefs;
+    try {
+      prefs = await SharedPreferences.getInstance();
+    } catch (_) {
+      if (mounted) setState(() => loading = false);
+      return;
+    }
 
     // Read each storage key independently: one damaged section must not hide
     // otherwise valid tasks, study sessions, exam sheets, or results.
@@ -203,12 +209,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList()));
-    await prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList()));
-    await prefs.setString('darsyar.activeExamId', activeExamId);
-    await prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList()));
-    await prefs.setString('darsyar.studySessions', jsonEncode(studySessions.map((session) => session.toJson()).toList()));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final writes = await Future.wait<bool>([
+        prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList())),
+        prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList())),
+        prefs.setString('darsyar.activeExamId', activeExamId),
+        prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList())),
+        prefs.setString('darsyar.studySessions', jsonEncode(studySessions.map((session) => session.toJson()).toList())),
+      ]);
+      if (writes.every((saved) => saved)) return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ فضای ذخیره‌سازی را بررسی کن.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تغییرات ممکن است باقی نمانند.')),
+        );
+      }
+    }
   }
 
   int get completed => tasks.where((e) => e.done).length;
