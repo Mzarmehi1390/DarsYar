@@ -584,7 +584,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
         onChanged: (value) async {
           if (value == null) return;
-          if (value != activeExamId && _examTimerRunning) {
+          if (value != activeExamId) {
+            // A paused timer belongs to its original exam too; never let it
+            // silently resume after switching to a different answer sheet.
             _examTimer?.cancel();
             _examTimerRunning = false;
             _remainingExamSeconds = 0;
