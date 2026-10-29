@@ -56,17 +56,25 @@ class DarsYarBackupCodec {
     if (exams.isEmpty) {
       throw const FormatException('Backup has no exam sheets');
     }
-    final examIds = exams
-        .map((exam) => (exam as Map)['id'])
-        .whereType<String>()
-        .toSet();
+
+    // Exam IDs are used as stable identifiers throughout the app. Reject
+    // ambiguous IDs rather than silently restoring an unpredictable sheet.
+    final examIds = <String>{};
+    for (final item in exams) {
+      final id = (item as Map)['id'];
+      if (id is! String || id.trim().isEmpty) {
+        throw const FormatException('Every exam sheet must have a non-empty ID');
+      }
+      if (!examIds.add(id)) {
+        throw const FormatException('Exam sheet IDs must be unique');
+      }
+    }
+
     final requestedActiveId = payload['activeExamId'];
     payload['activeExamId'] =
         requestedActiveId is String && examIds.contains(requestedActiveId)
             ? requestedActiveId
-            : (exams.first as Map)['id'] is String
-                ? (exams.first as Map)['id'] as String
-                : '';
+            : (exams.first as Map)['id'] as String;
     return payload;
   }
 
