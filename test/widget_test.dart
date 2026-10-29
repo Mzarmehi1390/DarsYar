@@ -28,8 +28,10 @@ void main() {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-planner')));
+    await tester.pumpAndSettle();
+    expect(find.text('نمای کلی هفته'), findsOneWidget);
     expect(find.text('فهرست وظایف'), findsOneWidget);
     await tester.tap(find.text('وظیفه').last);
     await tester.pumpAndSettle();
