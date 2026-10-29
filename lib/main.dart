@@ -130,6 +130,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   bool _examTimerRunning = false;
   bool _savingExamResult = false;
   String? _timerExamId;
+  DateTime? _examDeadline;
 
   @override
   void dispose() {
@@ -633,6 +634,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             _examTimerRunning = false;
             _remainingExamSeconds = 0;
             _timerExamId = null;
+            _examDeadline = null;
           }
           setState(() => activeExamId = value);
           await save();
@@ -864,54 +866,74 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() {
       _remainingExamSeconds = _selectedDurationMinutes * 60;
       _timerExamId = activeExamId;
+      _examDeadline = DateTime.now().add(
+        Duration(seconds: _selectedDurationMinutes * 60),
+      );
       _examTimerRunning = true;
     });
-    _examTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_remainingExamSeconds <= 1) {
-        timer.cancel();
-        setState(() {
-          _remainingExamSeconds = 0;
-          _examTimerRunning = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
-        );
-        return;
-      }
-      setState(() => _remainingExamSeconds--);
+    _scheduleExamTimerTick();
+  }
+
+  void _scheduleExamTimerTick() {
+    _examTimer?.cancel();
+    _examTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateExamTimer();
     });
+  }
+
+  void _updateExamTimer() {
+    if (!mounted) {
+      _examTimer?.cancel();
+      return;
+    }
+    final deadline = _examDeadline;
+    if (!_examTimerRunning || deadline == null) return;
+
+    final remaining = deadline.difference(DateTime.now()).inSeconds;
+    if (remaining <= 0) {
+      _examTimer?.cancel();
+      setState(() {
+        _remainingExamSeconds = 0;
+        _examTimerRunning = false;
+        _examDeadline = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
+      );
+      return;
+    }
+
+    if (remaining != _remainingExamSeconds) {
+      setState(() => _remainingExamSeconds = remaining);
+    }
   }
 
   void _toggleExamTimer() {
     if (_examTimerRunning) {
+      final deadline = _examDeadline;
+      final remaining = deadline == null
+          ? _remainingExamSeconds
+          : deadline.difference(DateTime.now()).inSeconds;
       _examTimer?.cancel();
-      setState(() => _examTimerRunning = false);
+      setState(() {
+        _remainingExamSeconds = remaining.clamp(0, 24 * 60 * 60).toInt();
+        _examTimerRunning = false;
+        _examDeadline = null;
+      });
+      if (_remainingExamSeconds == 0) {
+        _updateExamTimer();
+      }
       return;
     }
+
     if (_remainingExamSeconds > 0 && _timerExamId == activeExamId) {
-      setState(() => _examTimerRunning = true);
-      _examTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-        if (_remainingExamSeconds <= 1) {
-          timer.cancel();
-          setState(() {
-            _remainingExamSeconds = 0;
-            _examTimerRunning = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('زمان آزمون به پایان رسید.')),
-          );
-          return;
-        }
-        setState(() => _remainingExamSeconds--);
+      setState(() {
+        _examTimerRunning = true;
+        _examDeadline = DateTime.now().add(
+          Duration(seconds: _remainingExamSeconds),
+        );
       });
+      _scheduleExamTimerTick();
     } else {
       _startExamTimer();
     }
@@ -923,6 +945,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _examTimerRunning = false;
       _remainingExamSeconds = 0;
       _timerExamId = null;
+      _examDeadline = null;
     });
   }
 
