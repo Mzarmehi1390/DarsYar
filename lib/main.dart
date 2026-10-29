@@ -273,9 +273,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       const Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       const SizedBox(height: 10),
       Wrap(spacing: 10, runSpacing: 10, children: List.generate(7, weekOverviewCard)),
+      const SizedBox(height: 16),
+      weeklyReportCard(),
       const SizedBox(height: 20),
       Row(children: [
         Expanded(child: Text(weekDays[selectedStudyDay], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+        PopupMenuButton<int>(
+          tooltip: 'کپی برنامه این روز',
+          icon: const Icon(Icons.copy_all_rounded),
+          onSelected: copySelectedDayTo,
+          itemBuilder: (context) => List.generate(7, (day) => PopupMenuItem<int>(
+            value: day,
+            enabled: day != selectedStudyDay,
+            child: Text('کپی برنامه به ${weekDays[day]}'),
+          )),
+        ),
         TextButton.icon(onPressed: addTask, icon: const Icon(Icons.checklist_rounded), label: const Text('وظیفه')),
       ]),
       if (daySessions.isEmpty)
@@ -288,6 +300,101 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، از دکمه «وظیفه» استفاده کن.')
       else ...tasks.map(taskTile),
     ]);
+  }
+
+  Widget weeklyReportCard() {
+    final plannedMinutes = studySessions.fold<int>(
+      0, (sum, session) => sum + session.durationMinutes,
+    );
+    final completedMinutes = studySessions
+        .where((session) => session.completed)
+        .fold<int>(0, (sum, session) => sum + session.durationMinutes);
+    final completion = plannedMinutes == 0 ? 0.0 : completedMinutes / plannedMinutes;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Row(children: [
+          Icon(Icons.insights_rounded, color: purple),
+          SizedBox(width: 8),
+          Text('گزارش هفتگی مطالعه', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        ]),
+        const SizedBox(height: 14),
+        Row(children: [
+          Expanded(child: _weeklyMetric('برنامه‌ریزی‌شده', plannedMinutes, 'دقیقه')),
+          Expanded(child: _weeklyMetric('مطالعه تکمیل‌شده', completedMinutes, 'دقیقه')),
+          Expanded(child: _weeklyMetric('پیشرفت', (completion * 100).round(), '٪')),
+        ]),
+        const SizedBox(height: 12),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            minHeight: 7,
+            value: completion,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          studySessions.isEmpty
+              ? 'با افزودن جلسه‌ها، گزارش اینجا نمایش داده می‌شود.'
+              : '${studySessions.where((session) => session.completed).length} از ${studySessions.length} جلسه تکمیل شده است.',
+          style: const TextStyle(fontSize: 12, color: muted),
+        ),
+      ]),
+    );
+  }
+
+  Widget _weeklyMetric(String label, int value, String unit) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('$value', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: purple)),
+      Text(unit, style: const TextStyle(fontSize: 11, color: muted)),
+      const SizedBox(height: 3),
+      Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+    ],
+  );
+
+  Future<void> copySelectedDayTo(int targetDay) async {
+    if (targetDay == selectedStudyDay) return;
+    final sourceSessions = studySessions
+        .where((session) => session.weekday == selectedStudyDay)
+        .toList()
+      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+    if (sourceSessions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('برای کپی‌کردن، ابتدا در این روز جلسه‌ای بساز.')),
+      );
+      return;
+    }
+    final copies = sourceSessions.map((session) => StudySession(
+      id: '${DateTime.now().microsecondsSinceEpoch}-${session.id}-${targetDay}',
+      title: session.title,
+      subject: session.subject,
+      weekday: targetDay,
+      startMinutes: session.startMinutes,
+      durationMinutes: session.durationMinutes,
+    )).toList();
+    final conflicts = copies.any((candidate) => _hasOverlappingSession(candidate));
+    if (conflicts) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('برنامه ${weekDays[targetDay]} با ساعت یکی از جلسه‌های فعلی تداخل دارد؛ چیزی کپی نشد.')),
+      );
+      return;
+    }
+    setState(() {
+      studySessions.addAll(copies);
+      selectedStudyDay = targetDay;
+    });
+    await save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${copies.length} جلسه به ${weekDays[targetDay]} کپی شد.')),
+    );
   }
 
   Widget weekOverviewCard(int day) {
