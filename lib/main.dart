@@ -312,7 +312,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 if (selected) const Icon(Icons.check_circle_rounded, color: purple, size: 18),
               ]),
               const SizedBox(height: 8),
-              Text('${sessions.length} جلسه • ${minutes} دقیقه', style: const TextStyle(fontSize: 12, color: muted)),
+              Text('${sessions.length} جلسه • $minutes دقیقه', style: const TextStyle(fontSize: 12, color: muted)),
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
