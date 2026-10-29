@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -67,4 +68,27 @@ void main() {
     expect(find.text('تمرین ریاضی'), findsOneWidget);
     expect(find.text('مرور ریاضی'), findsNothing);
   });
+  testWidgets('corrupt task storage does not block saved exam sheets', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.tasks': '{broken json',
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'saved-exam',
+          'name': 'آزمون ذخیره‌شده',
+          'questionCount': 10,
+          'answers': {'1': 2},
+          'answerKey': {'1': 2},
+          'marked': [3],
+        },
+      ]),
+      'darsyar.activeExamId': 'saved-exam',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('آزمون ذخیره‌شده'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
 }
