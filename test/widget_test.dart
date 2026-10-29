@@ -112,21 +112,20 @@ void main() {
   });
 
   testWidgets('cancelling task deletion keeps the task', (WidgetTester tester) async {
-    SharedPreferences.setMockInitialValues({
-      'darsyar.tasks': jsonEncode([
-        {'id': 'task-1', 'title': 'مرور علوم', 'subject': 'علوم', 'done': false},
-      ]),
-    });
-
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final taskTitle = find.text('مرور علوم');
-    expect(taskTitle, findsOneWidget);
-    final deleteButton = find.byIcon(Icons.delete_outline_rounded).first;
+    await tester.tap(find.text('وظیفه').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور علوم');
+    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
+    await tester.tap(find.text('افزودن').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('مرور علوم'), findsOneWidget);
+    final deleteButton = find.byTooltip('حذف').first;
     await tester.ensureVisible(deleteButton);
     await tester.tap(deleteButton);
-    await tester.pump();
     await tester.pumpAndSettle();
 
     expect(find.text('حذف وظیفه'), findsOneWidget);
@@ -139,7 +138,6 @@ void main() {
     expect(savedTasks, hasLength(1));
     expect(savedTasks.single['title'], 'مرور علوم');
   });
-
 
   testWidgets('invalid backup is rejected without changing saved tasks', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
