@@ -21,12 +21,30 @@ AnswerScore calculateAnswerScore({
   required Map<int, int> answerKey,
   required int questionCount,
 }) {
+  final safeQuestionCount = questionCount < 0 ? 0 : questionCount;
   var correct = 0;
   var wrong = 0;
 
-  for (final entry in answerKey.entries) {
-    if (entry.key < 1 || entry.key > questionCount) continue;
-    final selected = answers[entry.key];
+  // Only valid question numbers and options (0..3) can contribute to a score.
+  final validKey = <int, int>{
+    for (final entry in answerKey.entries)
+      if (entry.key >= 1 &&
+          entry.key <= safeQuestionCount &&
+          entry.value >= 0 &&
+          entry.value <= 3)
+        entry.key: entry.value,
+  };
+  final validAnswers = <int, int>{
+    for (final entry in answers.entries)
+      if (entry.key >= 1 &&
+          entry.key <= safeQuestionCount &&
+          entry.value >= 0 &&
+          entry.value <= 3)
+        entry.key: entry.value,
+  };
+
+  for (final entry in validKey.entries) {
+    final selected = validAnswers[entry.key];
     if (selected == null) continue;
     if (selected == entry.value) {
       correct++;
@@ -35,14 +53,14 @@ AnswerScore calculateAnswerScore({
     }
   }
 
-  final keyedQuestions = answerKey.keys.where((n) => n >= 1 && n <= questionCount).length;
-  final unanswered = questionCount - answers.keys.where((n) => n >= 1 && n <= questionCount).length;
+  final keyedQuestions = validKey.length;
+  final unanswered = safeQuestionCount - validAnswers.length;
   final percentage = keyedQuestions == 0 ? 0.0 : correct * 100 / keyedQuestions;
 
   return AnswerScore(
     correct: correct,
     wrong: wrong,
-    unanswered: unanswered < 0 ? 0 : unanswered,
+    unanswered: unanswered,
     keyedQuestions: keyedQuestions,
     percentage: percentage,
   );
