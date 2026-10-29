@@ -961,7 +961,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'درس')),
           const SizedBox(height: 10),
           DropdownButtonFormField<int>(
-            value: weekday,
+            initialValue: weekday,
             decoration: const InputDecoration(labelText: 'روز هفته'),
             items: List.generate(7, (day) => DropdownMenuItem(value: day, child: Text(weekDays[day]))),
             onChanged: (value) { if (value != null) dialogSetState(() => weekday = value); },
@@ -981,7 +981,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             },
           ),
           DropdownButtonFormField<int>(
-            value: durationMinutes,
+            initialValue: durationMinutes,
             decoration: const InputDecoration(labelText: 'مدت جلسه'),
             items: const [
               DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
