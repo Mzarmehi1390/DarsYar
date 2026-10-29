@@ -115,9 +115,16 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final addTaskButton = find.text('وظیفه').last;
-    await tester.ensureVisible(addTaskButton);
-    await tester.tap(addTaskButton);
+    final plannerList = find.byType(ListView).first;
+    final addTaskButton = find.text('وظیفه');
+    for (var attempt = 0; attempt < 8 && addTaskButton.evaluate().isEmpty; attempt++) {
+      await tester.drag(plannerList, const Offset(0, -420));
+      await tester.pumpAndSettle();
+    }
+    expect(addTaskButton, findsWidgets);
+    await tester.ensureVisible(addTaskButton.last);
+    await tester.pumpAndSettle();
+    await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور علوم');
     await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
@@ -151,7 +158,10 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 4));
     await tester.pumpAndSettle();
 
+    final settingsList = find.byType(ListView).first;
     final restoreButton = find.text('بازیابی از متن JSON');
+    await tester.drag(settingsList, const Offset(0, -420));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(restoreButton);
     await tester.tap(restoreButton);
     await tester.pumpAndSettle();
