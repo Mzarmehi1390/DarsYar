@@ -115,7 +115,9 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('وظیفه').last);
+    final addTaskButton = find.text('وظیفه').last;
+    await tester.ensureVisible(addTaskButton);
+    await tester.tap(addTaskButton);
     await tester.pumpAndSettle();
     await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور علوم');
     await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
@@ -149,7 +151,9 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 4));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('بازیابی از متن JSON'));
+    final restoreButton = find.text('بازیابی از متن JSON');
+    await tester.ensureVisible(restoreButton);
+    await tester.tap(restoreButton);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '{"app":"unknown","schemaVersion":99}');
     await tester.tap(find.text('بررسی نسخه'));
