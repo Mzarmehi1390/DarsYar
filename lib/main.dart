@@ -312,10 +312,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         for (final key in storageKeys) key: store.getString(key),
       };
 
-      final writes = await Future.wait<bool>(
-        values.entries.map((entry) => store.setString(entry.key, entry.value)),
-      );
-      if (writes.every((saved) => saved)) return true;
+      var writesSucceeded = true;
+      for (final entry in values.entries) {
+        final saved = await store.setString(entry.key, entry.value);
+        if (!saved) {
+          writesSucceeded = false;
+          break;
+        }
+      }
+      if (writesSucceeded) return true;
 
       await rollbackStoredValues(prefs, previousValues);
       if (mounted) {
