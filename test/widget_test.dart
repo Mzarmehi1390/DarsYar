@@ -118,15 +118,10 @@ void main() {
       ]),
     });
 
-    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpWidget(const DarsYarApp(initialTab: 0));
     await tester.pumpAndSettle();
 
-    final plannerList = find.byType(ListView).first;
     final taskTitle = find.text('مرور علوم');
-    for (var attempt = 0; attempt < 8 && taskTitle.evaluate().isEmpty; attempt++) {
-      await tester.drag(plannerList, const Offset(0, -420));
-      await tester.pumpAndSettle();
-    }
     expect(taskTitle, findsOneWidget);
     await tester.tap(find.byTooltip('حذف').first);
     await tester.pumpAndSettle();
