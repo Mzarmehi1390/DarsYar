@@ -909,25 +909,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> addExam() async {
-    final nameController = TextEditingController();
-    final name = await showDialog<String>(context: context, builder: (context) => AlertDialog(
-      title: const Text('پاسخ‌برگ جدید'),
-      content: TextField(
-        controller: nameController,
-        autofocus: true,
-        maxLength: 60,
-        decoration: const InputDecoration(labelText: 'نام آزمون', hintText: 'مثلاً آزمون ریاضی فصل اول'),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
-        FilledButton(onPressed: () {
-          final value = nameController.text.trim();
-          if (value.isNotEmpty) Navigator.pop(context, value);
-        }, child: const Text('ساختن')),
-      ],
-    ));
-    nameController.dispose();
-    if (name == null || name.trim().isEmpty) return;
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ExamNameDialog(),
+    );
+    if (name == null || name.trim().isEmpty || !mounted) return;
     final exam = ExamSheet(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name.trim(),
@@ -941,21 +927,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> renameExam() async {
-    final controller = TextEditingController(text: activeExam.name);
-    final name = await showDialog<String>(context: context, builder: (context) => AlertDialog(
-      title: const Text('تغییر نام آزمون'),
-      content: TextField(controller: controller, autofocus: true, maxLength: 60,
-        decoration: const InputDecoration(labelText: 'نام آزمون')),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
-        FilledButton(onPressed: () {
-          final value = controller.text.trim();
-          if (value.isNotEmpty) Navigator.pop(context, value);
-        }, child: const Text('ذخیره')),
-      ],
-    ));
-    controller.dispose();
-    if (name == null || name.trim().isEmpty) return;
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _ExamNameDialog(initialName: activeExam.name, isRename: true),
+    );
+    if (name == null || name.trim().isEmpty || !mounted) return;
     setState(() => activeExam.name = name.trim());
     await save();
   }
@@ -1116,93 +1092,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> addStudySession() => editStudySession();
 
   Future<void> editStudySession([StudySession? existing]) async {
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final subjectController = TextEditingController(text: existing?.subject ?? '');
-    var weekday = existing?.weekday ?? selectedStudyDay;
-    var startMinutes = existing?.startMinutes ?? 16 * 60;
-    var durationMinutes = existing?.durationMinutes ?? 55;
     final result = await showDialog<StudySession>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(builder: (dialogContext, dialogSetState) => AlertDialog(
-        title: Text(existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه'),
-        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: titleController, autofocus: existing == null,
-            decoration: const InputDecoration(labelText: 'عنوان جلسه', hintText: 'مثلاً حل تمرین فصل اول')),
-          const SizedBox(height: 10),
-          TextField(controller: subjectController, decoration: const InputDecoration(labelText: 'درس')),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<int>(
-            initialValue: weekday,
-            decoration: const InputDecoration(labelText: 'روز هفته'),
-            items: List.generate(7, (day) => DropdownMenuItem(value: day, child: Text(weekDays[day]))),
-            onChanged: (value) { if (value != null) dialogSetState(() => weekday = value); },
-          ),
-          const SizedBox(height: 10),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('ساعت شروع'),
-            subtitle: Text(_formatStudyTime(startMinutes)),
-            trailing: const Icon(Icons.schedule_rounded),
-            onTap: () async {
-              final picked = await showTimePicker(
-                context: dialogContext,
-                initialTime: TimeOfDay(hour: startMinutes ~/ 60, minute: startMinutes % 60),
-              );
-              if (picked != null) dialogSetState(() => startMinutes = picked.hour * 60 + picked.minute);
-            },
-          ),
-          DropdownButtonFormField<int>(
-            initialValue: durationMinutes,
-            decoration: const InputDecoration(labelText: 'مدت جلسه'),
-            items: const [
-              DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
-              DropdownMenuItem(value: 45, child: Text('۴۵ دقیقه')),
-              DropdownMenuItem(value: 55, child: Text('۵۵ دقیقه')),
-              DropdownMenuItem(value: 60, child: Text('۶۰ دقیقه')),
-              DropdownMenuItem(value: 90, child: Text('۹۰ دقیقه')),
-              DropdownMenuItem(value: 120, child: Text('۱۲۰ دقیقه')),
-            ],
-            onChanged: (value) { if (value != null) dialogSetState(() => durationMinutes = value); },
-          ),
-        ])),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('انصراف')),
-          FilledButton(onPressed: () {
-            final title = titleController.text.trim();
-            if (title.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('عنوان جلسه را وارد کن.')),
-              );
-              return;
-            }
-            if (startMinutes + durationMinutes > 1440) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جلسه نباید از نیمه‌شب عبور کند؛ ساعت شروع را تغییر بده.')),
-              );
-              return;
-            }
-            final candidate = StudySession(
-              id: existing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-              title: title,
-              subject: subjectController.text.trim().isEmpty ? 'عمومی' : subjectController.text.trim(),
-              weekday: weekday,
-              startMinutes: startMinutes,
-              durationMinutes: durationMinutes,
-              completed: existing?.completed ?? false,
-            );
-            if (_hasOverlappingSession(candidate, excludingId: existing?.id)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('این زمان با یک جلسهٔ دیگر در همین روز تداخل دارد.')),
-              );
-              return;
-            }
-            Navigator.pop(dialogContext, candidate);
-          }, child: Text(existing == null ? 'افزودن' : 'ذخیره تغییرات')),
-        ],
-      )),
+      builder: (_) => _StudySessionEditorDialog(
+        existing: existing,
+        initialWeekday: selectedStudyDay,
+        weekDays: weekDays,
+        hasOverlap: (candidate) => _hasOverlappingSession(
+          candidate,
+          excludingId: existing?.id,
+        ),
+      ),
     );
-    titleController.dispose();
-    subjectController.dispose();
     if (result == null || !mounted) return;
     setState(() {
       final index = studySessions.indexWhere((session) => session.id == result.id);
@@ -1298,4 +1199,213 @@ class _TaskEditorDialogState extends State<_TaskEditorDialog> {
       ),
     ],
   );
+}
+
+
+class _ExamNameDialog extends StatefulWidget {
+  const _ExamNameDialog({this.initialName = '', this.isRename = false});
+
+  final String initialName;
+  final bool isRename;
+
+  @override
+  State<_ExamNameDialog> createState() => _ExamNameDialogState();
+}
+
+class _ExamNameDialogState extends State<_ExamNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید'),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      maxLength: 60,
+      decoration: InputDecoration(
+        labelText: 'نام آزمون',
+        hintText: widget.isRename ? null : 'مثلاً آزمون ریاضی فصل اول',
+      ),
+      onSubmitted: (_) => _submit(),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: _submit,
+        child: Text(widget.isRename ? 'ذخیره' : 'ساختن'),
+      ),
+    ],
+  );
+
+  void _submit() {
+    final value = _controller.text.trim();
+    if (value.isNotEmpty) Navigator.pop(context, value);
+  }
+}
+
+class _StudySessionEditorDialog extends StatefulWidget {
+  const _StudySessionEditorDialog({
+    required this.initialWeekday,
+    required this.weekDays,
+    required this.hasOverlap,
+    this.existing,
+  });
+
+  final StudySession? existing;
+  final int initialWeekday;
+  final List<String> weekDays;
+  final bool Function(StudySession candidate) hasOverlap;
+
+  @override
+  State<_StudySessionEditorDialog> createState() => _StudySessionEditorDialogState();
+}
+
+class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _subjectController;
+  late int _weekday;
+  late int _startMinutes;
+  late int _durationMinutes;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.existing?.title ?? '');
+    _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
+    _weekday = widget.existing?.weekday ?? widget.initialWeekday;
+    _startMinutes = widget.existing?.startMinutes ?? 16 * 60;
+    _durationMinutes = widget.existing?.durationMinutes ?? 55;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _subjectController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه'),
+    content: SingleChildScrollView(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(
+          controller: _titleController,
+          autofocus: widget.existing == null,
+          decoration: const InputDecoration(
+            labelText: 'عنوان جلسه',
+            hintText: 'مثلاً حل تمرین فصل اول',
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _subjectController,
+          decoration: const InputDecoration(labelText: 'درس'),
+        ),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<int>(
+          initialValue: _weekday,
+          decoration: const InputDecoration(labelText: 'روز هفته'),
+          items: List.generate(
+            7,
+            (day) => DropdownMenuItem(value: day, child: Text(widget.weekDays[day])),
+          ),
+          onChanged: (value) {
+            if (value != null) setState(() => _weekday = value);
+          },
+        ),
+        const SizedBox(height: 10),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('ساعت شروع'),
+          subtitle: Text(_formatStudyTime(_startMinutes)),
+          trailing: const Icon(Icons.schedule_rounded),
+          onTap: () async {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay(
+                hour: _startMinutes ~/ 60,
+                minute: _startMinutes % 60,
+              ),
+            );
+            if (picked != null && mounted) {
+              setState(() => _startMinutes = picked.hour * 60 + picked.minute);
+            }
+          },
+        ),
+        DropdownButtonFormField<int>(
+          initialValue: _durationMinutes,
+          decoration: const InputDecoration(labelText: 'مدت جلسه'),
+          items: const [
+            DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
+            DropdownMenuItem(value: 45, child: Text('۴۵ دقیقه')),
+            DropdownMenuItem(value: 55, child: Text('۵۵ دقیقه')),
+            DropdownMenuItem(value: 60, child: Text('۶۰ دقیقه')),
+            DropdownMenuItem(value: 90, child: Text('۹۰ دقیقه')),
+            DropdownMenuItem(value: 120, child: Text('۱۲۰ دقیقه')),
+          ],
+          onChanged: (value) {
+            if (value != null) setState(() => _durationMinutes = value);
+          },
+        ),
+      ]),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: _submit,
+        child: Text(widget.existing == null ? 'افزودن' : 'ذخیره تغییرات'),
+      ),
+    ],
+  );
+
+  void _submit() {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      _showMessage('عنوان جلسه را وارد کن.');
+      return;
+    }
+    if (_startMinutes + _durationMinutes > 1440) {
+      _showMessage('جلسه نباید از نیمه‌شب عبور کند؛ ساعت شروع را تغییر بده.');
+      return;
+    }
+    final candidate = StudySession(
+      id: widget.existing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      title: title,
+      subject: _subjectController.text.trim().isEmpty
+          ? 'عمومی'
+          : _subjectController.text.trim(),
+      weekday: _weekday,
+      startMinutes: _startMinutes,
+      durationMinutes: _durationMinutes,
+      completed: widget.existing?.completed ?? false,
+    );
+    if (widget.hasOverlap(candidate)) {
+      _showMessage('این زمان با یک جلسهٔ دیگر در همین روز تداخل دارد.');
+      return;
+    }
+    Navigator.pop(context, candidate);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 }
