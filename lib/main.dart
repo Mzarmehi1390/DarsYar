@@ -121,6 +121,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     load();
   }
   bool loading = true;
+  // Serialize writes so a slower older save cannot overwrite newer state.
+  Future<bool> _saveQueue = Future<bool>.value(true);
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
@@ -257,7 +259,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  Future<bool> save() async {
+  Future<bool> save() {
+    final pending = _saveQueue.then((_) => _saveCurrentState());
+    _saveQueue = pending;
+    return pending;
+  }
+
+  Future<bool> _saveCurrentState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final writes = await Future.wait<bool>([
