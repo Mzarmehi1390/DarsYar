@@ -306,13 +306,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
       };
 
-      prefs = await SharedPreferences.getInstance();
+      final store = await SharedPreferences.getInstance();
+      prefs = store;
       previousValues = {
-        for (final key in storageKeys) key: prefs.getString(key),
+        for (final key in storageKeys) key: store.getString(key),
       };
 
       final writes = await Future.wait<bool>(
-        values.entries.map((entry) => prefs.setString(entry.key, entry.value)),
+        values.entries.map((entry) => store.setString(entry.key, entry.value)),
       );
       if (writes.every((saved) => saved)) return true;
 
