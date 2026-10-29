@@ -896,7 +896,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final deadline = _examDeadline;
     if (!_examTimerRunning || deadline == null) return;
 
-    final remaining = deadline.difference(DateTime.now()).inSeconds;
+    final millisecondsRemaining = deadline.difference(DateTime.now()).inMilliseconds;
+    final remaining = millisecondsRemaining <= 0
+        ? 0
+        : (millisecondsRemaining + 999) ~/ 1000;
     if (remaining <= 0) {
       _examTimer?.cancel();
       setState(() {
@@ -918,9 +921,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   void _toggleExamTimer() {
     if (_examTimerRunning) {
       final deadline = _examDeadline;
-      final remaining = deadline == null
+      final millisecondsRemaining = deadline?.difference(DateTime.now()).inMilliseconds;
+      final remaining = millisecondsRemaining == null
           ? _remainingExamSeconds
-          : deadline.difference(DateTime.now()).inSeconds;
+          : millisecondsRemaining <= 0
+              ? 0
+              : (millisecondsRemaining + 999) ~/ 1000;
       _examTimer?.cancel();
       setState(() {
         _remainingExamSeconds = remaining.clamp(0, 24 * 60 * 60).toInt();
