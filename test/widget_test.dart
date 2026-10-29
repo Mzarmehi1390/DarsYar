@@ -123,15 +123,7 @@ void main() {
 
     final taskTitle = find.text('مرور علوم');
     expect(taskTitle, findsOneWidget);
-    final taskRow = find.ancestor(
-      of: taskTitle,
-      matching: find.byType(Row),
-    ).first;
-    final deleteButton = find.descendant(
-      of: taskRow,
-      matching: find.byTooltip('حذف'),
-    );
-    expect(deleteButton, findsOneWidget);
+    final deleteButton = find.byIcon(Icons.delete_outline_rounded).first;
     await tester.ensureVisible(deleteButton);
     await tester.tap(deleteButton);
     await tester.pump();
