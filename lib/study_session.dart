@@ -69,6 +69,7 @@ class StudySession {
       completed: json['completed'] as bool? ?? false,
     );
   }
+}
 
 /// Returns true when two study sessions overlap on the same weekday.
 bool studySessionsOverlap(StudySession first, StudySession second) =>
