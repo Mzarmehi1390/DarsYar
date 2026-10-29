@@ -183,7 +183,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         onDestinationSelected: (value) => setState(() => tab = value),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'خانه'),
-          NavigationDestination(key: const ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
+          NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
           NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'پاسخ‌برگ'),
           NavigationDestination(icon: Icon(Icons.insights_rounded), label: 'نتایج'),
           NavigationDestination(icon: Icon(Icons.tune_rounded), label: 'تنظیمات'),
