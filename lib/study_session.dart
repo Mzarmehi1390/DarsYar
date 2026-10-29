@@ -20,13 +20,20 @@ class StudySession {
   final int durationMinutes;
   final bool completed;
 
-  StudySession copyWith({bool? completed}) => StudySession(
+  StudySession copyWith({
+    String? title,
+    String? subject,
+    int? weekday,
+    int? startMinutes,
+    int? durationMinutes,
+    bool? completed,
+  }) => StudySession(
         id: id,
-        title: title,
-        subject: subject,
-        weekday: weekday,
-        startMinutes: startMinutes,
-        durationMinutes: durationMinutes,
+        title: title ?? this.title,
+        subject: subject ?? this.subject,
+        weekday: weekday ?? this.weekday,
+        startMinutes: startMinutes ?? this.startMinutes,
+        durationMinutes: durationMinutes ?? this.durationMinutes,
         completed: completed ?? this.completed,
       );
 
