@@ -1,17 +1,32 @@
-# dars_yar
+# درس‌یار | DarsYar
 
-A new Flutter project.
+یک اپلیکیشن Flutter فارسی و راست‌چین برای برنامه‌ریزی درسی و ثبت پاسخ آزمون‌ها.
 
-## Getting Started
+## امکانات فعلی
 
-This project is a starting point for a Flutter application.
+- داشبورد پیشرفت وظایف درسی
+- افزودن، تکمیل و حذف وظایف با ذخیره‌سازی محلی
+- ساخت چند پاسخ‌برگ مستقل با نام اختصاصی
+- انتخاب تعداد سؤال هر آزمون از ۱ تا ۲۰۰
+- ثبت پاسخ‌های الف، ب، ج و د و علامت‌گذاری برای مرور
+- ثبت کلید صحیح و نمایش پاسخ‌های درست، غلط، بی‌پاسخ و درصد
+- ذخیره خودکار پاسخ‌برگ‌ها روی دستگاه
+- پشتیبانی از پوسته روشن، تیره و تنظیم دستگاه
+- انتقال خودکار داده‌های پاسخ‌برگ نسخه تک‌آزمونی قدیمی به ساختار چندآزمونی
 
-A few resources to get you started if this is your first Flutter project:
+## اجرا در محیط توسعه
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+نیازمندی‌ها: Flutter stable و Dart سازگار با نسخه درج‌شده در pubspec.yaml.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+    flutter pub get
+    flutter analyze
+    flutter test
+    flutter run
+
+## ذخیره‌سازی و حریم خصوصی
+
+اطلاعات وظایف و پاسخ‌برگ‌ها با shared_preferences روی همان دستگاه ذخیره می‌شوند. در نسخه فعلی همگام‌سازی ابری یا حساب کاربری وجود ندارد؛ پاک‌کردن داده‌های برنامه می‌تواند اطلاعات ذخیره‌شده را حذف کند.
+
+## وضعیت بررسی
+
+GitHub Actions برای اجرای خودکار تحلیل کد و تست‌ها پیکربندی شده است. تا زمانی که یک اجرای موفق در بخش Actions ثبت نشده باشد، نباید وضعیت build یا تست را موفق فرض کرد.
