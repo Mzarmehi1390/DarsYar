@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
+import 'exam_sheet.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,10 +64,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   int tab = 0;
   bool loading = true;
   final tasks = <StudyTask>[];
-  int count = 20;
-  final answers = <int, int>{};
-  final answerKey = <int, int>{};
-  final marked = <int>{};
+  final exams = <ExamSheet>[
+    ExamSheet(id: 'default', name: 'آزمون اول'),
+  ];
+  String activeExamId = 'default';
+
+  ExamSheet get activeExam => exams.firstWhere((exam) => exam.id == activeExamId, orElse: () => exams.first);
+  int get count => activeExam.questionCount;
+  set count(int value) => activeExam.questionCount = value;
+  Map<int, int> get answers => activeExam.answers;
+  Map<int, int> get answerKey => activeExam.answerKey;
+  Set<int> get marked => activeExam.marked;
 
   @override
   void initState() { super.initState(); load(); }
@@ -78,19 +86,39 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (raw != null) {
         tasks.addAll((jsonDecode(raw) as List<dynamic>).map((e) => StudyTask.fromJson(Map<String, dynamic>.from(e as Map))));
       }
-      final rawAnswers = prefs.getString('darsyar.answers');
-      if (rawAnswers != null) {
-        final map = Map<String, dynamic>.from(jsonDecode(rawAnswers) as Map);
-        answers.addAll(map.map((k, v) => MapEntry(int.parse(k), v as int)));
+      final rawExams = prefs.getString('darsyar.exams');
+      if (rawExams != null) {
+        final decoded = jsonDecode(rawExams) as List<dynamic>;
+        exams
+          ..clear()
+          ..addAll(decoded.map((item) => ExamSheet.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          )));
+      } else {
+        // Migrate existing single-sheet data without losing the user's answers.
+        final legacyAnswers = _readIntMap(prefs.getString('darsyar.answers'));
+        final legacyKey = _readIntMap(prefs.getString('darsyar.answerKey'));
+        final legacyMarkedRaw = prefs.getString('darsyar.marked');
+        final legacyMarked = legacyMarkedRaw == null
+            ? <int>{}
+            : (jsonDecode(legacyMarkedRaw) as List<dynamic>).cast<int>().toSet();
+        final legacyCount = prefs.getInt('darsyar.count') ?? 20;
+        exams
+          ..clear()
+          ..add(ExamSheet(
+            id: 'default',
+            name: 'آزمون اول',
+            questionCount: legacyCount.clamp(1, 200),
+            answers: legacyAnswers,
+            answerKey: legacyKey,
+            marked: legacyMarked,
+          ));
       }
-      final rawKey = prefs.getString('darsyar.answerKey');
-      if (rawKey != null) {
-        final map = Map<String, dynamic>.from(jsonDecode(rawKey) as Map);
-        answerKey.addAll(map.map((k, v) => MapEntry(int.parse(k), v as int)));
+      if (exams.isEmpty) {
+        exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
       }
-      final rawMarked = prefs.getString('darsyar.marked');
-      if (rawMarked != null) marked.addAll((jsonDecode(rawMarked) as List<dynamic>).cast<int>());
-      count = prefs.getInt('darsyar.count') ?? 20;
+      activeExamId = prefs.getString('darsyar.activeExamId') ?? exams.first.id;
+      if (!exams.any((exam) => exam.id == activeExamId)) activeExamId = exams.first.id;
     } catch (_) {
       // Corrupt local data must not stop the app from starting.
     }
@@ -100,10 +128,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList()));
-    await prefs.setString('darsyar.answers', jsonEncode(answers.map((k, v) => MapEntry(k.toString(), v))));
-    await prefs.setString('darsyar.marked', jsonEncode(marked.toList()));
-    await prefs.setString('darsyar.answerKey', jsonEncode(answerKey.map((k, v) => MapEntry(k.toString(), v))));
-    await prefs.setInt('darsyar.count', count);
+    await prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList()));
+    await prefs.setString('darsyar.activeExamId', activeExamId);
   }
 
   int get completed => tasks.where((e) => e.done).length;
@@ -214,8 +240,38 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget answerSheet() => ListView(padding: const EdgeInsets.all(20), children: [
     const Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink)),
-    const SizedBox(height: 6), const Text('پاسخ هر سؤال را انتخاب کن؛ علامت مرور مستقل از پاسخ است.', style: TextStyle(color: muted, height: 1.6)),
-    const SizedBox(height: 16),
+    const SizedBox(height: 6), const Text('برای هر آزمون پاسخ‌ها و کلید جداگانه نگه‌داری می‌شود.', style: TextStyle(color: muted, height: 1.6)),
+    const SizedBox(height: 12),
+    Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Expanded(child: Text(activeExam.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
+        PopupMenuButton<String>(
+          tooltip: 'مدیریت آزمون',
+          onSelected: (action) {
+            if (action == 'rename') renameExam();
+            if (action == 'delete') deleteExam();
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'rename', child: Text('تغییر نام آزمون')),
+            PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
+          ],
+        ),
+      ]),
+      DropdownButtonFormField<String>(
+        value: activeExamId,
+        isExpanded: true,
+        decoration: const InputDecoration(labelText: 'آزمون فعال', border: OutlineInputBorder()),
+        items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
+        onChanged: (value) async {
+          if (value == null) return;
+          setState(() => activeExamId = value);
+          await save();
+        },
+      ),
+      const SizedBox(height: 8),
+      OutlinedButton.icon(onPressed: addExam, icon: const Icon(Icons.add_rounded), label: const Text('ساخت پاسخ‌برگ جدید')),
+    ]))),
+    const SizedBox(height: 12),
     Card(child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
       const Expanded(child: Text('تعداد سؤال‌ها', style: TextStyle(fontWeight: FontWeight.w700))),
       IconButton(onPressed: count > 1 ? () => resize(count - 1) : null, icon: const Icon(Icons.remove_circle_outline)),
@@ -270,6 +326,92 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
     const SizedBox(width: 5), Text(label, style: const TextStyle(fontSize: 11, color: muted)),
   ]);
+
+  Map<int, int> _readIntMap(String? raw) {
+    if (raw == null) return <int, int>{};
+    try {
+      final map = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      return map.map((key, value) => MapEntry(int.parse(key), (value as num).toInt()));
+    } catch (_) {
+      return <int, int>{};
+    }
+  }
+
+  Future<void> addExam() async {
+    final nameController = TextEditingController();
+    final name = await showDialog<String>(context: context, builder: (context) => AlertDialog(
+      title: const Text('پاسخ‌برگ جدید'),
+      content: TextField(
+        controller: nameController,
+        autofocus: true,
+        maxLength: 60,
+        decoration: const InputDecoration(labelText: 'نام آزمون', hintText: 'مثلاً آزمون ریاضی فصل اول'),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+        FilledButton(onPressed: () {
+          final value = nameController.text.trim();
+          if (value.isNotEmpty) Navigator.pop(context, value);
+        }, child: const Text('ساختن')),
+      ],
+    ));
+    nameController.dispose();
+    if (name == null || name.trim().isEmpty) return;
+    final exam = ExamSheet(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: name.trim(),
+    );
+    setState(() {
+      exams.add(exam);
+      activeExamId = exam.id;
+      tab = 2;
+    });
+    await save();
+  }
+
+  Future<void> renameExam() async {
+    final controller = TextEditingController(text: activeExam.name);
+    final name = await showDialog<String>(context: context, builder: (context) => AlertDialog(
+      title: const Text('تغییر نام آزمون'),
+      content: TextField(controller: controller, autofocus: true, maxLength: 60,
+        decoration: const InputDecoration(labelText: 'نام آزمون')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+        FilledButton(onPressed: () {
+          final value = controller.text.trim();
+          if (value.isNotEmpty) Navigator.pop(context, value);
+        }, child: const Text('ذخیره')),
+      ],
+    ));
+    controller.dispose();
+    if (name == null || name.trim().isEmpty) return;
+    setState(() => activeExam.name = name.trim());
+    await save();
+  }
+
+  Future<void> deleteExam() async {
+    if (exams.length == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('حذف پاسخ‌برگ'),
+      content: Text('«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('انصراف')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+      ],
+    ));
+    if (confirmed != true) return;
+    setState(() {
+      final index = exams.indexWhere((exam) => exam.id == activeExamId);
+      exams.removeWhere((exam) => exam.id == activeExamId);
+      activeExamId = exams[(index - 1).clamp(0, exams.length - 1)].id;
+    });
+    await save();
+  }
 
   Future<void> resize(int value) async {
     setState(() { count = value; answers.removeWhere((key, _) => key > count); answerKey.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
