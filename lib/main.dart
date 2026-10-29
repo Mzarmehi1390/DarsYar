@@ -108,7 +108,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ..add(ExamSheet(
             id: 'default',
             name: 'آزمون اول',
-            questionCount: legacyCount.clamp(1, 200),
+            questionCount: legacyCount.clamp(1, 200).toInt(),
             answers: legacyAnswers,
             answerKey: legacyKey,
             marked: legacyMarked,
@@ -408,7 +408,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() {
       final index = exams.indexWhere((exam) => exam.id == activeExamId);
       exams.removeWhere((exam) => exam.id == activeExamId);
-      activeExamId = exams[(index - 1).clamp(0, exams.length - 1)].id;
+      activeExamId = exams[(index - 1).clamp(0, exams.length - 1).toInt()].id;
     });
     await save();
   }
