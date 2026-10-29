@@ -33,5 +33,21 @@ void main() {
     expect(updated.completed, isFalse);
     expect(updated.title, session.title);
     expect(updated.startMinutes, session.startMinutes);
+    final rescheduled = session.copyWith(title: 'تمرین جدید', weekday: 5, startMinutes: 600, durationMinutes: 45);
+    expect(rescheduled.title, 'تمرین جدید');
+    expect(rescheduled.weekday, 5);
+    expect(rescheduled.startMinutes, 600);
+    expect(rescheduled.durationMinutes, 45);
+    expect(rescheduled.completed, session.completed);
+  });
+
+  test('detects overlapping sessions only on the same day', () {
+    const first = StudySession(id: 'a', title: 'اول', subject: 'ریاضی', weekday: 1, startMinutes: 600, durationMinutes: 55);
+    const overlap = StudySession(id: 'b', title: 'دوم', subject: 'علوم', weekday: 1, startMinutes: 640, durationMinutes: 30);
+    const touchesEnd = StudySession(id: 'c', title: 'سوم', subject: 'علوم', weekday: 1, startMinutes: 655, durationMinutes: 30);
+    const anotherDay = StudySession(id: 'd', title: 'چهارم', subject: 'علوم', weekday: 2, startMinutes: 640, durationMinutes: 30);
+    expect(studySessionsOverlap(first, overlap), isTrue);
+    expect(studySessionsOverlap(first, touchesEnd), isFalse);
+    expect(studySessionsOverlap(first, anotherDay), isFalse);
   });
 }
