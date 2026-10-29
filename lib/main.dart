@@ -993,11 +993,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]));
 
   bool _hasOverlappingSession(StudySession candidate, {String? excludingId}) {
-    final candidateEnd = candidate.startMinutes + candidate.durationMinutes;
     return studySessions.any((session) {
       if (session.id == excludingId || session.weekday != candidate.weekday) return false;
-      final existingEnd = session.startMinutes + session.durationMinutes;
-      return candidate.startMinutes < existingEnd && session.startMinutes < candidateEnd;
+      return studySessionsOverlap(candidate, session);
     });
   }
 
