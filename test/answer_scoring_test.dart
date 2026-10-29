@@ -65,9 +65,9 @@ void main() {
 
       expect(score.correct, 1);
       expect(score.wrong, 0);
-      expect(score.keyedQuestions, 2);
+      expect(score.keyedQuestions, 3);
       expect(score.unanswered, 2);
-      expect(score.percentage, 50);
+      expect(score.percentage, closeTo(100 / 3, 0.001));
     });
 
     test('handles a negative question count safely', () {
