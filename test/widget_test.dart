@@ -118,7 +118,7 @@ void main() {
       ]),
     });
 
-    await tester.pumpWidget(const DarsYarApp(initialTab: 0));
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
     final taskTitle = find.text('مرور علوم');
