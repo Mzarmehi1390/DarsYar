@@ -47,18 +47,28 @@ class StudySession {
         'completed': completed,
       };
 
-  factory StudySession.fromJson(Map<String, dynamic> json) => StudySession(
-        id: json['id'] as String,
-        title: json['title'] as String,
-        subject: json['subject'] as String? ?? 'عمومی',
-        weekday: ((json['weekday'] as num?)?.toInt() ?? 0).clamp(0, 6).toInt(),
-        startMinutes: ((json['startMinutes'] as num?)?.toInt() ?? 960)
-            .clamp(0, 1439).toInt(),
-        durationMinutes: ((json['durationMinutes'] as num?)?.toInt() ?? 55)
-            .clamp(1, 1440).toInt(),
-        completed: json['completed'] as bool? ?? false,
-      );
-}
+  factory StudySession.fromJson(Map<String, dynamic> json) {
+    final weekday = ((json['weekday'] as num?)?.toInt() ?? 0)
+        .clamp(0, 6)
+        .toInt();
+    final startMinutes = ((json['startMinutes'] as num?)?.toInt() ?? 960)
+        .clamp(0, 1439)
+        .toInt();
+    final maxDuration = 1440 - startMinutes;
+    final durationMinutes = ((json['durationMinutes'] as num?)?.toInt() ?? 55)
+        .clamp(1, maxDuration)
+        .toInt();
+
+    return StudySession(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      subject: json['subject'] as String? ?? 'عمومی',
+      weekday: weekday,
+      startMinutes: startMinutes,
+      durationMinutes: durationMinutes,
+      completed: json['completed'] as bool? ?? false,
+    );
+  }
 
 /// Returns true when two study sessions overlap on the same weekday.
 bool studySessionsOverlap(StudySession first, StudySession second) =>
