@@ -1377,13 +1377,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     ],
   );
 
-  String _formatTime(int minutes) {
-    final hour = minutes ~/ 60;
-    final minute = minutes % 60;
-    final period = hour < 12 ? 'ق.ظ' : 'ب.ظ';
-    final displayHour = hour % 12 == 0 ? 12 : hour % 12;
-    return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
-  }
+  String _formatTime(int minutes) =>
+      '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
   void _submit() {
     final title = _titleController.text.trim();
