@@ -104,67 +104,101 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString('darsyar.tasks');
-      if (raw != null) {
-        tasks.addAll((jsonDecode(raw) as List<dynamic>).map((e) => StudyTask.fromJson(Map<String, dynamic>.from(e as Map))));
+    final prefs = await SharedPreferences.getInstance();
+
+    // Read each storage key independently: one damaged section must not hide
+    // otherwise valid tasks, study sessions, exam sheets, or results.
+    final rawTasks = _readStoredList(prefs.getString('darsyar.tasks'));
+    if (rawTasks != null) {
+      for (final item in rawTasks) {
+        try {
+          if (item is Map) {
+            tasks.add(StudyTask.fromJson(Map<String, dynamic>.from(item)));
+          }
+        } catch (_) {
+          // Skip only the invalid task entry.
+        }
       }
-      final rawSessions = prefs.getString('darsyar.studySessions');
-      if (rawSessions != null) {
-        studySessions.addAll((jsonDecode(rawSessions) as List<dynamic>).map(
-          (item) => StudySession.fromJson(Map<String, dynamic>.from(item as Map)),
-        ));
-      }
-      final rawResults = prefs.getString('darsyar.results');
-      if (rawResults != null) {
-        results.addAll((jsonDecode(rawResults) as List<dynamic>).map(
-          (item) => ExamResult.fromJson(Map<String, dynamic>.from(item as Map)),
-        ));
-      }
-      final rawExams = prefs.getString('darsyar.exams');
-      if (rawExams != null) {
-        final decoded = jsonDecode(rawExams) as List<dynamic>;
-        exams
-          ..clear()
-          ..addAll(decoded.map((item) => ExamSheet.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          )));
-      } else {
-        // Migrate existing single-sheet data without losing the user's answers.
-        final legacyAnswers = _readIntMap(prefs.getString('darsyar.answers'));
-        final legacyKey = _readIntMap(prefs.getString('darsyar.answerKey'));
-        final legacyMarkedRaw = prefs.getString('darsyar.marked');
-        final legacyMarked = legacyMarkedRaw == null
-            ? <int>{}
-            : (jsonDecode(legacyMarkedRaw) as List<dynamic>).cast<int>().toSet();
-        final legacyCount = prefs.getInt('darsyar.count') ?? 20;
-        exams
-          ..clear()
-          ..add(ExamSheet(
-            id: 'default',
-            name: 'آزمون اول',
-            questionCount: legacyCount.clamp(1, 200).toInt(),
-            answers: legacyAnswers,
-            answerKey: legacyKey,
-            marked: legacyMarked,
-          ));
-      }
-      if (exams.isEmpty) {
-        exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
-      }
-      activeExamId = prefs.getString('darsyar.activeExamId') ?? exams.first.id;
-      if (!exams.any((exam) => exam.id == activeExamId)) activeExamId = exams.first.id;
-    } catch (_) {
-      // Corrupt local data must not stop the app from starting.
     }
+
+    final rawSessions = _readStoredList(prefs.getString('darsyar.studySessions'));
+    if (rawSessions != null) {
+      for (final item in rawSessions) {
+        try {
+          if (item is Map) {
+            studySessions.add(StudySession.fromJson(Map<String, dynamic>.from(item)));
+          }
+        } catch (_) {
+          // Skip only the invalid study session.
+        }
+      }
+    }
+
+    final rawResults = _readStoredList(prefs.getString('darsyar.results'));
+    if (rawResults != null) {
+      for (final item in rawResults) {
+        try {
+          if (item is Map) {
+            results.add(ExamResult.fromJson(Map<String, dynamic>.from(item)));
+          }
+        } catch (_) {
+          // Skip only the invalid exam result.
+        }
+      }
+    }
+
+    final rawExams = _readStoredList(prefs.getString('darsyar.exams'));
+    if (rawExams != null) {
+      for (final item in rawExams) {
+        try {
+          if (item is Map) {
+            exams.add(ExamSheet.fromJson(Map<String, dynamic>.from(item)));
+          }
+        } catch (_) {
+          // Skip only the invalid exam sheet.
+        }
+      }
+    } else {
+      // Migrate legacy single-sheet data without losing valid answers.
+      final legacyAnswers = _readIntMap(prefs.getString('darsyar.answers'));
+      final legacyKey = _readIntMap(prefs.getString('darsyar.answerKey'));
+      final legacyMarked = <int>{};
+      final legacyMarkedRaw = prefs.getString('darsyar.marked');
+      final decodedMarked = _readStoredList(legacyMarkedRaw);
+      if (decodedMarked != null) {
+        for (final item in decodedMarked) {
+          if (item is num) legacyMarked.add(item.toInt());
+        }
+      }
+      final legacyCount = (prefs.getInt('darsyar.count') ?? 20).clamp(1, 200).toInt();
+      exams.add(ExamSheet(
+        id: 'default',
+        name: 'آزمون اول',
+        questionCount: legacyCount,
+        answers: legacyAnswers,
+        answerKey: legacyKey,
+        marked: legacyMarked,
+      ));
+    }
+
     if (exams.isEmpty) {
       exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
     }
+    activeExamId = prefs.getString('darsyar.activeExamId') ?? exams.first.id;
     if (!exams.any((exam) => exam.id == activeExamId)) {
       activeExamId = exams.first.id;
     }
     if (mounted) setState(() => loading = false);
+  }
+
+  List<dynamic>? _readStoredList(String? raw) {
+    if (raw == null) return null;
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is List ? decoded : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> save() async {
