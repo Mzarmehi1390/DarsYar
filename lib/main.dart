@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'answer_scoring.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +65,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final tasks = <StudyTask>[];
   int count = 20;
   final answers = <int, int>{};
+  final answerKey = <int, int>{};
   final marked = <int>{};
 
   @override
@@ -81,6 +83,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final map = Map<String, dynamic>.from(jsonDecode(rawAnswers) as Map);
         answers.addAll(map.map((k, v) => MapEntry(int.parse(k), v as int)));
       }
+      final rawKey = prefs.getString('darsyar.answerKey');
+      if (rawKey != null) {
+        final map = Map<String, dynamic>.from(jsonDecode(rawKey) as Map);
+        answerKey.addAll(map.map((k, v) => MapEntry(int.parse(k), v as int)));
+      }
       final rawMarked = prefs.getString('darsyar.marked');
       if (rawMarked != null) marked.addAll((jsonDecode(rawMarked) as List<dynamic>).cast<int>());
       count = prefs.getInt('darsyar.count') ?? 20;
@@ -95,6 +102,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList()));
     await prefs.setString('darsyar.answers', jsonEncode(answers.map((k, v) => MapEntry(k.toString(), v))));
     await prefs.setString('darsyar.marked', jsonEncode(marked.toList()));
+    await prefs.setString('darsyar.answerKey', jsonEncode(answerKey.map((k, v) => MapEntry(k.toString(), v))));
     await prefs.setInt('darsyar.count', count);
   }
 
@@ -220,6 +228,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       legend(const Color(0xFFFFE9CF), 'نیازمند مرور'),
       legend(Theme.of(context).cardColor, 'بدون پاسخ'),
     ]),
+    const SizedBox(height: 12),
+    Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Expanded(child: Text('کلید و نتیجه آزمون', style: TextStyle(fontWeight: FontWeight.w800))),
+        TextButton.icon(onPressed: editAnswerKey, icon: const Icon(Icons.key_rounded), label: const Text('تنظیم کلید')),
+      ]),
+      Text('کلید ثبت‌شده: ${answerKey.length} از $count سؤال', style: const TextStyle(color: muted, fontSize: 12)),
+      const SizedBox(height: 10),
+      Builder(builder: (context) {
+        final score = calculateAnswerScore(answers: answers, answerKey: answerKey, questionCount: count);
+        return Row(children: [
+          Expanded(child: _scoreMetric('درست', score.correct, const Color(0xFF198754))),
+          Expanded(child: _scoreMetric('غلط', score.wrong, const Color(0xFFD94841))),
+          Expanded(child: _scoreMetric('بی‌پاسخ', score.unanswered, muted)),
+          Expanded(child: _scoreMetric('درصد', score.percentage.round(), purple, suffix: '%')),
+        ]);
+      }),
+    ]))),
     const SizedBox(height: 16),
     GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: count,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 9, crossAxisSpacing: 9, childAspectRatio: 1.35),
@@ -246,7 +272,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ]);
 
   Future<void> resize(int value) async {
-    setState(() { count = value; answers.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
+    setState(() { count = value; answers.removeWhere((key, _) => key > count); answerKey.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
     await save();
   }
 
@@ -283,6 +309,56 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         if (result.marked) { marked.add(number); } else { marked.remove(number); }
       }
     });
+    await save();
+  }
+
+  Widget _scoreMetric(String label, int value, Color color, {String suffix = ''}) => Column(children: [
+    Text('$value$suffix', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: color)),
+    Text(label, style: const TextStyle(fontSize: 11, color: muted)),
+  ]);
+
+  Future<void> editAnswerKey() async {
+    if (answerKey.length < count) {
+      final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+        title: const Text('تنظیم کلید پاسخ'),
+        content: Text('برای محاسبه نتیجه، گزینه صحیح هر سؤال را وارد کن. فعلاً برای $count سؤال، کلید ${answerKey.length} سؤال ثبت شده است.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('بعداً')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('شروع')),
+        ],
+      ));
+      if (confirmed != true) return;
+    }
+    final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
+      final draft = Map<int, int>.from(answerKey);
+      return StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
+        title: const Text('کلید پاسخ‌ها'),
+        content: SizedBox(width: 420, height: 420, child: ListView.builder(
+          itemCount: count,
+          itemBuilder: (context, index) {
+            final n = index + 1;
+            return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
+              SizedBox(width: 52, child: Text('سؤال $n', style: const TextStyle(fontWeight: FontWeight.w700))),
+              Expanded(child: Wrap(spacing: 4, children: List.generate(4, (i) => ChoiceChip(
+                visualDensity: VisualDensity.compact,
+                label: Text(['الف', 'ب', 'ج', 'د'][i]),
+                selected: draft[n] == i,
+                onSelected: (_) => dialogSet(() {
+                  if (draft[n] == i) { draft.remove(n); } else { draft[n] = i; }
+                }),
+              )))),
+            ]));
+          },
+        )),
+        actions: [
+          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: const Text('پاک‌کردن کلید')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(context, draft), child: const Text('ذخیره کلید')),
+        ],
+      ));
+    });
+    if (result == null) return;
+    setState(() { answerKey..clear()..addAll(result); });
     await save();
   }
 
