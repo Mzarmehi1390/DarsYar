@@ -273,8 +273,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       )));
     if (result == null) return;
     setState(() {
-      if (result.answer == null) { answers.remove(number); } else { answers[number] = result.answer!; marked.remove(number); }
-      if (result.marked) { marked.add(number); } else { marked.remove(number); }
+      if (result.answer != null) {
+        answers[number] = result.answer!;
+        // Answering a marked question clears its review marker.
+        marked.remove(number);
+      } else {
+        answers.remove(number);
+        // Clearing an answer never creates a review marker automatically.
+        if (result.marked) { marked.add(number); } else { marked.remove(number); }
+      }
     });
     await save();
   }
