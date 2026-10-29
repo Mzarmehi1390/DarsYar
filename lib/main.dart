@@ -148,6 +148,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
 
     final rawExams = _readStoredList(prefs.getString('darsyar.exams'));
+    exams.clear();
     if (rawExams != null) {
       for (final item in rawExams) {
         try {
