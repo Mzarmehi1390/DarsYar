@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
 import 'exam_sheet.dart';
+import 'exam_result.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,6 +66,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   int tab = 0;
   bool loading = true;
   final tasks = <StudyTask>[];
+  final results = <ExamResult>[];
   final exams = <ExamSheet>[
     ExamSheet(id: 'default', name: 'آزمون اول'),
   ];
@@ -98,6 +100,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       final raw = prefs.getString('darsyar.tasks');
       if (raw != null) {
         tasks.addAll((jsonDecode(raw) as List<dynamic>).map((e) => StudyTask.fromJson(Map<String, dynamic>.from(e as Map))));
+      }
+      final rawResults = prefs.getString('darsyar.results');
+      if (rawResults != null) {
+        results.addAll((jsonDecode(rawResults) as List<dynamic>).map(
+          (item) => ExamResult.fromJson(Map<String, dynamic>.from(item as Map)),
+        ));
       }
       final rawExams = prefs.getString('darsyar.exams');
       if (rawExams != null) {
@@ -149,13 +157,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await prefs.setString('darsyar.tasks', jsonEncode(tasks.map((e) => e.toJson()).toList()));
     await prefs.setString('darsyar.exams', jsonEncode(exams.map((exam) => exam.toJson()).toList()));
     await prefs.setString('darsyar.activeExamId', activeExamId);
+    await prefs.setString('darsyar.results', jsonEncode(results.map((result) => result.toJson()).toList()));
   }
 
   int get completed => tasks.where((e) => e.done).length;
 
   @override
   Widget build(BuildContext context) {
-    final pages = [dashboard(), planner(), answerSheet(), settings()];
+    final pages = [dashboard(), planner(), answerSheet(), resultsHistory(), settings()];
     return Scaffold(
       body: SafeArea(child: loading ? const Center(child: CircularProgressIndicator()) : pages[tab]),
       bottomNavigationBar: NavigationBar(
@@ -165,6 +174,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'خانه'),
           NavigationDestination(icon: Icon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
           NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'پاسخ‌برگ'),
+          NavigationDestination(icon: Icon(Icons.insights_rounded), label: 'نتایج'),
           NavigationDestination(icon: Icon(Icons.tune_rounded), label: 'تنظیمات'),
         ],
       ),
@@ -328,6 +338,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           Expanded(child: _scoreMetric('درصد', score.percentage.round(), purple, suffix: '%')),
         ]);
       }),
+      const SizedBox(height: 12),
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: saveExamResult,
+          icon: const Icon(Icons.save_alt_rounded),
+          label: const Text('ثبت نتیجه در تاریخچه'),
+        ),
+      ),
     ]))),
     const SizedBox(height: 16),
     GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: count,
@@ -348,6 +367,147 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Text('پاسخ‌ها: ${answers.length} از $count  •  علامت مرور: ${marked.length}',
       style: const TextStyle(color: muted, fontSize: 13)),
   ]);
+
+  Future<void> saveExamResult() async {
+    final score = calculateAnswerScore(
+      answers: answers,
+      answerKey: answerKey,
+      questionCount: count,
+    );
+    if (score.keyedQuestions == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ابتدا کلید پاسخ را ثبت کن تا نتیجه قابل محاسبه باشد.')),
+      );
+      return;
+    }
+    final result = ExamResult(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      examName: activeExam.name,
+      completedAt: DateTime.now().toUtc().toIso8601String(),
+      questionCount: count,
+      correct: score.correct,
+      wrong: score.wrong,
+      unanswered: score.unanswered,
+      keyedQuestions: score.keyedQuestions,
+      percentage: score.percentage,
+    );
+    setState(() {
+      results.add(result);
+      tab = 3;
+    });
+    await save();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
+    );
+  }
+
+  Widget resultsHistory() {
+    final sorted = results.toList()
+      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
+    final chartResults = sorted.reversed.take(7).toList();
+    final average = results.isEmpty
+        ? 0.0
+        : results.map((result) => result.percentage).reduce((a, b) => a + b) /
+            results.length;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+      children: [
+        const Text('تاریخچه و پیشرفت', style: TextStyle(
+          fontSize: 25, fontWeight: FontWeight.w800, color: ink,
+        )),
+        const SizedBox(height: 6),
+        const Text('نتایج ذخیره‌شده آزمون‌ها و روند درصدها را دنبال کن.',
+          style: TextStyle(color: muted)),
+        const SizedBox(height: 18),
+        Row(children: [
+          Expanded(child: summary('آزمون‌ها', results.length, Icons.assignment_turned_in_outlined)),
+          const SizedBox(width: 8),
+          Expanded(child: summary('میانگین درصد', average.round(), Icons.insights_rounded)),
+        ]),
+        const SizedBox(height: 20),
+        if (results.isEmpty)
+          emptyState(Icons.show_chart_rounded, 'هنوز نتیجه‌ای ذخیره نشده',
+            'به بخش پاسخ‌برگ برو، کلید پاسخ را تنظیم کن و «ثبت نتیجه در تاریخچه» را بزن.')
+        else ...[
+          const Text('روند ۷ نتیجه اخیر', style: TextStyle(
+            fontSize: 17, fontWeight: FontWeight.w800, color: ink,
+          )),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  for (var i = 0; i < chartResults.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      child: Row(children: [
+                        SizedBox(width: 26, child: Text('${i + 1}',
+                          style: const TextStyle(color: muted))),
+                        Expanded(child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            minHeight: 12,
+                            value: (chartResults[i].percentage / 100).clamp(0.0, 1.0),
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          ),
+                        )),
+                        const SizedBox(width: 10),
+                        SizedBox(width: 46, child: Text(
+                          '${chartResults[i].percentage.round()}%',
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        )),
+                      ]),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text('همه نتایج', style: TextStyle(
+            fontSize: 17, fontWeight: FontWeight.w800, color: ink,
+          )),
+          const SizedBox(height: 10),
+          for (final result in sorted)
+            Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      color: purple.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.assignment_turned_in_outlined, color: purple),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(result.examName, style: const TextStyle(fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${result.dateTime.day.toString().padLeft(2, '0')}/${result.dateTime.month.toString().padLeft(2, '0')}/${result.dateTime.year}',
+                        style: const TextStyle(color: muted, fontSize: 12),
+                      ),
+                      const SizedBox(height: 6),
+                      Text('درست: ${result.correct}  •  غلط: ${result.wrong}  •  بی‌پاسخ: ${result.unanswered}',
+                        style: const TextStyle(fontSize: 12)),
+                    ],
+                  )),
+                  Text('${result.percentage.round()}%',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: purple)),
+                ]),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
 
   String _formatDuration(int totalSeconds) {
     final minutes = (totalSeconds ~/ 60).toString().padLeft(2, '0');
