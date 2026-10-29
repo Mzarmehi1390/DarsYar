@@ -31,7 +31,8 @@ class StudyTask {
 }
 
 class DarsYarApp extends StatefulWidget {
-  const DarsYarApp({super.key});
+  const DarsYarApp({super.key, this.initialTab = 0});
+  final int initialTab;
   @override
   State<DarsYarApp> createState() => _DarsYarAppState();
 }
@@ -50,13 +51,14 @@ class _DarsYarAppState extends State<DarsYarApp> {
         cardTheme: CardThemeData(elevation: 0, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)))),
       darkTheme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark), brightness: Brightness.dark),
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? const SizedBox()),
-      home: DarsYarHome(mode: mode, onModeChanged: (value) => setState(() => mode = value)),
+      home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: (value) => setState(() => mode = value)),
     );
   }
 }
 
 class DarsYarHome extends StatefulWidget {
-  const DarsYarHome({required this.mode, required this.onModeChanged, super.key});
+  const DarsYarHome({required this.mode, required this.onModeChanged, this.initialTab = 0, super.key});
+  final int initialTab;
   final ThemeMode mode;
   final ValueChanged<ThemeMode> onModeChanged;
   @override
@@ -64,7 +66,13 @@ class DarsYarHome extends StatefulWidget {
 }
 
 class _DarsYarHomeState extends State<DarsYarHome> {
-  int tab = 0;
+  late int tab;
+  @override
+  void initState() {
+    super.initState();
+    tab = widget.initialTab.clamp(0, 4);
+    load();
+  }
   bool loading = true;
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
@@ -94,9 +102,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Map<int, int> get answers => activeExam.answers;
   Map<int, int> get answerKey => activeExam.answerKey;
   Set<int> get marked => activeExam.marked;
-
-  @override
-  void initState() { super.initState(); load(); }
 
   Future<void> load() async {
     try {
