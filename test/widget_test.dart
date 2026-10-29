@@ -24,19 +24,29 @@ void main() {
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
+
   testWidgets('study tasks can be created and edited', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('وظیفه').last,
-      250,
-      scrollable: find.descendant(
-        of: find.byType(ListView).first,
-        matching: find.byType(Scrollable),
-      ).first,
-    );
-    await tester.tap(find.text('وظیفه').last);
+
+    final plannerList = find.byType(ListView).first;
+
+    // ListView builds children lazily, so scroll until the target has been
+    // built before trying to locate/tap it.
+    Future<void> revealByScrolling(Finder target) async {
+      for (var attempt = 0; attempt < 8 && target.evaluate().isEmpty; attempt++) {
+        await tester.drag(plannerList, const Offset(0, -420));
+        await tester.pumpAndSettle();
+      }
+      expect(target, findsWidgets);
+      await tester.ensureVisible(target.last);
+      await tester.pumpAndSettle();
+    }
+
+    final addTaskButton = find.text('وظیفه');
+    await revealByScrolling(addTaskButton);
+    await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور ریاضی');
@@ -44,15 +54,9 @@ void main() {
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.text('مرور ریاضی'),
-      250,
-      scrollable: find.descendant(
-        of: find.byType(ListView).first,
-        matching: find.byType(Scrollable),
-      ).first,
-    );
-    expect(find.text('مرور ریاضی'), findsOneWidget);
+    final createdTask = find.text('مرور ریاضی');
+    await revealByScrolling(createdTask);
+    expect(createdTask, findsOneWidget);
     await tester.tap(find.byTooltip('ویرایش وظیفه').first);
     await tester.pumpAndSettle();
 
@@ -63,5 +67,4 @@ void main() {
     expect(find.text('تمرین ریاضی'), findsOneWidget);
     expect(find.text('مرور ریاضی'), findsNothing);
   });
-
 }
