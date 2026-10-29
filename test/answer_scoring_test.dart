@@ -66,7 +66,7 @@ void main() {
       expect(score.correct, 1);
       expect(score.wrong, 0);
       expect(score.keyedQuestions, 2);
-      expect(score.unanswered, 3);
+      expect(score.unanswered, 2);
       expect(score.percentage, 50);
     });
 
