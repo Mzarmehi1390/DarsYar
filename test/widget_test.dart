@@ -100,12 +100,15 @@ void main() {
       'darsyar.answerKey': jsonEncode({'1': 2}),
     });
 
-    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('پاسخ‌برگ'));
     await tester.pumpAndSettle();
 
     // A malformed current-format key must fall back to a clean default sheet,
     // not resurrect answers from the retired single-sheet storage keys.
-    expect(find.text('تعداد سؤال‌ها'), findsOneWidget);
+    expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
+    expect(find.text('آزمون اول'), findsOneWidget);
     expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
     expect(find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'), findsOneWidget);
   });
