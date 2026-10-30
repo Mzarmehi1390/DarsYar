@@ -2837,39 +2837,25 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         Text('زمان را به ساعت، دقیقه و ثانیه وارد کن.',
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         SizedBox(height: 18),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 300;
-            final fields = [
-              _timeField('ساعت', _hours),
-              _timeField('دقیقه', _minutes),
-              _timeField('ثانیه', _seconds),
-            ];
-            return compact
-                ? Column(
-                    children: [
-                      for (var i = 0; i < fields.length; i++) ...[
-                        if (i > 0) SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: _timeField(
-                            ['ساعت', 'دقیقه', 'ثانیه'][i],
-                            [_hours, _minutes, _seconds][i],
-                            expand: false,
-                          ),
-                        ),
-                      ],
-                    ],
-                  )
-                : Row(children: [
-                    fields[0],
-                    SizedBox(width: 8),
-                    fields[1],
-                    SizedBox(width: 8),
-                    fields[2],
-                  ]);
-          },
-        ),
+        final compact = MediaQuery.sizeOf(context).width < 460;
+        if (compact)
+          Column(
+            children: [
+              _timeField('ساعت', _hours, expand: false),
+              SizedBox(height: 10),
+              _timeField('دقیقه', _minutes, expand: false),
+              SizedBox(height: 10),
+              _timeField('ثانیه', _seconds, expand: false),
+            ],
+          )
+        else
+          Row(children: [
+            _timeField('ساعت', _hours),
+            SizedBox(width: 8),
+            _timeField('دقیقه', _minutes),
+            SizedBox(width: 8),
+            _timeField('ثانیه', _seconds),
+          ]),
         SizedBox(height: 18),
         Align(
           alignment: Alignment.centerRight,
