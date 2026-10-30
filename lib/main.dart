@@ -2772,8 +2772,12 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
     Navigator.pop(context, duration);
   }
 
-  Widget _timeField(String label, TextEditingController controller) => Expanded(
-    child: TextField(
+  Widget _timeField(
+    String label,
+    TextEditingController controller, {
+    bool expand = true,
+  }) {
+    final field = TextField(
       controller: controller,
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
@@ -2787,8 +2791,9 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         filled: true,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
       ),
-    ),
-  );
+    );
+    return expand ? Expanded(child: field) : field;
+  }
 
   @override
   Widget build(BuildContext context) => AlertDialog(
@@ -2827,6 +2832,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                           child: _timeField(
                             ['ساعت', 'دقیقه', 'ثانیه'][i],
                             [_hours, _minutes, _seconds][i],
+                            expand: false,
                           ),
                         ),
                       ],
