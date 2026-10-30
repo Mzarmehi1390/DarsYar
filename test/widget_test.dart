@@ -69,7 +69,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    final addTaskButton = find.text('وظیفه');
+    final addTaskButton = find.text('ثبت وظیفه');
     await revealByScrolling(addTaskButton);
     await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
