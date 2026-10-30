@@ -27,6 +27,18 @@ void main() {
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
 
+  testWidgets('page and bottom navigation transitions stay lightweight', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+    expect(find.byType(AnimatedSwitcher), findsWidgets);
+    await tester.tap(find.text('برنامه‌ریزی').last);
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(find.byType(AnimatedSwitcher), findsWidgets);
+    await tester.pumpAndSettle();
+    expect(find.text('نمای کلی هفته'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('exam duration uses a compact editor instead of a wheel picker', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();

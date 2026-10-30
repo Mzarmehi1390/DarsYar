@@ -450,7 +450,34 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               bottom: false,
               child: loading
                   ? const Center(child: CircularProgressIndicator())
-                  : pages[tab],
+                  : AnimatedSwitcher(
+                      duration: MediaQuery.of(context).disableAnimations
+                          ? Duration.zero
+                          : const Duration(milliseconds: 190),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final curved = CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                          reverseCurve: Curves.easeInCubic,
+                        );
+                        return FadeTransition(
+                          opacity: curved,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.012),
+                              end: Offset.zero,
+                            ).animate(curved),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: KeyedSubtree(
+                        key: ValueKey<int>(tab),
+                        child: pages[tab],
+                      ),
+                    ),
             ),
           ),
           if (!loading)
@@ -489,25 +516,42 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           clipBehavior: Clip.none,
           children: [
             Positioned.fill(
-              child: ClipPath(
-                clipBehavior: Clip.antiAlias,
-                clipper: _NotchedNavBarClipper(selectedIndex: tab, topInset: topInset),
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: isDark
-                            ? [const Color(0xE62A4437), const Color(0xF20D1B14)]
-                            : [Colors.white.withValues(alpha: 0.86), const Color(0xF2F4FAF6)],
-                      ),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(
+                  begin: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
+                  end: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
+                ),
+                duration: MediaQuery.of(context).disableAnimations
+                    ? Duration.zero
+                    : const Duration(milliseconds: 190),
+                curve: Curves.easeInOutCubic,
+                builder: (context, notchCenter, child) => ClipPath(
+                  clipBehavior: Clip.antiAlias,
+                  clipper: _NotchedNavBarClipper(
+                    centerX: notchCenter,
+                    topInset: topInset,
+                  ),
+                  child: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                      child: child,
                     ),
                   ),
                 ),
-              ),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: isDark
+                          ? [const Color(0xE62A4437), const Color(0xF20D1B14)]
+                          : [
+                              Colors.white.withValues(alpha: 0.86),
+                              const Color(0xF2F4FAF6),
+                            ],
+                    ),
+                  ),
+                ),
               ),
             ),
             Positioned(
@@ -569,51 +613,70 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                if (selected)
-                  Positioned(
-                    top: -34,
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isDark
-                            ? const Color(0xFF193126).withValues(alpha: 0.96)
-                            : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
-                        border: Border.all(
-                          color: (isDark ? Colors.white : accent)
-                              .withValues(alpha: isDark ? 0.20 : 0.12),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                              alpha: isDark ? 0.18 : 0.07,
-                            ),
-                            blurRadius: 16,
-                            offset: const Offset(0, 5),
-                          ),
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.14),
-                            blurRadius: 20,
-                            spreadRadius: -5,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          selectedIcon ?? icon,
-                          color: accent,
-                          size: 25,
-                        ),
+                Positioned(
+                  top: selected ? -34 : 9,
+                  child: AnimatedSwitcher(
+                    duration: MediaQuery.of(context).disableAnimations
+                        ? Duration.zero
+                        : const Duration(milliseconds: 170),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.10),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
                       ),
                     ),
-                  )
-                else
-                  Positioned(
-                    top: 9,
-                    child: Icon(icon, color: inactiveColor, size: 23),
+                    child: selected
+                        ? Container(
+                            key: ValueKey<String>('selected-$index'),
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark
+                                  ? const Color(0xFF193126).withValues(alpha: 0.96)
+                                  : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
+                              border: Border.all(
+                                color: (isDark ? Colors.white : accent)
+                                    .withValues(alpha: isDark ? 0.20 : 0.12),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: isDark ? 0.18 : 0.07,
+                                  ),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 5),
+                                ),
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.14),
+                                  blurRadius: 20,
+                                  spreadRadius: -5,
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: Icon(
+                                selectedIcon ?? icon,
+                                color: accent,
+                                size: 25,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            icon,
+                            key: ValueKey<String>('inactive-$index'),
+                            color: inactiveColor,
+                            size: 23,
+                          ),
                   ),
+                ),
                 Positioned(
                   top: 39,
                   left: 2,
@@ -3082,9 +3145,9 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
 }
 
 class _NotchedNavBarClipper extends CustomClipper<Path> {
-  const _NotchedNavBarClipper({required this.selectedIndex, required this.topInset});
+  const _NotchedNavBarClipper({required this.centerX, required this.topInset});
 
-  final int selectedIndex;
+  final double centerX;
   final double topInset;
 
   @override
@@ -3092,8 +3155,6 @@ class _NotchedNavBarClipper extends CustomClipper<Path> {
     const notchRadius = 36.0;
     const shoulderWidth = 15.0;
     const notchDepth = 30.0;
-    // The navigation Row follows Persian RTL direction: index 0 is on the right.
-    final centerX = size.width * (3.5 - selectedIndex) / 4;
     final leftNotch = centerX - notchRadius;
     final rightNotch = centerX + notchRadius;
     return Path()
@@ -3109,5 +3170,5 @@ class _NotchedNavBarClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant _NotchedNavBarClipper oldClipper) =>
-      oldClipper.selectedIndex != selectedIndex || oldClipper.topInset != topInset;
+      oldClipper.centerX != centerX || oldClipper.topInset != topInset;
 }
