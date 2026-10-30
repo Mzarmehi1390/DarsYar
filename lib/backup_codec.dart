@@ -56,12 +56,14 @@ class DarsYarBackupCodec {
       payload['tasks'] as List,
       'tasks',
       requiredStrings: const ['id', 'title'],
+      uniqueId: true,
       optionalBooleans: const ['done'],
     );
     _validateRecords(
       payload['studySessions'] as List,
       'studySessions',
       requiredStrings: const ['id', 'title'],
+      uniqueId: true,
       optionalNumbers: const ['weekday', 'startMinutes', 'durationMinutes'],
       optionalBooleans: const ['completed'],
     );
@@ -115,10 +117,12 @@ class DarsYarBackupCodec {
     List items,
     String collection, {
     List<String> requiredStrings = const [],
+    bool uniqueId = false,
     List<String> optionalStrings = const [],
     List<String> optionalNumbers = const [],
     List<String> optionalBooleans = const [],
   }) {
+    final seenIds = <String>{};
     for (var index = 0; index < items.length; index++) {
       final item = items[index] as Map;
       void invalid(String field) {
@@ -130,6 +134,10 @@ class DarsYarBackupCodec {
       for (final field in requiredStrings) {
         final value = item[field];
         if (value is! String || value.trim().isEmpty) invalid(field);
+      }
+      if (uniqueId) {
+        final id = item['id'] as String;
+        if (!seenIds.add(id)) invalid('duplicate id');
       }
       for (final field in optionalStrings) {
         final value = item[field];
