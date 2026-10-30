@@ -876,42 +876,40 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> saveExamResult() async {
     if (_savingExamResult) return;
+    final exam = activeExam;
     final score = calculateAnswerScore(
-      answers: answers,
-      answerKey: answerKey,
-      questionCount: count,
+      answers: exam.answers,
+      answerKey: exam.answerKey,
+      questionCount: exam.questionCount,
+      negativeMarking: exam.negativeMarking,
     );
-    if (score.keyedQuestions == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ابتدا کلید پاسخ را ثبت کن تا نتیجه قابل محاسبه باشد.')),
-      );
-      return;
-    }
-
     final result = ExamResult(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
-      examName: activeExam.name,
+      examName: exam.name,
       completedAt: DateTime.now().toUtc().toIso8601String(),
-      questionCount: count,
+      questionCount: exam.questionCount,
       correct: score.correct,
       wrong: score.wrong,
       unanswered: score.unanswered,
       keyedQuestions: score.keyedQuestions,
       percentage: score.percentage,
+      negativeMarking: exam.negativeMarking,
+      answers: Map<int, int>.from(exam.answers),
+      answerKey: Map<int, int>.from(exam.answerKey),
     );
-
     setState(() {
       _savingExamResult = true;
       results.add(result);
-      tab = 3;
     });
     final saved = await save();
     if (!mounted) return;
     setState(() => _savingExamResult = false);
     if (saved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('نتیجه آزمون در تاریخچه ذخیره شد.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(score.percentage == null
+          ? 'پاسخ‌ها ذخیره شدند؛ برای محاسبه درصد بعداً کلید را وارد کن.'
+          : 'نتیجه آزمون در تاریخچه ذخیره شد.'),
+      ));
     }
   }
 
