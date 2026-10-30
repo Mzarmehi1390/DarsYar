@@ -396,7 +396,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [dashboard(), planner(), answerSheet(), settings()];
+    // Build only the active page to avoid constructing three unused page trees
+    // during every state update.
+    final page = switch (tab) {
+      0 => dashboard(),
+      1 => planner(),
+      2 => answerSheet(),
+      3 => settings(),
+      _ => dashboard(),
+    };
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Stack(
@@ -468,7 +476,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           FadeTransition(opacity: animation, child: child),
                       child: KeyedSubtree(
                         key: ValueKey<int>(tab),
-                        child: pages[tab],
+                        child: page,
                       ),
                     ),
             ),
