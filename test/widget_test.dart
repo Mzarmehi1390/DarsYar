@@ -33,7 +33,7 @@ void main() {
 
     expect(find.text('زمان دلخواه آزمون'), findsOneWidget);
     expect(find.text('00:30:00'), findsOneWidget);
-    expect(find.byType(CupertinoTimerPicker), findsNothing);
+    expect(find.byWidgetPredicate((widget) => widget.runtimeType.toString() == 'CupertinoTimerPicker'), findsNothing);
 
     await tester.tap(find.text('تغییر زمان'));
     await tester.pumpAndSettle();
