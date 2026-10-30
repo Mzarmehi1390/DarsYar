@@ -368,18 +368,29 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
     }
     SharedPreferences? prefs;
-    Map<String, String?>? previousValues;
+    Map<String, Object?>? previousValues;
 
     Future<void> rollbackStoredValues(
       SharedPreferences store,
-      Map<String, String?> previous,
+      Map<String, Object?> previous,
     ) async {
       for (final entry in previous.entries) {
         try {
-          if (entry.value == null) {
+          final value = entry.value;
+          if (value == null) {
             await store.remove(entry.key);
+          } else if (value is String) {
+            await store.setString(entry.key, value);
+          } else if (value is bool) {
+            await store.setBool(entry.key, value);
+          } else if (value is int) {
+            await store.setInt(entry.key, value);
+          } else if (value is double) {
+            await store.setDouble(entry.key, value);
+          } else if (value is List<String>) {
+            await store.setStringList(entry.key, value);
           } else {
-            await store.setString(entry.key, entry.value!);
+            await store.remove(entry.key);
           }
         } catch (_) {
           // Best-effort rollback: never hide the original save failure.
@@ -406,7 +417,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       final store = await SharedPreferences.getInstance();
       prefs = store;
       previousValues = {
-        for (final key in values.keys) key: store.getString(key),
+        for (final key in values.keys) key: store.get(key),
       };
 
       var writesSucceeded = true;
