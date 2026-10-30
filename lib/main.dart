@@ -1132,13 +1132,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking) {
+  void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking, Map<int, int> answerKey) {
     final exam = ExamSheet(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name,
       questionCount: questionCount,
       durationSeconds: durationSeconds,
       negativeMarking: negativeMarking,
+      answerKey: answerKey,
     );
     setState(() {
       exams.add(exam);
@@ -1657,7 +1658,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
 class _ExamSetupPanel extends StatefulWidget {
   const _ExamSetupPanel({required this.onCreate});
-  final void Function(String, int, int, bool) onCreate;
+  final void Function(String, int, int, bool, Map<int, int>) onCreate;
 
   @override
   State<_ExamSetupPanel> createState() => _ExamSetupPanelState();
@@ -1668,6 +1669,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   final _count = TextEditingController(text: '20');
   final _minutes = TextEditingController(text: '30');
   final _seconds = TextEditingController(text: '0');
+  final Map<int, int> _answerKey = {};
   bool _negativeMarking = false;
 
   @override
@@ -1698,7 +1700,18 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
       );
       return;
     }
-    widget.onCreate(name, count, duration, _negativeMarking);
+    widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.from(_answerKey));
+  }
+
+  Future<void> _editSetupAnswerKey() async {
+    final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
+    final draft = Map<int, int>.from(_answerKey);
+    final updated = await showDialog<Map<int, int>>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
+      title: Text('کلید پاسخ آزمون'),
+      content: SizedBox(width: 420, height: 420, child: ListView.builder(itemCount: count, itemBuilder: (context, index) { final q = index + 1; return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [SizedBox(width: 65, child: Text('سؤال $q')), for (var option = 0; option < 4; option++) Expanded(child: ChoiceChip(label: Text(['الف', 'ب', 'ج', 'د'][option]), selected: draft[q] == option, onSelected: (_) => dialogSet(() { if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; } }))) ])); })),
+      actions: [TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')), TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')), FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('ذخیره کلید'))],
+    )));
+    if (updated != null && mounted) setState(() { _answerKey..clear()..addAll(updated); });
   }
 
   @override
@@ -1724,9 +1737,11 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               decoration: InputDecoration(labelText: 'دقیقه', border: OutlineInputBorder()))),
             SizedBox(width: 12),
             Expanded(child: TextField(controller: _seconds, keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(labelText: 'ثانیه', border: OutlineInputBorder()))),
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2), TextInputFormatter.withFunction((oldValue, newValue) { final value = int.tryParse(newValue.text); return value != null && value > 59 ? oldValue : newValue; })],
+              decoration: InputDecoration(labelText: 'ثانیه (۰ تا ۵۹)', border: OutlineInputBorder()))),
           ]),
+          SizedBox(height: 12),
+          Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
           SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
