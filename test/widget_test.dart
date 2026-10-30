@@ -87,6 +87,8 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
     expect(find.text('آزمون ذخیره‌شده'), findsWidgets);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
@@ -108,20 +110,10 @@ void main() {
     // A malformed current-format key must fall back to a clean default sheet,
     // not resurrect answers from the retired single-sheet storage keys.
     expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
     expect(find.text('آزمون اول'), findsWidgets);
-    final pageScroll = find.byType(Scrollable).first;
-    await tester.scrollUntilVisible(
-      find.text('کلید ثبت‌شده: 0 از 20 سؤال'),
-      250,
-      scrollable: pageScroll,
-    );
-    expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'),
-      250,
-      scrollable: pageScroll,
-    );
-    expect(find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'), findsOneWidget);
+    expect(find.text('پاسخ ثبت‌شده: 0 از 20 • کلید: 0 سؤال'), findsOneWidget);
   });
 
   testWidgets('theme selection is saved and restored', (WidgetTester tester) async {
@@ -129,7 +121,7 @@ void main() {
       'darsyar.themeMode': 'dark',
     });
 
-    await tester.pumpWidget(const DarsYarApp(initialTab: 4));
+    await tester.pumpWidget(const DarsYarApp(initialTab: 3));
     await tester.pumpAndSettle();
 
     final initialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
