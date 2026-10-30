@@ -91,6 +91,7 @@ class DarsYarBackupCodec {
       optionalBooleans: const ['negativeMarking'],
     );
     _validateResultAnswerData(payload['results'] as List);
+    _validateResultPercentages(payload['results'] as List);
 
     final exams = payload['exams'] as List;
     if (exams.isEmpty) {
@@ -152,6 +153,22 @@ class DarsYarBackupCodec {
           duration > 1440 - start) {
         throw FormatException(
           'Invalid studySessions record at index $index: durationMinutes',
+        );
+      }
+    }
+  }
+
+  static void _validateResultPercentages(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      final percentage = result['percentage'];
+      if (percentage != null &&
+          (percentage is! num ||
+              !percentage.isFinite ||
+              percentage < 0 ||
+              percentage > 100)) {
+        throw FormatException(
+          'Invalid results record at index $index: percentage',
         );
       }
     }
