@@ -52,6 +52,14 @@ class DarsYarBackupCodec {
       }
     }
 
+    _validateRecords(payload['tasks'] as List, 'tasks', const ['id', 'title']);
+    _validateRecords(
+      payload['studySessions'] as List,
+      'studySessions',
+      const ['id', 'title'],
+    );
+    _validateRecords(payload['exams'] as List, 'exams', const ['id', 'name']);
+
     final exams = payload['exams'] as List;
     if (exams.isEmpty) {
       throw const FormatException('Backup has no exam sheets');
@@ -76,6 +84,24 @@ class DarsYarBackupCodec {
             ? requestedActiveId
             : (exams.first as Map)['id'] as String;
     return payload;
+  }
+
+  static void _validateRecords(
+    List items,
+    String collection,
+    List<String> requiredStringFields,
+  ) {
+    for (var index = 0; index < items.length; index++) {
+      final item = items[index] as Map;
+      for (final field in requiredStringFields) {
+        final value = item[field];
+        if (value is! String || value.trim().isEmpty) {
+          throw FormatException(
+            'Invalid $collection record at index $index: $field',
+          );
+        }
+      }
+    }
   }
 
   static String encode(Map<String, dynamic> payload) =>
