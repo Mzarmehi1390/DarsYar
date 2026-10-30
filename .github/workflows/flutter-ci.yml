@@ -36,7 +36,7 @@ jobs:
           storePassword=$STORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
-          storeFile=darsyar-release.jks
+          storeFile=app/darsyar-release.jks
           EOF
 
       - name: Set up Flutter
