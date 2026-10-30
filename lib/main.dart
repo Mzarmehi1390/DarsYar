@@ -178,7 +178,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String activeExamId = 'default';
 
   Timer? _examTimer;
-  int _setRemainingExamSeconds(0);
+  int _remainingExamSeconds = 0;
   final ValueNotifier<int> _timerDisplaySeconds = ValueNotifier<int>(0);
   int examSection = 0;
   bool isTakingExam = false;
@@ -1790,7 +1790,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
 
     if (remaining != _remainingExamSeconds) {
-      setState(() => _remainingExamSeconds = remaining);
+      _setRemainingExamSeconds(remaining);
     }
   }
 
