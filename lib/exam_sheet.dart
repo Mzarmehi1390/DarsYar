@@ -3,6 +3,9 @@ class ExamSheet {
     required this.id,
     required this.name,
     this.questionCount = 20,
+    this.durationSeconds = 30 * 60,
+    this.negativeMarking = false,
+    this.isCompleted = false,
     Map<int, int>? answers,
     Map<int, int>? answerKey,
     Set<int>? marked,
@@ -13,6 +16,9 @@ class ExamSheet {
   final String id;
   String name;
   int questionCount;
+  int durationSeconds;
+  bool negativeMarking;
+  bool isCompleted;
   final Map<int, int> answers;
   final Map<int, int> answerKey;
   final Set<int> marked;
@@ -21,6 +27,9 @@ class ExamSheet {
         'id': id,
         'name': name,
         'questionCount': questionCount,
+        'durationSeconds': durationSeconds,
+        'negativeMarking': negativeMarking,
+        'isCompleted': isCompleted,
         'answers': answers.map((k, v) => MapEntry(k.toString(), v)),
         'answerKey': answerKey.map((k, v) => MapEntry(k.toString(), v)),
         'marked': marked.toList(),
@@ -38,8 +47,6 @@ class ExamSheet {
         final question = int.tryParse(entry.key.toString());
         final answer = entry.value is num ? (entry.value as num).toInt() : -1;
         if (question == null || question < 1 || question > count) continue;
-        // Options are stored as 0..3. Invalid saved values should not crash
-        // the answer sheet when its selected option is displayed.
         if (answer < 0 || answer > 3) continue;
         parsed[question] = answer;
       }
@@ -48,20 +55,23 @@ class ExamSheet {
 
     Set<int> parseMarked(Object? value) {
       if (value is! List) return <int>{};
-      return value
-          .whereType<num>()
-          .map((item) => item.toInt())
-          .where((question) => question >= 1 && question <= count)
-          .toSet();
+      return value.whereType<num>().map((item) => item.toInt())
+          .where((question) => question >= 1 && question <= count).toSet();
     }
 
+    final rawDuration = json['durationSeconds'];
     return ExamSheet(
       id: json['id'] as String? ?? 'default',
       name: json['name'] as String? ?? 'آزمون',
       questionCount: count,
+      durationSeconds: rawDuration is num
+          ? rawDuration.toInt().clamp(1, 24 * 60 * 60).toInt()
+          : 30 * 60,
+      negativeMarking: json['negativeMarking'] == true,
+      isCompleted: json['isCompleted'] == true,
       answers: parseAnswers(json['answers']),
       answerKey: parseAnswers(json['answerKey']),
       marked: parseMarked(json['marked']),
     );
-}
+  }
 }
