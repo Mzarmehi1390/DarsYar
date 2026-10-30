@@ -854,7 +854,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Row(children: [
       Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', _openPlanner, const Color(0xFFDDF5E9))),
       SizedBox(width: 12),
-      Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFDDF5E9))),
+      Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFD5F0E8))),
     ]),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
@@ -866,6 +866,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconTop = isDark
+        ? Color.lerp(tint, const Color(0xFF18372B), 0.58)!
+        : Color.lerp(tint, Colors.white, 0.34)!;
+    final iconBottom = isDark
+        ? Color.lerp(tint, const Color(0xFF0B1B14), 0.72)!
+        : Color.lerp(tint, const Color(0xFFB5DDC9), 0.30)!;
+    final iconColor = isDark ? const Color(0xFFB5F3D2) : const Color(0xFF12664A);
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(23),
@@ -878,10 +885,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Material(
-            color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.64 : 0.70),
+            color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.72 : 0.79),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(23),
-              side: BorderSide(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.82), width: 1.1),
+              side: BorderSide(color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.94), width: 1.2),
             ),
             child: InkWell(
               onTap: action,
@@ -1088,7 +1095,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.20 : 0.72),
+                color: Colors.white.withValues(alpha: isDark ? 0.24 : 0.86),
                 width: 1,
               ),
             ),
