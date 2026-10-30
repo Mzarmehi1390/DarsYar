@@ -484,11 +484,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
       else ...daySessions.map(studySessionTile),
       SizedBox(height: 22),
-      Row(children: [
-        Expanded(child: Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
-        OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.calendar_month_rounded), label: Text('جلسه جدید')),
-        SizedBox(width: 6),
-        FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('وظیفه')),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+        SizedBox(height: 8),
+        Row(children: [
+          Expanded(child: OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.calendar_month_rounded), label: Text('جلسه جدید'))),
+          SizedBox(width: 8),
+          Expanded(child: FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('وظیفه'))),
+        ]),
       ]),
       SizedBox(height: 10),
       if (tasks.isEmpty)
@@ -1889,6 +1892,7 @@ class _StudySessionEditorDialog extends StatefulWidget {
 }
 
 class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
+  static const weekDayOrder = [6, 0, 1, 2, 3, 4, 5];
   late final TextEditingController _titleController;
   late final TextEditingController _subjectController;
   late int _weekday;
@@ -1934,10 +1938,9 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
         DropdownButtonFormField<int>(
           initialValue: _weekday,
           decoration: InputDecoration(labelText: 'روز هفته'),
-          items: List.generate(
-            7,
+          items: weekDayOrder.map(
             (day) => DropdownMenuItem(value: day, child: Text(widget.weekDays[day])),
-          ),
+          ).toList(),
           onChanged: (value) {
             if (value != null) setState(() => _weekday = value);
           },
