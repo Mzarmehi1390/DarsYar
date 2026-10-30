@@ -1555,7 +1555,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       currentQuestionNumber = firstUnansweredQuestion;
     });
     if (!_examTimerRunning) _toggleExamTimer();
-    save(sections: {'exams'});
+    save(sections: {'exams', 'activeExam'});
   }
 
   Future<void> _finishExam({bool automatic = false}) async {
@@ -1620,7 +1620,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _savingExamResult = true;
       results.add(result);
     });
-    final saved = await save(sections: {'results'});
+    final saved = await save(sections: {'exams', 'results'});
     if (!mounted) return;
     setState(() => _savingExamResult = false);
     if (saved) {
@@ -2002,7 +2002,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       activeExamId = exam.id;
       tab = 2;
     });
-    await save(sections: {'exams'});
+    await save(sections: {'exams', 'activeExam'});
   }
 
   Future<void> renameExam() async {
@@ -2021,7 +2021,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         }
       }
     });
-    await save(sections: {'exams', 'results'});
+    await save(sections: {'exams', 'results', 'activeExam'});
   }
 
   Future<void> deleteExam() async {
@@ -2178,7 +2178,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ..addAll(result);
       _syncExamResults(activeExam);
     });
-    await save(sections: {'exams', 'results'});
+    await save(sections: {'exams', 'results', 'activeExam'});
   }
 
 
