@@ -687,16 +687,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget _selectedNavIcon(IconData icon) => Container(
-      width: 38, height: 38,
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.18),
-        shape: BoxShape.circle,
-        border: Border.all(color: accent, width: 1.8),
-        boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.18), blurRadius: 10)],
-      ),
-      child: Icon(icon, color: accent, size: 21),
-    );
   void _openPlanner() {
     setState(() => tab = 1);
     _revealSelectedDay();
