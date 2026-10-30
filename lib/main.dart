@@ -1517,11 +1517,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     } else if (_remainingExamSeconds == 0) {
       _remainingExamSeconds = exam.durationSeconds;
     }
+    var firstUnansweredQuestion = 1;
+    for (var question = 1; question <= exam.questionCount; question++) {
+      if (!exam.answers.containsKey(question)) {
+        firstUnansweredQuestion = question;
+        break;
+      }
+    }
     setState(() {
       activeExamId = exam.id;
       isTakingExam = true;
-      currentQuestionNumber = List.generate(exam.questionCount, (i) => i + 1)
-        .firstWhere((q) => !exam.answers.containsKey(q), orElse: () => 1);
+      currentQuestionNumber = firstUnansweredQuestion;
     });
     if (!_examTimerRunning) _toggleExamTimer();
     save();
