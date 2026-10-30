@@ -1663,6 +1663,101 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 }
 
 
+class _ExamSetupPanel extends StatefulWidget {
+  const _ExamSetupPanel({required this.onCreate});
+  final void Function(String, int, int, bool) onCreate;
+
+  @override
+  State<_ExamSetupPanel> createState() => _ExamSetupPanelState();
+}
+
+class _ExamSetupPanelState extends State<_ExamSetupPanel> {
+  final _name = TextEditingController();
+  final _count = TextEditingController(text: '20');
+  final _minutes = TextEditingController(text: '30');
+  final _seconds = TextEditingController(text: '0');
+  bool _negativeMarking = false;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _count.dispose();
+    _minutes.dispose();
+    _seconds.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _name.text.trim();
+    final count = int.tryParse(_count.text);
+    final minutes = int.tryParse(_minutes.text);
+    final seconds = int.tryParse(_seconds.text);
+    if (name.isEmpty || count == null || count < 1 || count > 200 ||
+        minutes == null || minutes < 0 || seconds == null || seconds < 0 || seconds > 59) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('نام، تعداد سؤال و زمان آزمون را درست وارد کن.')),
+      );
+      return;
+    }
+    final duration = minutes * 60 + seconds;
+    if (duration < 1 || duration > 24 * 60 * 60) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')),
+      );
+      return;
+    }
+    widget.onCreate(name, count, duration, _negativeMarking);
+  }
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    children: [
+      Card(child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('مشخصات آزمون', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          SizedBox(height: 14),
+          TextField(controller: _name, maxLength: 60,
+            decoration: InputDecoration(labelText: 'نام آزمون', hintText: 'مثلاً آزمون فصل اول ریاضی')),
+          TextField(controller: _count, keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(labelText: 'تعداد سؤال (۱ تا ۲۰۰)')),
+          SizedBox(height: 14),
+          Text('زمان دلخواه آزمون', style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 8),
+          Row(children: [
+            Expanded(child: TextField(controller: _minutes, keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(labelText: 'دقیقه', border: OutlineInputBorder()))),
+            SizedBox(width: 12),
+            Expanded(child: TextField(controller: _seconds, keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(labelText: 'ثانیه', border: OutlineInputBorder()))),
+          ]),
+          SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _negativeMarking,
+            onChanged: (value) => setState(() => _negativeMarking = value),
+            title: Text('محاسبه با نمره منفی'),
+            subtitle: Text('هر سه پاسخ غلط، معادل یک پاسخ درست کسر می‌شود.'),
+          ),
+          SizedBox(height: 8),
+          SizedBox(width: double.infinity, child: FilledButton.icon(
+            onPressed: _submit,
+            icon: Icon(Icons.play_arrow_rounded),
+            label: Text('ساخت پاسخ‌برگ و شروع آزمون'),
+          )),
+          SizedBox(height: 4),
+          Text('ثبت کلید پاسخ اختیاری است و می‌توانی بعد از آزمون آن را وارد کنی.',
+            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ]),
+      )),
+    ],
+  );
+}
+
 class _TaskEditorDialog extends StatefulWidget {
   const _TaskEditorDialog({this.existing});
 
