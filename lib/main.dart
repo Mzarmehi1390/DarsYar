@@ -9,6 +9,7 @@ import 'backup_codec.dart';
 import 'exam_sheet.dart';
 import 'exam_result.dart';
 import 'study_session.dart';
+import 'darsyar_storage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,6 +163,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   bool loading = true;
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
+  final DarsYarStorage _storage = DarsYarStorage();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
@@ -208,9 +210,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
-    late final SharedPreferences prefs;
+    late final DarsYarStorageSnapshot stored;
     try {
-      prefs = await SharedPreferences.getInstance();
+      stored = await _storage.readSnapshot();
     } catch (_) {
       if (mounted) setState(() => loading = false);
       return;
@@ -218,7 +220,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     // Read each storage key independently: one damaged section must not hide
     // otherwise valid tasks, study sessions, exam sheets, or results.
-    final rawTasks = _readStoredList(_readStoredString(prefs, 'darsyar.tasks'));
+    final rawTasks = _readStoredList(stored.stringValue('darsyar.tasks'));
     if (rawTasks != null) {
       for (final item in rawTasks) {
         try {
@@ -231,7 +233,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final rawSessions = _readStoredList(_readStoredString(prefs, 'darsyar.studySessions'));
+    final rawSessions = _readStoredList(stored.stringValue('darsyar.studySessions'));
     if (rawSessions != null) {
       for (final item in rawSessions) {
         try {
@@ -244,7 +246,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final rawResults = _readStoredList(_readStoredString(prefs, 'darsyar.results'));
+    final rawResults = _readStoredList(stored.stringValue('darsyar.results'));
     if (rawResults != null) {
       for (final item in rawResults) {
         try {
@@ -257,8 +259,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final storedExamsJson = _readStoredString(prefs, 'darsyar.exams');
-    final hasStoredExamsKey = _hasStoredKey(prefs, 'darsyar.exams');
+    final storedExamsJson = stored.stringValue('darsyar.exams');
+    final hasStoredExamsKey = stored.containsKey('darsyar.exams');
     final rawExams = _readStoredList(storedExamsJson);
     exams.clear();
     if (rawExams != null) {
@@ -275,17 +277,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       // Migrate legacy single-sheet data only when the current-format key
       // does not exist. Corrupt current data must never resurrect stale
       // legacy answers over the user's newer exam state.
-      final legacyAnswers = _readIntMap(_readStoredString(prefs, 'darsyar.answers'));
-      final legacyKey = _readIntMap(_readStoredString(prefs, 'darsyar.answerKey'));
+      final legacyAnswers = _readIntMap(stored.stringValue('darsyar.answers'));
+      final legacyKey = _readIntMap(stored.stringValue('darsyar.answerKey'));
       final legacyMarked = <int>{};
-      final legacyMarkedRaw = _readStoredString(prefs, 'darsyar.marked');
+      final legacyMarkedRaw = stored.stringValue('darsyar.marked');
       final decodedMarked = _readStoredList(legacyMarkedRaw);
       if (decodedMarked != null) {
         for (final item in decodedMarked) {
           if (item is num) legacyMarked.add(item.toInt());
         }
       }
-      final legacyCount = (_readStoredInt(prefs, 'darsyar.count') ?? 20).clamp(1, 200).toInt();
+      final legacyCount = (stored.intValue('darsyar.count') ?? 20).clamp(1, 200).toInt();
       exams.add(ExamSheet(
         id: 'default',
         name: 'آزمون اول',
@@ -299,39 +301,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (exams.isEmpty) {
       exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
     }
-    activeExamId = _readStoredString(prefs, 'darsyar.activeExamId') ?? exams.first.id;
+    activeExamId = stored.stringValue('darsyar.activeExamId') ?? exams.first.id;
     if (!exams.any((exam) => exam.id == activeExamId)) {
       activeExamId = exams.first.id;
     }
     if (mounted) {
       setState(() => loading = false);
       if (tab == 1) _revealSelectedDay();
-    }
-  }
-
-  String? _readStoredString(SharedPreferences prefs, String key) {
-    try {
-      final value = prefs.get(key);
-      return value is String ? value : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  int? _readStoredInt(SharedPreferences prefs, String key) {
-    try {
-      final value = prefs.get(key);
-      return value is int ? value : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  bool _hasStoredKey(SharedPreferences prefs, String key) {
-    try {
-      return prefs.containsKey(key);
-    } catch (_) {
-      return false;
     }
   }
 
@@ -375,39 +351,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
     }
     SharedPreferences? prefs;
-    Map<String, Object?>? previousValues;
-
-    Future<void> rollbackStoredValues(
-      SharedPreferences store,
-      Map<String, Object?> previous,
-    ) async {
-      for (final entry in previous.entries) {
-        try {
-          final value = entry.value;
-          if (value == null) {
-            await store.remove(entry.key);
-          } else if (value is String) {
-            await store.setString(entry.key, value);
-          } else if (value is bool) {
-            await store.setBool(entry.key, value);
-          } else if (value is int) {
-            await store.setInt(entry.key, value);
-          } else if (value is double) {
-            await store.setDouble(entry.key, value);
-          } else if (value is List<String>) {
-            await store.setStringList(entry.key, value);
-          } else {
-            await store.remove(entry.key);
-          }
-        } catch (_) {
-          // Best-effort rollback: never hide the original save failure.
-        }
-      }
-    }
-
     try {
-      // Encode only the sections changed by the caller. This keeps unrelated
-      // collections out of the write transaction and avoids needless JSON work.
+      // Encode only the sections changed by the caller. The storage layer
+      // serializes writes and restores previous values if a write fails.
       final values = <String, String>{
         if (sections.contains('tasks'))
           'darsyar.tasks': jsonEncode(tasks.map((e) => e.toJson()).toList()),
@@ -421,23 +367,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
       };
 
-      final store = await SharedPreferences.getInstance();
-      prefs = store;
-      previousValues = {
-        for (final key in values.keys) key: store.get(key),
-      };
+      final saved = await _storage.writeStrings(values);
+      if (saved) return true;
 
-      var writesSucceeded = true;
-      for (final entry in values.entries) {
-        final saved = await store.setString(entry.key, entry.value);
-        if (!saved) {
-          writesSucceeded = false;
-          break;
-        }
-      }
-      if (writesSucceeded) return true;
-
-      await rollbackStoredValues(prefs, previousValues);
       if (mounted) {
         _showSnackBar(
           SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
@@ -445,9 +377,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
       return false;
     } catch (_) {
-      if (prefs != null && previousValues != null) {
-        await rollbackStoredValues(prefs, previousValues);
-      }
       if (mounted) {
         _showSnackBar(
           SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
