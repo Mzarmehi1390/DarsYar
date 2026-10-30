@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -377,7 +378,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget _selectedNavIcon(IconData icon) => Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFF20C997).withValues(alpha: 0.18), shape: BoxShape.circle, border: Border.all(color: const Color(0xFF20C997), width: 1.8), boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.18), blurRadius: 10)]), child: Icon(icon, color: const Color(0xFF20C997), size: 21));
+  Widget _selectedNavIcon(IconData icon) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0.86, end: 1),
+    duration: const Duration(milliseconds: 240),
+    builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+    child: Container(
+      width: 38, height: 38,
+      decoration: BoxDecoration(
+        color: const Color(0xFF20C997).withValues(alpha: 0.18),
+        shape: BoxShape.circle,
+        border: Border.all(color: const Color(0xFF20C997), width: 1.8),
+        boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.18), blurRadius: 10)],
+      ),
+      child: Icon(icon, color: const Color(0xFF20C997), size: 21),
+    ),
+  );
   void _revealSelectedDay() { WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; for (final target in [_plannerDayKeys[selectedStudyDay]?.currentContext, _plannerWeekKeys[selectedStudyDay]?.currentContext]) { if (target != null) Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), alignment: 0.5); } }); }
   void _showSnackBar(SnackBar snackBar) {
     final content = snackBar.content;
@@ -438,14 +453,43 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     else ...tasks.where((e) => !e.done).take(3).map(taskTile),
   ]);
 
-  Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) => Material(
-    color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(22), child: InkWell(
-      onTap: action, borderRadius: BorderRadius.circular(22), child: Padding(padding: const EdgeInsets.all(16), child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(gradient: LinearGradient(colors: Theme.of(context).brightness == Brightness.dark ? [const Color(0xFF214B39), const Color(0xFF173529)] : [const Color(0xFFDDF5E9), const Color(0xFFC6EBDD)]), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFF20C997).withValues(alpha: 0.28)), boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.10), blurRadius: 12, offset: const Offset(0, 4))]), child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF73E8B8) : const Color(0xFF087B55))),
-          SizedBox(height: 14), Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
-          SizedBox(height: 4), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-        ]))));
+  Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) => ClipRRect(
+    borderRadius: BorderRadius.circular(22),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Material(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(22),
+        child: InkWell(
+          onTap: action,
+          borderRadius: BorderRadius.circular(22),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: Theme.of(context).brightness == Brightness.dark
+                      ? [const Color(0xFF214B39), const Color(0xFF173529)]
+                      : [const Color(0xFFDDF5E9), const Color(0xFFC6EBDD)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF20C997).withValues(alpha: 0.28)),
+                  boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 5))],
+                ),
+                child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF73E8B8) : const Color(0xFF087B55)),
+              ),
+              SizedBox(height: 14),
+              Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
+              SizedBox(height: 4),
+              Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+            ]),
+          ),
+        ),
+      ),
+    ),
+  );
 
   Widget planner() {
     final daySessions = studySessions.where((session) => session.weekday == selectedStudyDay).toList()
@@ -961,6 +1005,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         if (results.isEmpty)
           _resultsEmptyIllustration()
         else ...[
+          if (chartResults.isNotEmpty) ...[
           Text('روند ۷ نتیجه اخیر', style: TextStyle(
             fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
           )),
@@ -996,6 +1041,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ),
             ),
           ),
+          ],
           SizedBox(height: 20),
           Text('همه نتایج', style: TextStyle(
             fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
@@ -1276,7 +1322,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       builder: (_) => _ExamNameDialog(initialName: activeExam.name, isRename: true),
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
-    setState(() { activeExam.name = name.trim(); for (var i = 0; i < results.length; i++) { if (results[i].examId == activeExam.id) results[i] = results[i].copyWith(examName: name.trim()); } });
+    final oldName = activeExam.name;
+    setState(() {
+      activeExam.name = name.trim();
+      for (var i = 0; i < results.length; i++) {
+        if (results[i].examId == activeExam.id ||
+            (results[i].examId == null && results[i].examName == oldName)) {
+          results[i] = results[i].copyWith(examName: name.trim());
+        }
+      }
+    });
     await save();
   }
 
@@ -1689,6 +1744,17 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   Duration _duration = const Duration(minutes: 30);
   final Map<int, int> _answerKey = {};
   bool _negativeMarking = false;
+  String? _lastError;
+  DateTime? _lastErrorAt;
+
+  void _showValidationMessage(String message) {
+    final now = DateTime.now();
+    if (_lastError == message && _lastErrorAt != null && now.difference(_lastErrorAt!) < const Duration(seconds: 2)) return;
+    _lastError = message; _lastErrorAt = now;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+  }
 
   @override
   void dispose() {
@@ -1701,15 +1767,15 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final name = _name.text.trim();
     final count = int.tryParse(_count.text);
     if (name.isEmpty || count == null || count < 1 || count > 200) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('نام و تعداد سؤال را درست وارد کن.')));
+      _showValidationMessage('نام و تعداد سؤال را درست وارد کن.');
       return;
     }
     final duration = _duration.inSeconds;
     if (duration < 1 || duration > 24 * 60 * 60) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')));
+      _showValidationMessage('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.');
       return;
     }
-    widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.from(_answerKey));
+    widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.fromEntries(_answerKey.entries.where((entry) => entry.key >= 1 && entry.key <= count)));
   }
 
   Future<void> _editSetupAnswerKey() async {
@@ -1924,6 +1990,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
   late int _startMinutes;
   late int _durationMinutes;
   late final TextEditingController _durationController;
+  String? _lastError;
+  DateTime? _lastErrorAt;
 
   @override
   void initState() {
@@ -2047,7 +2115,15 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+    final now = DateTime.now();
+    if (_lastError == message && _lastErrorAt != null &&
+        now.difference(_lastErrorAt!) < const Duration(seconds: 2)) {
+      return;
+    }
+    _lastError = message;
+    _lastErrorAt = now;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
 }
