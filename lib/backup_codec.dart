@@ -75,6 +75,8 @@ class DarsYarBackupCodec {
       requiredStrings: const ['id', 'name'],
       optionalIntegers: const ['questionCount'],
     );
+    _validateExamAnswerData(payload['exams'] as List);
+
     _validateRecords(
       payload['results'] as List,
       'results',
@@ -113,6 +115,74 @@ class DarsYarBackupCodec {
             ? requestedActiveId
             : (exams.first as Map)['id'] as String;
     return payload;
+  }
+
+
+  /// Exam answer maps are part of the portable backup contract. Reject
+  /// malformed entries instead of letting ExamSheet.fromJson silently drop
+  /// data during an import.
+  static void _validateExamAnswerData(List exams) {
+    for (var index = 0; index < exams.length; index++) {
+      final exam = exams[index] as Map;
+      final rawCount = exam['questionCount'] ?? 20;
+      final count = rawCount is num && rawCount % 1 == 0
+          ? rawCount.toInt()
+          : 20;
+      if (count < 1 || count > 200) {
+        throw FormatException(
+          'Invalid exams record at index $index: questionCount',
+        );
+      }
+
+      for (final field in const ['answers', 'answerKey']) {
+        final raw = exam[field];
+        if (raw == null && !exam.containsKey(field)) continue;
+        if (raw == null) continue;
+        if (raw is! Map) {
+          throw FormatException(
+            'Invalid exams record at index $index: $field',
+          );
+        }
+        final seenQuestions = <int>{};
+        for (final entry in raw.entries) {
+          final question = int.tryParse(entry.key.toString());
+          final option = entry.value;
+          if (question == null ||
+              question < 1 ||
+              question > count ||
+              !seenQuestions.add(question) ||
+              option is! num ||
+              option % 1 != 0 ||
+              option < 0 ||
+              option > 3) {
+            throw FormatException(
+              'Invalid exams record at index $index: $field',
+            );
+          }
+        }
+      }
+
+      final rawMarked = exam['marked'];
+      if (rawMarked != null) {
+        if (rawMarked is! List) {
+          throw FormatException(
+            'Invalid exams record at index $index: marked',
+          );
+        }
+        final seenQuestions = <int>{};
+        for (final item in rawMarked) {
+          if (item is! num ||
+              item % 1 != 0 ||
+              item < 1 ||
+              item > count ||
+              !seenQuestions.add(item.toInt())) {
+            throw FormatException(
+              'Invalid exams record at index $index: marked',
+            );
+          }
+        }
+      }
+    }
   }
 
   static void _validateRecords(
