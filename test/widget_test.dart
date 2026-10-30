@@ -75,6 +75,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('exam duration dialog fits a compact phone viewport', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تغییر زمان'));
+    await tester.pumpAndSettle();
+
+    final dialog = tester.getSize(find.byType(AlertDialog));
+    expect(dialog.width, lessThanOrEqualTo(320));
+    expect(dialog.height, lessThanOrEqualTo(640));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('new exam setup starts a one-question-at-a-time answer flow', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
