@@ -357,16 +357,18 @@ void main() {
       ],
     ).replaceFirst('"percentage":1', '"percentage":1e999');
 
-    for (final payload in [
-      invalidExamLink,
-      excessivePercentage,
-      infinitePercentage,
-    ]) {
-      expect(
-        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
-        throwsFormatException,
-      );
-    }
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(invalidExamLink)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(excessivePercentage)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(infinitePercentage),
+      throwsFormatException,
+    );
   });
 
   test('falls back to first exam if active exam ID is missing or stale', () {
