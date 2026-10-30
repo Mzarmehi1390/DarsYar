@@ -541,8 +541,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
