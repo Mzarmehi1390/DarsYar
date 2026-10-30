@@ -41,6 +41,7 @@ class ExamResult {
     int? keyedQuestions,
     double? percentage,
     Map<int, int>? answerKey,
+    bool clearPercentage = false,
   }) => ExamResult(
     id: id,
     examId: examId,
@@ -51,7 +52,7 @@ class ExamResult {
     wrong: wrong ?? this.wrong,
     unanswered: unanswered ?? this.unanswered,
     keyedQuestions: keyedQuestions ?? this.keyedQuestions,
-    percentage: percentage ?? this.percentage,
+    percentage: clearPercentage ? null : percentage ?? this.percentage,
     negativeMarking: negativeMarking,
     answers: answers,
     answerKey: answerKey ?? this.answerKey,
