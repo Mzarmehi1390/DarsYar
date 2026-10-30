@@ -1888,8 +1888,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
         title: Text('کلید پاسخ: ${result.examName}'),
         content: SizedBox(
-          width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0),
-          height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0),
+          width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0).toDouble(),
+          height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0).toDouble(),
           child: ListView.builder(
             itemCount: result.questionCount,
             itemBuilder: (context, index) {
@@ -2128,7 +2128,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
     ),
         title: Text('کلید پاسخ‌ها'),
-        content: SizedBox(width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0), height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0), child: ListView.builder(
+        content: SizedBox(width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0).toDouble(), height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0).toDouble(), child: ListView.builder(
           itemCount: count,
           itemBuilder: (context, index) {
             final n = index + 1;
@@ -2206,7 +2206,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
         title: Text('بازیابی نسخه پشتیبان'),
         content: SizedBox(
-          width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0),
+          width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0).toDouble(),
           child: SingleChildScrollView(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
@@ -2617,7 +2617,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
       ),
     ),
       title: Text('کلید پاسخ آزمون'),
-      content: SizedBox(width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0), height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0), child: ListView.builder(itemCount: count, itemBuilder: (context, index) { final q = index + 1; return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [SizedBox(width: 65, child: Text('سؤال $q')), for (var option = 0; option < 4; option++) Expanded(child: ChoiceChip(label: Text(['الف', 'ب', 'ج', 'د'][option]), selected: draft[q] == option, onSelected: (_) => dialogSet(() { if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; } }))) ])); })),
+      content: SizedBox(width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0).toDouble(), height: (MediaQuery.sizeOf(context).height * 0.62).clamp(220.0, 420.0).toDouble(), child: ListView.builder(itemCount: count, itemBuilder: (context, index) { final q = index + 1; return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [SizedBox(width: 65, child: Text('سؤال $q')), for (var option = 0; option < 4; option++) Expanded(child: ChoiceChip(label: Text(['الف', 'ب', 'ج', 'د'][option]), selected: draft[q] == option, onSelected: (_) => dialogSet(() { if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; } }))) ])); })),
       actions: [TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')), TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')), FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('ذخیره کلید'))],
     )));
     if (updated != null && mounted) setState(() { _answerKey..clear()..addAll(updated); });
@@ -2804,7 +2804,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
     ),
     title: Text('تنظیم زمان آزمون'),
     content: SizedBox(
-      width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0),
+      width: (MediaQuery.sizeOf(context).width - 64).clamp(240.0, 520.0).toDouble(),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text('زمان را به ساعت، دقیقه و ثانیه وارد کن.',
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
