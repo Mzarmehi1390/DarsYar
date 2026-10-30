@@ -829,7 +829,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     borderRadius: BorderRadius.circular(10),
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
-                      duration: const Duration(milliseconds: 220),
+                      duration: MediaQuery.of(context).disableAnimations
+                           ? Duration.zero
+                           : const Duration(milliseconds: 220),
                       curve: Curves.easeOutCubic,
                       builder: (context, progress, _) => LinearProgressIndicator(
                         minHeight: 8,
@@ -1217,7 +1219,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 borderRadius: BorderRadius.circular(6),
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: sessions.isEmpty ? 0 : done / sessions.length),
-                  duration: const Duration(milliseconds: 180),
+                  duration: MediaQuery.of(context).disableAnimations
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
                   curve: Curves.easeOutCubic,
                   builder: (context, progress, _) => LinearProgressIndicator(
                     minHeight: 5,
