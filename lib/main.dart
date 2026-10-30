@@ -16,10 +16,10 @@ Future<void> main() async {
   runApp(const DarsYarApp());
 }
 
-const purple = Color(0xFF20C997);
+const accent = Color(0xFF16A36A);
 const ink = Color(0xFF14231D);
 const muted = Color(0xFF8A9B92);
-const canvas = Color(0xFFF2F8F5);
+const canvas = Color(0xFFF0F5F2);
 
 class StudyTask {
   StudyTask(this.id, this.title, this.subject, {this.done = false});
@@ -85,21 +85,21 @@ class _DarsYarAppState extends State<DarsYarApp> {
 
   @override
   Widget build(BuildContext context) {
-    final lightScheme = ColorScheme.fromSeed(seedColor: purple);
+    final lightScheme = ColorScheme.fromSeed(seedColor: accent);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'درس‌یار',
       themeMode: mode,
       theme: ThemeData(useMaterial3: true, colorScheme: lightScheme, scaffoldBackgroundColor: canvas,
         appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink),
-        cardTheme: CardThemeData(elevation: 2, color: const Color(0xFFE5F1EB), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFBBD6C7))))),
+        cardTheme: CardThemeData(elevation: 3, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFC8D9CE), width: 1.2)))), 
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark),
+        colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF090F0C),
         appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF090F0C), foregroundColor: Colors.white),
-        cardTheme: CardThemeData(elevation: 3, color: const Color(0xFF17231D), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: const Color(0xFF6A9B80).withValues(alpha: 0.28)))),
+        cardTheme: CardThemeData(elevation: 3, color: const Color(0xFF17251D), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: const Color(0xFF4E735D).withValues(alpha: 0.58), width: 1.1)))), 
       ),
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
@@ -415,7 +415,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
     Row(children: [
-      CircleAvatar(backgroundColor: Color(0xFFECE7FF), child: Icon(Icons.auto_stories_rounded, color: purple)),
+      CircleAvatar(backgroundColor: Color(0xFFDDF3E6), child: Icon(Icons.auto_stories_rounded, color: accent)),
       SizedBox(width: 12),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('درس‌یار', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
@@ -424,7 +424,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]),
     SizedBox(height: 24),
     Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(
-      gradient: const LinearGradient(colors: [Color(0xFF8067E8), Color(0xFF5D43BD)], begin: Alignment.topRight, end: Alignment.bottomLeft),
+      gradient: const LinearGradient(colors: [Color(0xFF16865B), Color(0xFF0D5138)], begin: Alignment.topRight, end: Alignment.bottomLeft),
       borderRadius: BorderRadius.circular(26)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('هر روز، یک قدم به هدفت نزدیک‌تر', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
@@ -458,7 +458,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     child: BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
       child: Material(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh.withValues(alpha: 0.82),
+        color: Theme.of(context).cardColor.withValues(alpha: 0.96),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: accent.withValues(alpha: 0.20))),
         borderRadius: BorderRadius.circular(22),
         child: InkWell(
           onTap: action,
@@ -580,7 +582,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(Icons.insights_rounded, color: purple),
+          Icon(Icons.insights_rounded, color: accent),
           SizedBox(width: 8),
           Text('گزارش هفتگی مطالعه', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         ]),
@@ -613,7 +615,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget _weeklyMetric(String label, int value, String unit) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text('$value', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: purple)),
+      Text('$value', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: accent)),
       Text(unit, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       SizedBox(height: 3),
       Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -666,7 +668,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return SizedBox(
       width: (MediaQuery.of(context).size.width - 54) / 2,
       child: Material(
-        color: selected ? purple.withValues(alpha: 0.10) : Theme.of(context).cardColor,
+        color: selected ? accent.withValues(alpha: 0.10) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -676,7 +678,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(child: Text(weekDays[day], style: TextStyle(
-                  fontWeight: FontWeight.w800, color: selected ? purple : null))),
+                  fontWeight: FontWeight.w800, color: selected ? accent : null))),
                 
               ]),
               SizedBox(height: 8),
@@ -705,13 +707,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
     child: Row(children: [
-      Checkbox(value: session.completed, activeColor: purple, onChanged: (value) async {
+      Checkbox(value: session.completed, activeColor: accent, onChanged: (value) async {
         final index = studySessions.indexWhere((item) => item.id == session.id);
         if (index < 0) return;
         setState(() => studySessions[index] = session.copyWith(completed: value ?? false));
         await save();
       }),
-      Container(width: 4, height: 42, decoration: BoxDecoration(color: purple, borderRadius: BorderRadius.circular(4))),
+      Container(width: 4, height: 42, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(4))),
       SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(session.title, style: TextStyle(fontWeight: FontWeight.w800,
@@ -721,7 +723,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
       IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
-        icon: Icon(Icons.edit_outlined, color: purple)),
+        icon: Icon(Icons.edit_outlined, color: accent)),
       IconButton(tooltip: 'حذف جلسه', onPressed: () async {
         final confirmed = await showDialog<bool>(
           context: context,
@@ -753,7 +755,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget summary(String label, int? value, IconData icon) => Container(padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, color: purple), SizedBox(height: 8),
+      Icon(icon, color: accent), SizedBox(height: 8),
       Text(value?.toString() ?? '—', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
       Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
@@ -761,13 +763,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget taskTile(StudyTask task) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
     child: Row(children: [
-      Checkbox(value: task.done, activeColor: purple, onChanged: (value) async { setState(() => task.done = value ?? false); await save(); }),
+      Checkbox(value: task.done, activeColor: accent, onChanged: (value) async { setState(() => task.done = value ?? false); await save(); }),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
         SizedBox(height: 4), Text(task.subject, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
       IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
-        icon: Icon(Icons.edit_outlined, color: purple)),
+        icon: Icon(Icons.edit_outlined, color: accent)),
       IconButton(tooltip: 'حذف', onPressed: () async {
         final confirmed = await showDialog<bool>(
           context: context,
@@ -856,7 +858,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final answered = exam.answers.length;
     return Column(children: [
       Material(color: Theme.of(context).colorScheme.surfaceContainerHigh, elevation: 3, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), Text(_formatDuration(remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: purple)), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
+        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), Text(_formatDuration(remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent)), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
         LinearProgressIndicator(value: exam.questionCount == 0 ? 0 : answered / exam.questionCount, minHeight: 7),
         SizedBox(height: 6),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
@@ -864,7 +866,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Expanded(child: Row(children: [
         if (_showQuestionNavigator) Container(width: (MediaQuery.of(context).size.width * 0.34).clamp(112.0, 190.0).toDouble(), color: Theme.of(context).colorScheme.surfaceContainer, child: ListView.builder(padding: const EdgeInsets.all(8), itemCount: exam.questionCount, itemBuilder: (context, index) {
           final number = index + 1; final current = number == q; final markedQuestion = exam.marked.contains(number); final hasAnswer = exam.answers.containsKey(number);
-          return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? purple.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
+          return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? accent.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
         })),
         Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
           Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
@@ -1056,10 +1058,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   Container(
                     width: 44, height: 44,
                     decoration: BoxDecoration(
-                      color: purple.withValues(alpha: 0.12),
+                      color: accent.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Icon(Icons.assignment_turned_in_outlined, color: purple),
+                    child: Icon(Icons.assignment_turned_in_outlined, color: accent),
                   ),
                   SizedBox(width: 12),
                   Expanded(child: Column(
@@ -1079,7 +1081,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     ],
                   )),
                   Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: purple)),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: accent)),
                 ]),
               ),
             ),
@@ -1283,9 +1285,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(
         height: 112, width: 150,
         child: Stack(alignment: Alignment.center, children: [
-          Positioned(top: 5, right: 20, child: CircleAvatar(radius: 34, backgroundColor: purple.withValues(alpha: 0.12))),
+          Positioned(top: 5, right: 20, child: CircleAvatar(radius: 34, backgroundColor: accent.withValues(alpha: 0.12))),
           Positioned(bottom: 5, left: 20, child: CircleAvatar(radius: 24, backgroundColor: Colors.teal.withValues(alpha: 0.13))),
-          Icon(Icons.assignment_turned_in_rounded, size: 66, color: purple),
+          Icon(Icons.assignment_turned_in_rounded, size: 66, color: accent),
           Positioned(bottom: 8, right: 25, child: Icon(Icons.auto_graph_rounded, size: 30, color: Colors.teal)),
         ]),
       ),
@@ -1634,14 +1636,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
     ]))),
     SizedBox(height: 12),
-    Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: purple), title: Text('ذخیره‌سازی محلی'),
+    Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: accent), title: Text('ذخیره‌سازی محلی'),
       subtitle: Text('وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.'))),
     SizedBox(height: 12),
     Card(child: Padding(
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(Icons.backup_outlined, color: purple),
+          Icon(Icons.backup_outlined, color: accent),
           SizedBox(width: 8),
           Expanded(child: Text('پشتیبان‌گیری و بازیابی', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
         ]),
@@ -1668,7 +1670,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget emptyState(IconData icon, String title, String subtitle) => Container(padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(22)),
     child: Column(children: [
-      Icon(icon, color: purple, size: 38), SizedBox(height: 10),
+      Icon(icon, color: accent, size: 38), SizedBox(height: 10),
       Text(title, style: TextStyle(fontWeight: FontWeight.w800)),
       SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.6)),
     ]));
