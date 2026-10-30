@@ -160,6 +160,46 @@ void main() {
     expect(find.text('تمرین ریاضی'), findsOneWidget);
     expect(find.text('مرور ریاضی'), findsNothing);
   });
+  testWidgets('saving a task leaves unrelated exam storage untouched', (WidgetTester tester) async {
+    final storedExam = jsonEncode([
+      {
+        'id': 'future-exam',
+        'name': 'آزمون آینده',
+        'questionCount': 10,
+        'answers': <String, int>{},
+        'answerKey': <String, int>{},
+        'marked': <int>[],
+        'futureMetadata': {'version': 2},
+      },
+    ]);
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': storedExam,
+      'darsyar.activeExamId': 'future-exam',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final plannerList = find.byType(ListView).first;
+    final addTaskButton = find.text('ثبت وظیفه');
+    for (var attempt = 0; attempt < 8 && addTaskButton.evaluate().isEmpty; attempt++) {
+      await tester.drag(plannerList, const Offset(0, -420));
+      await tester.pumpAndSettle();
+    }
+    await tester.ensureVisible(addTaskButton.last);
+    await tester.pumpAndSettle();
+    await tester.tap(addTaskButton.last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'ذخیره مستقل');
+    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
+    await tester.tap(find.text('افزودن').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('darsyar.exams'), storedExam);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('corrupt task storage does not block saved exam sheets', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'darsyar.tasks': '{broken json',
