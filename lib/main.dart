@@ -389,13 +389,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     _lastSnackAt = now;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(snackBar.copyWith(
+    messenger.showSnackBar(SnackBar(
+      content: snackBar.content,
       behavior: SnackBarBehavior.floating,
       duration: const Duration(seconds: 2),
     ));
   }
-
-  void _showMessage(String message) => _showSnackBar(SnackBar(content: Text(message)));
 
   Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
     Row(children: [
@@ -1700,12 +1699,12 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final name = _name.text.trim();
     final count = int.tryParse(_count.text);
     if (name.isEmpty || count == null || count < 1 || count > 200) {
-      _showSnackBar(SnackBar(content: Text('نام و تعداد سؤال را درست وارد کن.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('نام و تعداد سؤال را درست وارد کن.')));
       return;
     }
     final duration = _duration.inSeconds;
     if (duration < 1 || duration > 24 * 60 * 60) {
-      _showSnackBar(SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')));
       return;
     }
     widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.from(_answerKey));
@@ -2047,6 +2046,6 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    _showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
 }
