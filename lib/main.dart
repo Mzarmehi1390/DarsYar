@@ -2247,50 +2247,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> importBackup() async {
-    final controller = TextEditingController();
     final raw = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
-        title: Text('بازیابی نسخه پشتیبان'),
-        content: SizedBox(
-          width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
-          child: SingleChildScrollView(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
-              SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                minLines: 5,
-                maxLines: 12,
-                keyboardType: TextInputType.multiline,
-                decoration: InputDecoration(
-                  hintText: 'محتوای نسخه پشتیبان…',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: Text('بررسی نسخه'),
-          ),
-        ],
-      ),
+      builder: (_) => const _BackupImportDialog(),
     );
-    controller.dispose();
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
     List<StudyTask> importedTasks;
@@ -3007,6 +2967,73 @@ class _TaskEditorDialogState extends State<_TaskEditorDialog> {
   );
 }
 
+
+class _BackupImportDialog extends StatefulWidget {
+  const _BackupImportDialog();
+
+  @override
+  State<_BackupImportDialog> createState() => _BackupImportDialogState();
+}
+
+class _BackupImportDialogState extends State<_BackupImportDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
+    surfaceTintColor: Colors.transparent,
+    elevation: 18,
+    shadowColor: Colors.black.withValues(alpha: 0.22),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(26),
+      side: BorderSide(
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
+      ),
+    ),
+    title: Text('بازیابی نسخه پشتیبان'),
+    content: SizedBox(
+      width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
+      child: SingleChildScrollView(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
+          SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            minLines: 5,
+            maxLines: 12,
+            keyboardType: TextInputType.multiline,
+            decoration: InputDecoration(
+              hintText: 'محتوای نسخه پشتیبان…',
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ]),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text('انصراف'),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.pop(context, _controller.text),
+        child: Text('بررسی نسخه'),
+      ),
+    ],
+  );
+}
 
 class _ExamNameDialog extends StatefulWidget {
   const _ExamNameDialog({this.initialName = '', this.isRename = false});
