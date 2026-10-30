@@ -260,7 +260,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (!exams.any((exam) => exam.id == activeExamId)) {
       activeExamId = exams.first.id;
     }
-    if (mounted) setState(() => loading = false);
+    if (mounted) {
+      setState(() => loading = false);
+      if (tab == 1) _revealSelectedDay();
+    }
   }
 
   List<dynamic>? _readStoredList(String? raw) {
@@ -366,7 +369,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       bottomNavigationBar: loading ? null : NavigationBar(
         indicatorColor: Colors.transparent,
         selectedIndex: tab,
-        onDestinationSelected: (value) { setState(() => tab = value); if (value == 1) _revealSelectedDay(); },
+        onDestinationSelected: (value) {
+          if (value == 1) {
+            _openPlanner();
+          } else {
+            setState(() => tab = value);
+          }
+        },
         destinations: [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
           NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
@@ -393,7 +402,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: Icon(icon, color: const Color(0xFF20C997), size: 21),
     ),
   );
-  void _revealSelectedDay() { WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; for (final target in [_plannerDayKeys[selectedStudyDay]?.currentContext, _plannerWeekKeys[selectedStudyDay]?.currentContext]) { if (target != null) Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), alignment: 0.5); } }); }
+  void _openPlanner() {
+    setState(() => tab = 1);
+    _revealSelectedDay();
+  }
+
+  void _revealSelectedDay() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || tab != 1) return;
+      for (final target in [
+        _plannerDayKeys[selectedStudyDay]?.currentContext,
+        _plannerWeekKeys[selectedStudyDay]?.currentContext,
+      ]) {
+        if (target != null) {
+          Scrollable.ensureVisible(
+            target,
+            duration: const Duration(milliseconds: 350),
+            alignment: 0.5,
+          );
+        }
+      }
+    });
+  }
   void _showSnackBar(SnackBar snackBar) {
     final content = snackBar.content;
     final message = content is Text ? (content.data ?? content.toString()) : content.toString();
@@ -441,13 +471,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 12),
     Row(children: [
-      Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', () => setState(() => tab = 1), const Color(0xFFDDF5E9))),
+      Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', _openPlanner, const Color(0xFFDDF5E9))),
       SizedBox(width: 12),
       Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFDDF5E9))),
     ]),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
-      TextButton(onPressed: () => setState(() => tab = 1), child: Text('مشاهده همه'))]),
+      TextButton(onPressed: _openPlanner, child: Text('مشاهده همه'))]),
     if (tasks.where((e) => !e.done).isEmpty)
       emptyState(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
     else ...tasks.where((e) => !e.done).take(3).map(taskTile),
@@ -655,6 +685,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save();
     if (!mounted) return;
+    _revealSelectedDay();
     _showSnackBar(
       SnackBar(content: Text('${copies.length} جلسه به ${weekDays[targetDay]} کپی شد.')),
     );
@@ -1707,6 +1738,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
       selectedStudyDay = result.weekday;
     });
+    _revealSelectedDay();
     await save();
   }
 
