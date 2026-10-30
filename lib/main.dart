@@ -161,7 +161,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
   bool loading = true;
   // Serialize writes so a slower older save cannot overwrite newer state.
-  Future<bool> _saveQueue = Future<bool>.value(true);
+  Future<void> _saveQueue = Future<void>.value();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
@@ -358,7 +358,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final pending = _saveQueue.then(
       (_) => _saveCurrentState(requestedSections),
     );
-    _saveQueue = pending;
+
+    // Keep the internal queue healthy even if an unexpected exception escapes
+    // a save. The caller still receives the original error from [pending],
+    // while the next save is allowed to run normally.
+    _saveQueue = pending.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    );
     return pending;
   }
 
