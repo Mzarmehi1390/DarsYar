@@ -726,111 +726,153 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
 
-  Widget answerSheet() => ListView(padding: const EdgeInsets.all(20), children: [
-    Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
-    SizedBox(height: 6), Text('برای هر آزمون پاسخ‌ها و کلید جداگانه نگه‌داری می‌شود.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.6)),
-    SizedBox(height: 12),
-    Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Expanded(child: Text(activeExam.name, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
-        PopupMenuButton<String>(
-          tooltip: 'مدیریت آزمون',
-          onSelected: (action) {
-            if (action == 'rename') renameExam();
-            if (action == 'delete') deleteExam();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'rename', child: Text('تغییر نام آزمون')),
-            PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
-          ],
-        ),
-      ]),
-      DropdownButtonFormField<String>(
-        initialValue: activeExamId,
-        isExpanded: true,
-        decoration: InputDecoration(labelText: 'آزمون فعال', border: OutlineInputBorder()),
-        items: exams.map((exam) => DropdownMenuItem(value: exam.id, child: Text(exam.name, overflow: TextOverflow.ellipsis))).toList(),
-        onChanged: (value) async {
-          if (value == null) return;
-          if (value != activeExamId) {
-            // A paused timer belongs to its original exam too; never let it
-            // silently resume after switching to a different answer sheet.
-            _examTimer?.cancel();
-            _examTimerRunning = false;
-            _remainingExamSeconds = 0;
-            _timerExamId = null;
-            _examDeadline = null;
-          }
-          setState(() => activeExamId = value);
-          await save();
-        },
+  Widget answerSheet() {
+    if (isTakingExam) return _takingExamView();
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
+          SizedBox(height: 12),
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 0, label: Text('ساخت آزمون جدید')),
+              ButtonSegment(value: 1, label: Text('آزمون‌های من')),
+            ],
+            selected: {examSection},
+            onSelectionChanged: (value) => setState(() => examSection = value.first),
+          ),
+        ]),
       ),
-      SizedBox(height: 8),
-      OutlinedButton.icon(onPressed: addExam, icon: Icon(Icons.add_rounded), label: Text('ساخت پاسخ‌برگ جدید')),
-    ]))),
-    SizedBox(height: 12),
-    _buildExamTimerCard(),
-    SizedBox(height: 12),
-    Card(child: Padding(padding: const EdgeInsets.all(12), child: Row(children: [
-      Expanded(child: Text('تعداد سؤال‌ها', style: TextStyle(fontWeight: FontWeight.w700))),
-      IconButton(onPressed: count > 1 ? () => resize(count - 1) : null, icon: Icon(Icons.remove_circle_outline)),
-      Text(count.toString(), style: TextStyle(fontWeight: FontWeight.w800)),
-      IconButton(onPressed: count < 200 ? () => resize(count + 1) : null, icon: Icon(Icons.add_circle_outline)),
-    ]))),
-    SizedBox(height: 12),
-    Wrap(spacing: 12, children: [
-      legend(const Color(0xFFDCF4E8), 'پاسخ‌داده‌شده'),
-      legend(const Color(0xFFFFE9CF), 'نیازمند مرور'),
-      legend(Theme.of(context).cardColor, 'بدون پاسخ'),
-    ]),
-    SizedBox(height: 12),
-    Card(child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Expanded(child: Text('کلید و نتیجه آزمون', style: TextStyle(fontWeight: FontWeight.w800))),
-        TextButton.icon(onPressed: editAnswerKey, icon: Icon(Icons.key_rounded), label: Text('تنظیم کلید')),
-      ]),
-      Text('کلید ثبت‌شده: ${answerKey.length} از $count سؤال', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-      SizedBox(height: 10),
-      Builder(builder: (context) {
-        final score = calculateAnswerScore(answers: answers, answerKey: answerKey, questionCount: count);
-        return Row(children: [
-          Expanded(child: _scoreMetric('درست', score.correct, const Color(0xFF198754))),
-          Expanded(child: _scoreMetric('غلط', score.wrong, const Color(0xFFD94841))),
-          Expanded(child: _scoreMetric('بی‌پاسخ', score.unanswered, muted)),
-          Expanded(child: _scoreMetric('درصد', score.percentage.round(), purple, suffix: '%')),
-        ]);
-      }),
-      SizedBox(height: 12),
-      SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: _savingExamResult ? null : saveExamResult,
-          icon: _savingExamResult
-              ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-              : Icon(Icons.save_alt_rounded),
-          label: Text('ثبت نتیجه در تاریخچه'),
-        ),
-      ),
-    ]))),
-    SizedBox(height: 16),
-    GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: count,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 9, crossAxisSpacing: 9, childAspectRatio: 1.35),
-      itemBuilder: (context, index) {
-        final n = index + 1;
-        final isMarked = marked.contains(n);
-        final answered = answers.containsKey(n);
-        final bg = isMarked ? const Color(0xFFFFE9CF) : answered ? const Color(0xFFDCF4E8) : Theme.of(context).cardColor;
-        return Material(color: bg, borderRadius: BorderRadius.circular(14), child: InkWell(borderRadius: BorderRadius.circular(14), onTap: () => editAnswer(n),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('$n', style: TextStyle(fontWeight: FontWeight.w800)),
-            if (answered) Text(['الف', 'ب', 'ج', 'د'][answers[n]!], style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            if (isMarked) Icon(Icons.flag_rounded, size: 12, color: Color(0xFFB86C11)),
-          ])));
-      }),
-    SizedBox(height: 16),
-    Text('پاسخ‌ها: ${answers.length} از $count  •  علامت مرور: ${marked.length}',
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
+      Expanded(child: examSection == 0
+        ? _ExamSetupPanel(onCreate: _createExamFromSetup)
+        : _myExamsView()),
+    ]);
+  }
+
+  Widget _myExamsView() => ListView(padding: const EdgeInsets.all(16), children: [
+    for (final exam in exams.reversed)
+      Card(child: ListTile(
+        title: Text(exam.name),
+        subtitle: Text('${exam.questionCount} سؤال • ${_formatDuration(exam.durationSeconds)} • ${exam.answers.length} پاسخ'),
+        trailing: IconButton(icon: Icon(Icons.play_arrow), onPressed: exam.isCompleted ? null : () => _beginExam(exam)),
+      )),
+    Text('نتایج آزمون‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+    SizedBox(height: 400, child: resultsHistory()),
   ]);
+
+  Widget _takingExamView() {
+    final exam = activeExam;
+    final q = currentQuestionNumber.clamp(1, exam.questionCount);
+    final remaining = _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
+    return Column(children: [
+      Material(
+        elevation: 2, color: Theme.of(context).colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(children: [
+            Row(children: [
+              IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)),
+              Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))),
+              Text(_formatDuration(remaining), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: purple)),
+              IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow)),
+            ]),
+            LinearProgressIndicator(
+              value: exam.durationSeconds == 0 ? 0 : 1 - remaining / exam.durationSeconds,
+              minHeight: 7,
+            ),
+            SizedBox(height: 6),
+            Text('سؤال ' + q.toString() + ' از ' + exam.questionCount.toString()),
+          ]),
+        ),
+      ),
+      Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
+        Card(child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(children: [
+            Text('سؤال ' + q.toString(), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            SizedBox(height: 16),
+            for (var option = 0; option < 4; option++)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(width: double.infinity, child: FilledButton.tonal(
+                  onPressed: () => _answerQuestion(option),
+                  child: Text('گزینه ' + (option + 1).toString() + (exam.answers[q] == option ? ' ✓' : '')),
+                )),
+              ),
+            TextButton.icon(
+              onPressed: () => _toggleQuestionMarked(q),
+              icon: Icon(Icons.flag_outlined),
+              label: Text(exam.marked.contains(q) ? 'علامت‌گذاری شده' : 'علامت برای مرور'),
+            ),
+          ]),
+        )),
+        Row(children: [
+          Expanded(child: OutlinedButton(onPressed: q > 1 ? () => setState(() => currentQuestionNumber--) : null, child: Text('قبلی'))),
+          SizedBox(width: 8),
+          Expanded(child: FilledButton(
+            onPressed: q < exam.questionCount ? () => setState(() => currentQuestionNumber++) : _finishExam,
+            child: Text(q == exam.questionCount ? 'پایان آزمون' : 'بعدی'),
+          )),
+        ]),
+        TextButton(onPressed: _finishExam, child: Text('ثبت پایان آزمون')),
+      ])),
+    ]);
+  }
+
+  Future<void> _answerQuestion(int option) async {
+    setState(() {
+      activeExam.answers[currentQuestionNumber] = option;
+      activeExam.marked.remove(currentQuestionNumber);
+      if (currentQuestionNumber < activeExam.questionCount) currentQuestionNumber++;
+    });
+    await save();
+  }
+
+  Future<void> _toggleQuestionMarked(int question) async {
+    setState(() {
+      if (!activeExam.marked.add(question)) activeExam.marked.remove(question);
+    });
+    await save();
+  }
+
+  void _beginExam(ExamSheet exam) {
+    setState(() {
+      activeExamId = exam.id;
+      isTakingExam = true;
+      currentQuestionNumber = List.generate(exam.questionCount, (i) => i + 1)
+        .firstWhere((q) => !exam.answers.containsKey(q), orElse: () => 1);
+      if (_timerExamId != exam.id || _remainingExamSeconds == 0) {
+        _remainingExamSeconds = exam.durationSeconds;
+        _timerExamId = exam.id;
+        _examTimerRunning = false;
+      }
+    });
+    if (!_examTimerRunning) _toggleExamTimer();
+    save();
+  }
+
+  Future<void> _finishExam() async {
+    if (!isTakingExam) return;
+    final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      title: Text('پایان آزمون؟'),
+      content: Text('پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('ادامه')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('پایان')),
+      ],
+    ));
+    if (ok != true || !mounted) return;
+    _examTimer?.cancel();
+    setState(() {
+      activeExam.isCompleted = true;
+      isTakingExam = false;
+      _examTimerRunning = false;
+      _examDeadline = null;
+      examSection = 1;
+    });
+    await saveExamResult();
+  }
 
   Future<void> saveExamResult() async {
     if (_savingExamResult) return;
