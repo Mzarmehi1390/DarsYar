@@ -918,6 +918,47 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
+  Widget _glassSurface({
+    required Widget child,
+    double radius = 20,
+    Color? tint,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                (tint ?? (isDark ? const Color(0xFF294238) : Colors.white))
+                    .withValues(alpha: isDark ? 0.62 : 0.76),
+                (tint ?? (isDark ? const Color(0xFF14251E) : const Color(0xFFE9F5EE)))
+                    .withValues(alpha: isDark ? 0.78 : 0.68),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: isDark ? 0.16 : 0.78),
+              width: 1.05,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.055),
+                blurRadius: 17,
+                offset: const Offset(0, 7),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   Widget _weeklyMetric(String label, int value, String unit) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -974,11 +1015,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final selected = day == selectedStudyDay;
     return SizedBox(
       width: (MediaQuery.of(context).size.width - 54) / 2,
-      child: Material(
-        color: selected ? accent.withValues(alpha: 0.10) : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+      child: _glassSurface(
+        radius: 18,
+        tint: selected ? accent.withValues(alpha: 0.12) : null,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           onTap: () { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -986,17 +1027,22 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               Row(children: [
                 Expanded(child: Text(weekDays[day], style: TextStyle(
                   fontWeight: FontWeight.w800, color: selected ? accent : null))),
-                
+                if (selected) Icon(Icons.check_circle_rounded, size: 16, color: accent),
               ]),
               SizedBox(height: 8),
               Text('${sessions.length} جلسه • $minutes دقیقه', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  minHeight: 5,
-                  value: sessions.isEmpty ? 0 : done / sessions.length,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: sessions.isEmpty ? 0 : done / sessions.length),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, progress, _) => LinearProgressIndicator(
+                    minHeight: 5,
+                    value: progress,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  ),
                 ),
               ),
               SizedBox(height: 4),
@@ -1059,13 +1105,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String _formatStudyTime(int minutes) =>
       '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
-  Widget summary(String label, int? value, IconData icon) => Container(padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, color: accent), SizedBox(height: 8),
-      Text(value?.toString() ?? '—', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
-      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-    ]));
+  Widget summary(String label, int? value, IconData icon) => _glassSurface(
+    radius: 19,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, color: accent),
+        SizedBox(height: 8),
+        Text(value?.toString() ?? '—', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+        Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      ]),
+    ),
+  );
 
   Widget taskTile(StudyTask task) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
