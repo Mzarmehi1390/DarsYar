@@ -14,6 +14,9 @@ void main() {
         unanswered: 2,
         keyedQuestions: 18,
         percentage: 83.333333,
+        negativeMarking: true,
+        answers: {1: 0, 2: 1},
+        answerKey: {1: 0, 2: 2},
       );
 
       final restored = ExamResult.fromJson(result.toJson());
@@ -26,7 +29,10 @@ void main() {
       expect(restored.wrong, 3);
       expect(restored.unanswered, 2);
       expect(restored.keyedQuestions, 18);
-      expect(restored.percentage, closeTo(result.percentage, 0.001));
+      expect(restored.percentage, closeTo(result.percentage!, 0.001));
+      expect(restored.negativeMarking, isTrue);
+      expect(restored.answers, {1: 0, 2: 1});
+      expect(restored.answerKey, {1: 0, 2: 2});
     });
 
     test('uses safe defaults for optional legacy fields', () {
@@ -34,7 +40,7 @@ void main() {
 
       expect(result.examName, 'آزمون');
       expect(result.questionCount, 0);
-      expect(result.percentage, 0);
+      expect(result.percentage, isNull);
     });
     test('sanitizes malformed scores and avoids fake current timestamps', () {
       final result = ExamResult.fromJson({
