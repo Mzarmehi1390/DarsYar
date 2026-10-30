@@ -14,10 +14,10 @@ Future<void> main() async {
   runApp(const DarsYarApp());
 }
 
-const purple = Color(0xFF7357D9);
-const ink = Color(0xFF24213A);
-const muted = Color(0xFF77748B);
-const canvas = Color(0xFFF7F5FC);
+const purple = Color(0xFF20C997);
+const ink = Color(0xFF14231D);
+const muted = Color(0xFF8A9B92);
+const canvas = Color(0xFFF2F8F5);
 
 class StudyTask {
   StudyTask(this.id, this.title, this.subject, {this.done = false});
@@ -90,14 +90,14 @@ class _DarsYarAppState extends State<DarsYarApp> {
       themeMode: mode,
       theme: ThemeData(useMaterial3: true, colorScheme: lightScheme, scaffoldBackgroundColor: canvas,
         appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink),
-        cardTheme: CardThemeData(elevation: 0, color: lightScheme.surface, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)))),
+        cardTheme: CardThemeData(elevation: 2, color: const Color(0xFFE5F1EB), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFBBD6C7))))),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: purple, brightness: Brightness.dark),
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF11101A),
-        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF11101A), foregroundColor: Colors.white),
-        cardTheme: CardThemeData(elevation: 0, color: const Color(0xFF201D2C), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))),
+        scaffoldBackgroundColor: const Color(0xFF090F0C),
+        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF090F0C), foregroundColor: Colors.white),
+        cardTheme: CardThemeData(elevation: 3, color: const Color(0xFF17231D), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: const Color(0xFF6A9B80).withValues(alpha: 0.28)))),
       ),
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
@@ -129,6 +129,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
   int selectedStudyDay = DateTime.now().weekday % 7;
+  String? _lastSnackMessage;
+  DateTime? _lastSnackAt;
+  final Map<int, GlobalKey> _plannerDayKeys = {for (final day in weekDayOrder) day: GlobalKey()};
+  final Map<int, GlobalKey> _plannerWeekKeys = {for (final day in weekDayOrder) day: GlobalKey()};
   static const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
   static const weekDayOrder = [6, 0, 1, 2, 3, 4, 5];
   final exams = <ExamSheet>[
@@ -360,19 +364,23 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       bottomNavigationBar: loading ? null : NavigationBar(
         indicatorColor: Colors.transparent,
         selectedIndex: tab,
-        onDestinationSelected: (value) => setState(() => tab = value),
+        onDestinationSelected: (value) { setState(() => tab = value); if (value == 1) _revealSelectedDay(); },
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'خانه'),
-          NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
-          NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'پاسخ‌برگ'),
-          NavigationDestination(icon: Icon(Icons.tune_rounded), label: 'تنظیمات'),
+          NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
+          NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
+          NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
+          NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
         ],
       ),
       floatingActionButton: null,
     );
   }
 
-  Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
+  Widget _selectedNavIcon(IconData icon) => Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFF20C997).withValues(alpha: 0.18), shape: BoxShape.circle, border: Border.all(color: const Color(0xFF20C997), width: 1.8), boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.18), blurRadius: 10)]), child: Icon(icon, color: const Color(0xFF20C997), size: 21));
+  void _revealSelectedDay() { WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; for (final target in [_plannerDayKeys[selectedStudyDay]?.currentContext, _plannerWeekKeys[selectedStudyDay]?.currentContext]) { if (target != null) Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), alignment: 0.5); } }); }
+  void _showMessage(String message) { final now = DateTime.now(); if (_lastSnackMessage == message && _lastSnackAt != null && now.difference(_lastSnackAt!) < const Duration(seconds: 2)) return; _lastSnackMessage = message; _lastSnackAt = now; final messenger = ScaffoldMessenger.of(context); messenger.hideCurrentSnackBar(); messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
+
+  Widget dashboard()(padding: const EdgeInsets.all(20), children: [
     Row(children: [
       CircleAvatar(backgroundColor: Color(0xFFECE7FF), child: Icon(Icons.auto_stories_rounded, color: purple)),
       SizedBox(width: 12),
@@ -400,9 +408,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 12),
     Row(children: [
-      Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', () => setState(() => tab = 1), const Color(0xFFECE7FF))),
+      Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', () => setState(() => tab = 1), const Color(0xFFDDF5E9))),
       SizedBox(width: 12),
-      Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFE0F5ED))),
+      Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFDDF5E9))),
     ]),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
@@ -413,10 +421,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ]);
 
   Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) => Material(
-    color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(22), child: InkWell(
+    color: Theme.of(context).colorScheme.surfaceContainerHigh, borderRadius: BorderRadius.circular(22), child: InkWell(
       onTap: action, borderRadius: BorderRadius.circular(22), child: Padding(padding: const EdgeInsets.all(16), child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? purple.withValues(alpha: 0.22) : tint, borderRadius: BorderRadius.circular(14)), child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFC7B8FF) : purple)),
+          Container(width: 44, height: 44, decoration: BoxDecoration(gradient: LinearGradient(colors: Theme.of(context).brightness == Brightness.dark ? [const Color(0xFF214B39), const Color(0xFF173529)] : [const Color(0xFFDDF5E9), const Color(0xFFC6EBDD)]), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFF20C997).withValues(alpha: 0.28)), boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.10), blurRadius: 12, offset: const Offset(0, 4))]), child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF73E8B8) : const Color(0xFF087B55))),
           SizedBox(height: 14), Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
           SizedBox(height: 4), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
         ]))));
@@ -444,11 +452,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 44, child: ListView(
         scrollDirection: Axis.horizontal,
         children: weekDayOrder.map((day) => Padding(
+          key: _plannerDayKeys[day],
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
             label: Text(weekDays[day]),
             selected: selectedStudyDay == day,
-            onSelected: (_) => setState(() => selectedStudyDay = day),
+            onSelected: (_) { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
           ),
         )).toList(),
       )),
@@ -459,7 +468,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         scrollDirection: Axis.horizontal,
         children: weekDayOrder.map((day) => Padding(
           padding: const EdgeInsets.only(left: 10),
-          child: SizedBox(width: 190, child: weekOverviewCard(day)),
+          child: SizedBox(key: _plannerWeekKeys[day], width: 190, child: weekOverviewCard(day)),
         )).toList(),
       )),
       SizedBox(height: 16),
@@ -467,6 +476,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 20),
       Row(children: [
         Expanded(child: Text(weekDays[selectedStudyDay], style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+        OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.add_rounded), label: Text('جلسه جدید')),
+        SizedBox(width: 6),
         PopupMenuButton<int>(
           tooltip: 'کپی برنامه این روز',
           icon: Icon(Icons.copy_all_rounded),
@@ -482,15 +493,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
       else ...daySessions.map(studySessionTile),
       SizedBox(height: 22),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
-        SizedBox(height: 8),
-        Row(children: [
-          Expanded(child: OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.calendar_month_rounded), label: Text('جلسه جدید'))),
-          SizedBox(width: 8),
-          Expanded(child: FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('وظیفه'))),
-        ]),
-      ]),
+      Row(children: [Expanded(child: Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))), FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('ثبت وظیفه'))]),
       SizedBox(height: 10),
       if (tasks.isEmpty)
         emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، دکمه «افزودن وظیفه» را بزن.')
@@ -605,14 +608,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => setState(() => selectedStudyDay = day),
+          onTap: () { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(child: Text(weekDays[day], style: TextStyle(
                   fontWeight: FontWeight.w800, color: selected ? purple : null))),
-                if (selected) Icon(Icons.check_circle_rounded, color: purple, size: 18),
+                
               ]),
               SizedBox(height: 8),
               Text('${sessions.length} جلسه • $minutes دقیقه', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -742,6 +745,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ButtonSegment(value: 1, label: Text('آزمون‌های من')),
             ],
             selected: {examSection},
+            showSelectedIcon: false,
             onSelectionChanged: (value) => setState(() => examSection = value.first),
           ),
         ]),
@@ -782,61 +786,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     SizedBox(height: 400, child: resultsHistory()),
   ]);
 
+  bool _showQuestionNavigator = false;
   Widget _takingExamView() {
-    final exam = activeExam;
-    final q = currentQuestionNumber.clamp(1, exam.questionCount);
+    final exam = activeExam, q = currentQuestionNumber.clamp(1, activeExam.questionCount);
     final remaining = _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
+    final answered = exam.answers.length;
     return Column(children: [
-      Material(
-        elevation: 2, color: Theme.of(context).colorScheme.surface,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(children: [
-            Row(children: [
-              IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)),
-              Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))),
-              Text(_formatDuration(remaining), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: purple)),
-              IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow)),
-            ]),
-            LinearProgressIndicator(
-              value: exam.durationSeconds == 0 ? 0 : 1 - remaining / exam.durationSeconds,
-              minHeight: 7,
-            ),
-            SizedBox(height: 6),
-            Text('سؤال $q از ${exam.questionCount}'),
-          ]),
-        ),
-      ),
-      Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
-        Card(child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(children: [
-            Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-            SizedBox(height: 16),
-            for (var option = 0; option < 4; option++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(width: double.infinity, child: FilledButton.tonal(
-                  onPressed: () => _answerQuestion(option),
-                  child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}'),
-                )),
-              ),
-            TextButton.icon(
-              onPressed: () => _toggleQuestionMarked(q),
-              icon: Icon(Icons.flag_outlined),
-              label: Text(exam.marked.contains(q) ? 'علامت‌گذاری شده' : 'علامت برای مرور'),
-            ),
-          ]),
-        )),
-        Row(children: [
-          Expanded(child: OutlinedButton(onPressed: q > 1 ? () => setState(() => currentQuestionNumber--) : null, child: Text('قبلی'))),
-          SizedBox(width: 8),
-          Expanded(child: FilledButton(
-            onPressed: q < exam.questionCount ? () => setState(() => currentQuestionNumber++) : _finishExam,
-            child: Text(q == exam.questionCount ? 'پایان آزمون' : 'بعدی'),
-          )),
-        ]),
-        TextButton(onPressed: _finishExam, child: Text('ثبت پایان آزمون')),
+      Material(color: Theme.of(context).colorScheme.surfaceContainerHigh, elevation: 3, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
+        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), Text(_formatDuration(remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: purple)), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
+        LinearProgressIndicator(value: exam.questionCount == 0 ? 0 : answered / exam.questionCount, minHeight: 7),
+        SizedBox(height: 6),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
+      ]))),
+      Expanded(child: Row(children: [
+        if (_showQuestionNavigator) Container(width: (MediaQuery.of(context).size.width * 0.34).clamp(112.0, 190.0), color: Theme.of(context).colorScheme.surfaceContainer, child: ListView.builder(padding: const EdgeInsets.all(8), itemCount: exam.questionCount, itemBuilder: (context, index) {
+          final number = index + 1; final current = number == q; final markedQuestion = exam.marked.contains(number); final hasAnswer = exam.answers.containsKey(number);
+          return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? purple.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
+        })),
+        Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
+          Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+            Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), SizedBox(height: 16),
+            for (var option = 0; option < 4; option++) Padding(padding: const EdgeInsets.only(bottom: 8), child: SizedBox(width: double.infinity, child: FilledButton.tonal(style: FilledButton.styleFrom(backgroundColor: exam.answers[q] == option ? const Color(0xFFB8EBD2) : Theme.of(context).colorScheme.secondaryContainer, foregroundColor: exam.answers[q] == option ? const Color(0xFF155C3D) : null), onPressed: () => _answerQuestion(option), child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}')))),
+            TextButton.icon(onPressed: () => _toggleQuestionMarked(q), icon: Icon(Icons.flag_outlined), label: Text(exam.marked.contains(q) ? 'حذف علامت مرور' : 'علامت برای مرور')),
+          ]))),
+          Row(children: [Expanded(child: OutlinedButton(onPressed: q > 1 ? () => setState(() => currentQuestionNumber--) : null, child: Text('قبلی'))), SizedBox(width: 8), Expanded(child: FilledButton(onPressed: q < exam.questionCount ? () => setState(() => currentQuestionNumber++) : _finishExam, child: Text(q == exam.questionCount ? 'پایان آزمون' : 'بعدی')))]),
+          TextButton(onPressed: _finishExam, child: Text('ثبت پایان آزمون')),
+        ])),
       ])),
     ]);
   }
@@ -888,7 +863,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('پایان')),
         ],
       ));
-      if (ok != true || !mounted) return;
+      if (ok != true || !mounted || !isTakingExam) return;
     }
     _examTimer?.cancel();
     setState(() {
@@ -912,6 +887,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     final result = ExamResult(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
+      examId: exam.id,
       examName: exam.name,
       completedAt: DateTime.now().toUtc().toIso8601String(),
       questionCount: exam.questionCount,
@@ -943,7 +919,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget resultsHistory() {
     final sorted = results.toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final chartResults = sorted.take(7).toList().reversed.toList();
+    final chartResults = sorted.where((result) => result.percentage != null).take(7).toList().reversed.toList();
     final scoredResults = results.where((result) => result.percentage != null).toList();
     final average = scoredResults.isEmpty ? 0.0 :
         scoredResults.map((result) => result.percentage!).reduce((a, b) => a + b) / scoredResults.length;
@@ -1280,7 +1256,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       builder: (_) => _ExamNameDialog(initialName: activeExam.name, isRename: true),
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
-    setState(() => activeExam.name = name.trim());
+    setState(() { activeExam.name = name.trim(); for (var i = 0; i < results.length; i++) { if (results[i].examId == activeExam.id) results[i] = results[i].copyWith(examName: name.trim()); } });
     await save();
   }
 
@@ -1300,9 +1276,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ],
     ));
     if (confirmed != true) return;
+    final deletedExam = activeExam;
     setState(() {
       final index = exams.indexWhere((exam) => exam.id == activeExamId);
       exams.removeWhere((exam) => exam.id == activeExamId);
+      results.removeWhere((result) => result.examId == deletedExam.id || (result.examId == null && result.examName == deletedExam.name));
       activeExamId = exams[(index - 1).clamp(0, exams.length - 1).toInt()].id;
     });
     await save();
