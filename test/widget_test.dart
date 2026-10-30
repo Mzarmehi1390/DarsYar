@@ -27,6 +27,26 @@ void main() {
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
 
+  testWidgets('exam duration uses a compact editor instead of a wheel picker', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('زمان دلخواه آزمون'), findsOneWidget);
+    expect(find.text('00:30:00'), findsOneWidget);
+    expect(find.byType(CupertinoTimerPicker), findsNothing);
+
+    await tester.tap(find.text('تغییر زمان'));
+    await tester.pumpAndSettle();
+    expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
+
+    await tester.enterText(find.widgetWithText(TextField, 'دقیقه'), '45');
+    await tester.tap(find.text('ذخیره زمان'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('00:45:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('new exam setup starts a one-question-at-a-time answer flow', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();

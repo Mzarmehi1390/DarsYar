@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
@@ -1878,6 +1877,21 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.fromEntries(_answerKey.entries.where((entry) => entry.key >= 1 && entry.key <= count)));
   }
 
+  String _formatExamDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _editDuration() async {
+    final updated = await showDialog<Duration>(
+      context: context,
+      builder: (_) => _ExamDurationDialog(initialDuration: _duration),
+    );
+    if (updated != null && mounted) setState(() => _duration = updated);
+  }
+
   Future<void> _editSetupAnswerKey() async {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
     final draft = Map<int, int>.from(_answerKey);
@@ -1907,19 +1921,40 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           Text('زمان دلخواه آزمون', style: TextStyle(fontWeight: FontWeight.w700)),
           SizedBox(height: 8),
           Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.48),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: CupertinoTimerPicker(
-              mode: CupertinoTimerPickerMode.hms,
-              initialTimerDuration: _duration,
-              minuteInterval: 1,
-              secondInterval: 1,
-              onTimerDurationChanged: (value) => setState(() => _duration = value),
-            ),
+            child: Row(children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.timer_outlined, color: accent),
+              ),
+              SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('مدت آزمون', style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  )),
+                  SizedBox(height: 3),
+                  Text(_formatExamDuration(_duration),
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                ],
+              )),
+              OutlinedButton(
+                onPressed: _editDuration,
+                child: Text('تغییر زمان'),
+              ),
+            ]),
           ),
           SizedBox(height: 12),
           Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
@@ -1942,6 +1977,134 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ]),
       )),
+    ],
+  );
+}
+
+class _ExamDurationDialog extends StatefulWidget {
+  const _ExamDurationDialog({required this.initialDuration});
+
+  final Duration initialDuration;
+
+  @override
+  State<_ExamDurationDialog> createState() => _ExamDurationDialogState();
+}
+
+class _ExamDurationDialogState extends State<_ExamDurationDialog> {
+  late final TextEditingController _hours;
+  late final TextEditingController _minutes;
+  late final TextEditingController _seconds;
+
+  @override
+  void initState() {
+    super.initState();
+    _hours = TextEditingController(text: widget.initialDuration.inHours.toString());
+    _minutes = TextEditingController(
+      text: widget.initialDuration.inMinutes.remainder(60).toString(),
+    );
+    _seconds = TextEditingController(
+      text: widget.initialDuration.inSeconds.remainder(60).toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _hours.dispose();
+    _minutes.dispose();
+    _seconds.dispose();
+    super.dispose();
+  }
+
+  void _setPreset(int minutes) {
+    setState(() {
+      _hours.text = (minutes ~/ 60).toString();
+      _minutes.text = (minutes % 60).toString();
+      _seconds.text = '0';
+    });
+  }
+
+  void _submit() {
+    final hours = int.tryParse(_hours.text) ?? -1;
+    final minutes = int.tryParse(_minutes.text) ?? -1;
+    final seconds = int.tryParse(_seconds.text) ?? -1;
+    if (hours < 0 || hours > 24 ||
+        minutes < 0 || minutes > 59 ||
+        seconds < 0 || seconds > 59 ||
+        (hours == 24 && (minutes != 0 || seconds != 0))) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('ساعت باید حداکثر ۲۴ و دقیقه و ثانیه کمتر از ۶۰ باشند.'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      return;
+    }
+    final duration = Duration(hours: hours, minutes: minutes, seconds: seconds);
+    if (duration.inSeconds < 1) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('زمان آزمون باید حداقل یک ثانیه باشد.'),
+          behavior: SnackBarBehavior.floating,
+        ));
+      return;
+    }
+    Navigator.pop(context, duration);
+  }
+
+  Widget _timeField(String label, TextEditingController controller) => Expanded(
+    child: TextField(
+      controller: controller,
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(2),
+      ],
+      decoration: InputDecoration(
+        labelText: label,
+        counterText: '',
+        filled: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text('تنظیم زمان آزمون'),
+    content: SizedBox(
+      width: 360,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('زمان را به ساعت، دقیقه و ثانیه وارد کن.',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        SizedBox(height: 18),
+        Row(children: [
+          _timeField('ساعت', _hours),
+          SizedBox(width: 8),
+          _timeField('دقیقه', _minutes),
+          SizedBox(width: 8),
+          _timeField('ثانیه', _seconds),
+        ]),
+        SizedBox(height: 18),
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text('زمان‌های پیشنهادی',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+        ),
+        SizedBox(height: 8),
+        Wrap(spacing: 7, runSpacing: 7, children: [
+          for (final preset in [15, 30, 45, 60, 90, 120])
+            ActionChip(
+              label: Text(preset < 60 ? '$preset دقیقه' : '${preset ~/ 60} ساعت'),
+              onPressed: () => _setPreset(preset),
+            ),
+        ]),
+      ]),
+    ),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
+      FilledButton(onPressed: _submit, child: Text('ذخیره زمان')),
     ],
   );
 }
