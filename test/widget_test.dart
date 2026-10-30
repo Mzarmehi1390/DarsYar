@@ -232,5 +232,19 @@ void main() {
   });
 
 
+  testWidgets('planner initially selects and reveals the current weekday', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+    final today = DateTime.now().weekday % 7;
+    final todayChip = find.widgetWithText(ChoiceChip, weekDays[today]);
+
+    expect(todayChip, findsOneWidget);
+    expect(tester.widget<ChoiceChip>(todayChip).selected, isTrue);
+    expect(find.text(weekDays[today]), findsWidgets);
+  });
+
+
 
 }
