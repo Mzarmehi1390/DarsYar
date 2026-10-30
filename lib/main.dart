@@ -917,10 +917,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final sorted = results.toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
     final chartResults = sorted.take(7).toList().reversed.toList();
-    final average = results.isEmpty
-        ? 0.0
-        : results.map((result) => result.percentage).reduce((a, b) => a + b) /
-            results.length;
+    final scoredResults = results.where((result) => result.percentage != null).toList();
+    final average = scoredResults.isEmpty ? 0.0 :
+        scoredResults.map((result) => result.percentage!).reduce((a, b) => a + b) / scoredResults.length;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
       children: [
@@ -938,8 +937,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ]),
         SizedBox(height: 20),
         if (results.isEmpty)
-          emptyState(Icons.show_chart_rounded, 'هنوز نتیجه‌ای ذخیره نشده',
-            'به بخش پاسخ‌برگ برو، کلید پاسخ را تنظیم کن و «ثبت نتیجه در تاریخچه» را بزن.')
+          _resultsEmptyIllustration()
         else ...[
           Text('روند ۷ نتیجه اخیر', style: TextStyle(
             fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
@@ -966,7 +964,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         )),
                         SizedBox(width: 10),
                         SizedBox(width: 46, child: Text(
-                          '${chartResults[i].percentage.round()}%',
+                          '${chartResults[i].percentage?.round() ?? '—'}%',
                           textAlign: TextAlign.end,
                           style: TextStyle(fontWeight: FontWeight.w800),
                         )),
@@ -1008,10 +1006,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       SizedBox(height: 6),
                       Text('درست: ${result.correct}  •  غلط: ${result.wrong}  •  بی‌پاسخ: ${result.unanswered}',
                         style: TextStyle(fontSize: 12)),
+                      if (result.percentage == null)
+                        TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
                     ],
                   )),
-                  Text('${result.percentage.round()}%',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: purple)),
+                  Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: purple)),
                 ]),
               ),
             ),
