@@ -582,4 +582,30 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('wrong preference value types do not block valid app startup', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.tasks': 42,
+      'darsyar.studySessions': true,
+      'darsyar.results': <String>['invalid'],
+      'darsyar.exams': false,
+      'darsyar.activeExamId': 7,
+      // Stale legacy values must not be restored when a current-format key
+      // exists but contains a value of the wrong type.
+      'darsyar.answers': jsonEncode({'1': 2}),
+      'darsyar.answerKey': jsonEncode({'1': 2}),
+      'darsyar.count': '3',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+    expect(find.text('آزمون اول'), findsWidgets);
+    expect(find.textContaining('20 سؤال'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
