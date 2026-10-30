@@ -701,7 +701,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ));
   }
 
-  Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
+  Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.all(20), children: [
     Row(children: [
       CircleAvatar(backgroundColor: Color(0xFFDDF3E6), child: Icon(Icons.auto_stories_rounded, color: accent)),
       SizedBox(width: 12),
@@ -891,7 +891,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     final completedSessions = studySessions.where((session) => session.completed).length;
     final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
-    return ListView(padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
+    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
       Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
       SizedBox(height: 6),
       Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1360,6 +1360,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget _myExamsView() => ListView(
+    key: const PageStorageKey<String>('my-exams-scroll'),
     padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
     children: [
       Text('پاسخ‌برگ‌های ذخیره‌شده', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
@@ -2300,7 +2301,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget settings() => ListView(padding: const EdgeInsets.all(20), children: [
+  Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.all(20), children: [
     Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     SizedBox(height: 18),
