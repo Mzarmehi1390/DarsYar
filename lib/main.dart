@@ -839,16 +839,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   void _beginExam(ExamSheet exam) {
+    if (_timerExamId != exam.id) {
+      _examTimer?.cancel();
+      _examTimerRunning = false;
+      _examDeadline = null;
+      _remainingExamSeconds = exam.durationSeconds;
+      _timerExamId = exam.id;
+    } else if (_remainingExamSeconds == 0) {
+      _remainingExamSeconds = exam.durationSeconds;
+    }
     setState(() {
       activeExamId = exam.id;
       isTakingExam = true;
       currentQuestionNumber = List.generate(exam.questionCount, (i) => i + 1)
         .firstWhere((q) => !exam.answers.containsKey(q), orElse: () => 1);
-      if (_timerExamId != exam.id || _remainingExamSeconds == 0) {
-        _remainingExamSeconds = exam.durationSeconds;
-        _timerExamId = exam.id;
-        _examTimerRunning = false;
-      }
     });
     if (!_examTimerRunning) _toggleExamTimer();
     save();
@@ -962,7 +966,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           borderRadius: BorderRadius.circular(8),
                           child: LinearProgressIndicator(
                             minHeight: 12,
-                            value: (chartResults[i].percentage / 100).clamp(0.0, 1.0),
+                            value: ((chartResults[i].percentage ?? 0) / 100).clamp(0.0, 1.0),
                             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                           ),
                         )),
