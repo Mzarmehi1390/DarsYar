@@ -81,7 +81,9 @@ class ExamResult {
         final question = int.tryParse(entry.key.toString());
         final answer = entry.value is num ? (entry.value as num).toInt() : -1;
         if (question != null && question >= 1 && question <= 200 &&
-            answer >= 0 && answer <= 3) parsed[question] = answer;
+            answer >= 0 && answer <= 3) {
+          parsed[question] = answer;
+        }
       }
       return parsed;
     }
