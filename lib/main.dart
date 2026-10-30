@@ -384,7 +384,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final message = content is Text ? (content.data ?? content.toString()) : content.toString();
     final now = DateTime.now();
     if (_lastSnackMessage == message && _lastSnackAt != null &&
-        now.difference(_lastSnackAt!) < const Duration(seconds: 2)) return;
+        now.difference(_lastSnackAt!) < const Duration(seconds: 2)) {
+      return;
+    }
     _lastSnackMessage = message;
     _lastSnackAt = now;
     final messenger = ScaffoldMessenger.of(context);
