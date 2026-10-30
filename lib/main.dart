@@ -500,61 +500,22 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     const topInset = 27.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
-            blurRadius: 30,
-            spreadRadius: -8,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        height: navHeight + bottomInset,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(
-                  begin: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
-                  end: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
-                ),
-                duration: MediaQuery.of(context).disableAnimations
-                    ? Duration.zero
-                    : const Duration(milliseconds: 190),
-                curve: Curves.easeInOutCubic,
-                builder: (context, notchCenter, child) => ClipPath(
-                  clipBehavior: Clip.antiAlias,
-                  clipper: _NotchedNavBarClipper(
-                    centerX: notchCenter,
-                    topInset: topInset,
-                  ),
-                  child: ClipRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                      child: child,
-                    ),
-                  ),
-                ),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: isDark
-                          ? [const Color(0xE62A4437), const Color(0xF20D1B14)]
-                          : [
-                              Colors.white.withValues(alpha: 0.86),
-                              const Color(0xF2F4FAF6),
-                            ],
-                    ),
-                  ),
-                ),
+    return SizedBox(
+      height: navHeight + bottomInset,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Fully transparent overlay: content remains clear underneath.
+          Positioned.fill(
+            child: ClipPath(
+              clipBehavior: Clip.antiAlias,
+              clipper: _NotchedNavBarClipper(
+                centerX: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
+                topInset: topInset,
               ),
+              child: const SizedBox.expand(),
             ),
+          ),
             Positioned(
               left: 0, right: 0, top: topInset, bottom: 0,
               child: Row(
