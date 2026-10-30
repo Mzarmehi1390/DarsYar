@@ -109,13 +109,18 @@ void main() {
     // not resurrect answers from the retired single-sheet storage keys.
     expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
     expect(find.text('آزمون اول'), findsWidgets);
-    await tester.ensureVisible(find.text('کلید ثبت‌شده: 0 از 20 سؤال'));
-    await tester.pumpAndSettle();
-    expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
-    await tester.ensureVisible(
-      find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'),
+    final pageScroll = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('کلید ثبت‌شده: 0 از 20 سؤال'),
+      250,
+      scrollable: pageScroll,
     );
-    await tester.pumpAndSettle();
+    expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'),
+      250,
+      scrollable: pageScroll,
+    );
     expect(find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'), findsOneWidget);
   });
 
