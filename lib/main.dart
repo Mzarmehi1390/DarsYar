@@ -734,7 +734,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ));
   }
 
-  Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.all(20), children: [
+  Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
     Row(children: [
       CircleAvatar(backgroundColor: Color(0xFFDDF3E6), child: Icon(Icons.auto_stories_rounded, color: accent)),
       SizedBox(width: 12),
@@ -1394,7 +1394,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget _myExamsView() => ListView(
     key: const PageStorageKey<String>('my-exams-scroll'),
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 124),
     children: [
       Text('پاسخ‌برگ‌های ذخیره‌شده', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
       SizedBox(height: 10),
@@ -2609,7 +2609,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
 
   @override
   Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 124),
     children: [
       _LiquidGlassPanel(child: Padding(
         padding: const EdgeInsets.all(16),
