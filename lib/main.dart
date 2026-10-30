@@ -490,10 +490,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           children: [
             Positioned.fill(
               child: ClipPath(
+                clipBehavior: Clip.antiAlias,
                 clipper: _NotchedNavBarClipper(selectedIndex: tab, topInset: topInset),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: DecoratedBox(
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -505,6 +507,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     ),
                   ),
                 ),
+              ),
               ),
             ),
             Positioned(
@@ -568,10 +571,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               children: [
                 if (selected)
                   Positioned(
-                    top: -27,
+                    top: -34,
                     child: Container(
-                      width: 60,
-                      height: 60,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isDark
