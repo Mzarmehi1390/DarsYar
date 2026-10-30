@@ -365,7 +365,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         indicatorColor: Colors.transparent,
         selectedIndex: tab,
         onDestinationSelected: (value) { setState(() => tab = value); if (value == 1) _revealSelectedDay(); },
-        destinations: const [
+        destinations: [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
           NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
           NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
@@ -396,7 +396,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   void _showMessage(String message) => _showSnackBar(SnackBar(content: Text(message)));
 
-  Widget dashboard()(padding: const EdgeInsets.all(20), children: [
+  Widget dashboard() => ListView(padding: const EdgeInsets.all(20), children: [
     Row(children: [
       CircleAvatar(backgroundColor: Color(0xFFECE7FF), child: Icon(Icons.auto_stories_rounded, color: purple)),
       SizedBox(width: 12),
