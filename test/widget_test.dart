@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dars_yar/backup_codec.dart';
 
 import 'package:dars_yar/main.dart';
 
@@ -613,6 +614,95 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('آزمون اول'), findsWidgets);
     expect(find.textContaining('20 سؤال'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('restoring a backup persists every data section and active exam', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.tasks': jsonEncode([
+        {'id': 'old-task', 'title': 'وظیفه قبلی', 'subject': 'فارسی', 'done': false},
+      ]),
+    });
+
+    final backup = DarsYarBackupCodec.encode(
+      DarsYarBackupCodec.createPayload(
+        exportedAt: '2026-10-30T16:00:00.000Z',
+        activeExamId: 'restored-exam',
+        tasks: [
+          {'id': 'restored-task', 'title': 'وظیفه بازیابی‌شده', 'subject': 'ریاضی', 'done': true},
+        ],
+        studySessions: [
+          {
+            'id': 'restored-session',
+            'title': 'جلسه بازیابی‌شده',
+            'subject': 'علوم',
+            'weekday': 6,
+            'startMinutes': 600,
+            'durationMinutes': 45,
+            'completed': true,
+          },
+        ],
+        exams: [
+          {
+            'id': 'restored-exam',
+            'name': 'آزمون بازیابی‌شده',
+            'questionCount': 2,
+            'durationSeconds': 1800,
+            'negativeMarking': true,
+            'isCompleted': false,
+            'answers': {'1': 0},
+            'answerKey': {'1': 0},
+            'marked': [2],
+          },
+        ],
+        results: [
+          {
+            'id': 'restored-result',
+            'examId': 'restored-exam',
+            'examName': 'آزمون بازیابی‌شده',
+            'completedAt': '2026-10-30T15:00:00.000Z',
+            'questionCount': 2,
+            'correct': 1,
+            'wrong': 0,
+            'unanswered': 1,
+            'keyedQuestions': 1,
+            'percentage': 100.0,
+            'negativeMarking': true,
+            'answers': {'1': 0},
+            'answerKey': {'1': 0},
+          },
+        ],
+      ),
+    );
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 3));
+    await tester.pumpAndSettle();
+    final restoreButton = find.text('بازیابی فایل پشتیبان');
+    await tester.ensureVisible(restoreButton);
+    await tester.pumpAndSettle();
+    await tester.tap(restoreButton);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).last, backup);
+    await tester.tap(find.text('بررسی نسخه'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('بازیابی').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedTasks = jsonDecode(prefs.getString('darsyar.tasks')!) as List;
+    final savedSessions = jsonDecode(prefs.getString('darsyar.studySessions')!) as List;
+    final savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    final savedResults = jsonDecode(prefs.getString('darsyar.results')!) as List;
+
+    expect(savedTasks.single['id'], 'restored-task');
+    expect(savedTasks.single['done'], isTrue);
+    expect(savedSessions.single['id'], 'restored-session');
+    expect(savedExams.single['id'], 'restored-exam');
+    expect(savedExams.single['marked'], [2]);
+    expect(savedResults.single['id'], 'restored-result');
+    expect(prefs.getString('darsyar.activeExamId'), 'restored-exam');
     expect(tester.takeException(), isNull);
   });
 
