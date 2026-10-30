@@ -902,9 +902,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: isDark
-                            ? [const Color(0xFF285744), const Color(0xFF142F25)]
-                            : [const Color(0xFFE8FFF4), const Color(0xFFBCEBD6)],
+                        colors: [iconTop, iconBottom],
                       ),
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.70), width: 1),
@@ -913,7 +911,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         BoxShadow(color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.75), blurRadius: 1, offset: const Offset(0, 1)),
                       ],
                     ),
-                    child: Icon(icon, color: isDark ? const Color(0xFF9BF2CC) : const Color(0xFF087B55)),
+                    child: Icon(icon, color: iconColor),
                   ),
                   SizedBox(height: 14),
                   Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
