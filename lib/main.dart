@@ -444,137 +444,140 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ),
             ),
           ),
-          SafeArea(
-            child: loading
-                ? const Center(child: CircularProgressIndicator())
-                : AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 320),
-                    reverseDuration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final slide = Tween<Offset>(
-                        begin: const Offset(0, 0.018),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ));
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(position: slide, child: child),
-                      );
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey(tab),
-                      child: pages[tab],
-                    ),
-                  ),
+          Positioned.fill(
+            bottom: 92,
+            child: SafeArea(
+              bottom: false,
+              child: loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : pages[tab],
+            ),
+          ),
+          if (!loading)
+            Positioned(
+              left: 18,
+              right: 18,
+              bottom: 6,
+              child: SafeArea(
+                top: false,
+                child: _bottomNavigationDock(isDark),
+              ),
+            ),
+        ],
+      ),
+      floatingActionButton: null,
+    );
+  }
+
+  Widget _bottomNavigationDock(bool isDark) => Padding(
+    padding: const EdgeInsets.fromLTRB(0, 2, 0, 9),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(38),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
+            blurRadius: 34,
+            spreadRadius: -7,
+            offset: const Offset(0, 14),
+          ),
+          BoxShadow(
+            color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
+                .withValues(alpha: isDark ? 0.12 : 0.86),
+            blurRadius: 20,
+            spreadRadius: -9,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
-      // Edge-light floating glass dock: no opaque rectangular tray or bottom stroke.
-      bottomNavigationBar: loading
-          ? null
-          : Padding(
-              padding: const EdgeInsets.fromLTRB(18, 2, 18, 9),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(38),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
-                      blurRadius: 34,
-                      spreadRadius: -7,
-                      offset: const Offset(0, 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(38),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isDark
+                          ? [
+                              const Color(0xFF315B47).withValues(alpha: 0.54),
+                              const Color(0xFF12251B).withValues(alpha: 0.46),
+                              const Color(0xFF0C1712).withValues(alpha: 0.40),
+                            ]
+                          : [
+                              Colors.white.withValues(alpha: 0.58),
+                              const Color(0xFFE8F8EF).withValues(alpha: 0.38),
+                              const Color(0xFFD9E9E1).withValues(alpha: 0.30),
+                            ],
                     ),
-                    BoxShadow(
-                      color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
-                          .withValues(alpha: isDark ? 0.12 : 0.86),
-                      blurRadius: 20,
-                      spreadRadius: -9,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
+                  ),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(38),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: isDark
-                                    ? [
-                                        const Color(0xFF315B47).withValues(alpha: 0.54),
-                                        const Color(0xFF12251B).withValues(alpha: 0.46),
-                                        const Color(0xFF0C1712).withValues(alpha: 0.40),
-                                      ]
-                                    : [
-                                        Colors.white.withValues(alpha: 0.58),
-                                        const Color(0xFFE8F8EF).withValues(alpha: 0.38),
-                                        const Color(0xFFD9E9E1).withValues(alpha: 0.30),
-                                      ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          left: 30,
-                          right: 30,
-                          child: Container(
-                            height: 1.3,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withValues(alpha: 0),
-                                  Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
-                                  Colors.white.withValues(alpha: 0),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        NavigationBar(
-                          height: 70,
-                          backgroundColor: Colors.transparent,
-                          indicatorColor: Colors.transparent,
-                          selectedIndex: tab,
-                          onDestinationSelected: (value) {
-                            if (value == 1) {
-                              _openPlanner();
-                            } else {
-                              setState(() => tab = value);
-                            }
-                          },
-                          destinations: [
-                            NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
-                            NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
-                            NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
-                            NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
-                          ],
-                        ),
+              ),
+              Positioned(
+                top: 0,
+                left: 30,
+                right: 30,
+                child: Container(
+                  height: 1.3,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0),
+                        Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
+                        Colors.white.withValues(alpha: 0),
                       ],
                     ),
                   ),
                 ),
               ),
-            ),
-      floatingActionButton: null,
-    );
-  }
+              NavigationBar(
+                height: 70,
+                backgroundColor: Colors.transparent,
+                indicatorColor: Colors.transparent,
+                selectedIndex: tab,
+                onDestinationSelected: (value) {
+                  if (value == 1) {
+                    _openPlanner();
+                  } else {
+                    setState(() => tab = value);
+                  }
+                },
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(Icons.grid_view_rounded),
+                    selectedIcon: _selectedNavIcon(Icons.grid_view_rounded),
+                    label: 'خانه',
+                  ),
+                  NavigationDestination(
+                    key: ValueKey('nav-planner'),
+                    icon: Icon(Icons.calendar_month_rounded),
+                    selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded),
+                    label: 'برنامه‌ریزی',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.fact_check_outlined),
+                    selectedIcon: _selectedNavIcon(Icons.fact_check_rounded),
+                    label: 'پاسخ‌برگ',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.tune_rounded),
+                    selectedIcon: _selectedNavIcon(Icons.tune_rounded),
+                    label: 'تنظیمات',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 
-  Widget _selectedNavIcon(IconData icon) => TweenAnimationBuilder<double>(
-    tween: Tween(begin: 0.86, end: 1),
-    duration: const Duration(milliseconds: 240),
-    builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
-    child: Container(
+  Widget _selectedNavIcon(IconData icon) => Container(
       width: 38, height: 38,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.18),
@@ -583,8 +586,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.18), blurRadius: 10)],
       ),
       child: Icon(icon, color: accent, size: 21),
-    ),
-  );
+    );
   void _openPlanner() {
     setState(() => tab = 1);
     _revealSelectedDay();
@@ -600,7 +602,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         if (target != null) {
           Scrollable.ensureVisible(
             target,
-            duration: const Duration(milliseconds: 350),
+            duration: const Duration(milliseconds: 160),
             alignment: 0.5,
           );
         }
@@ -721,7 +723,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     borderRadius: BorderRadius.circular(10),
                     child: TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
-                      duration: const Duration(milliseconds: 850),
+                      duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOutCubic,
                       builder: (context, progress, _) => LinearProgressIndicator(
                         minHeight: 8,
@@ -973,7 +975,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius),
@@ -1109,7 +1111,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 borderRadius: BorderRadius.circular(6),
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: sessions.isEmpty ? 0 : done / sessions.length),
-                  duration: const Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 180),
                   curve: Curves.easeOutCubic,
                   builder: (context, progress, _) => LinearProgressIndicator(
                     minHeight: 5,
@@ -2387,7 +2389,7 @@ class _LiquidGlassPanel extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_radius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_radius),
