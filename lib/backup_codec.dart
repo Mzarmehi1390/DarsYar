@@ -69,6 +69,7 @@ class DarsYarBackupCodec {
       optionalIntegers: const ['weekday', 'startMinutes', 'durationMinutes'],
       optionalBooleans: const ['completed'],
     );
+    _validateStudySessionRanges(payload['studySessions'] as List);
     _validateRecords(
       payload['exams'] as List,
       'exams',
@@ -77,6 +78,7 @@ class DarsYarBackupCodec {
       optionalBooleans: const ['negativeMarking', 'isCompleted'],
     );
     _validateExamAnswerData(payload['exams'] as List);
+    _validateExamDurationRanges(payload['exams'] as List);
 
     _validateRecords(
       payload['results'] as List,
@@ -85,7 +87,7 @@ class DarsYarBackupCodec {
       optionalIntegers: const [
         'questionCount', 'correct', 'wrong', 'unanswered', 'keyedQuestions',
       ],
-      optionalStrings: const ['id', 'examName', 'completedAt'],
+      optionalStrings: const ['id', 'examId', 'examName', 'completedAt'],
       optionalBooleans: const ['negativeMarking'],
     );
     _validateResultAnswerData(payload['results'] as List);
@@ -116,6 +118,47 @@ class DarsYarBackupCodec {
     return payload;
   }
 
+
+  /// Reject values that the model layer would otherwise silently clamp.
+  /// A backup must restore the same schedule values the user exported.
+  static void _validateStudySessionRanges(List sessions) {
+    for (var index = 0; index < sessions.length; index++) {
+      final session = sessions[index] as Map;
+      final weekday = session['weekday'] ?? 0;
+      final start = session['startMinutes'] ?? 960;
+      final duration = session['durationMinutes'] ?? 55;
+      if (weekday is! int || weekday < 0 || weekday > 6) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: weekday',
+        );
+      }
+      if (start is! int || start < 0 || start >= 1440) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: startMinutes',
+        );
+      }
+      if (duration is! int ||
+          duration < 1 ||
+          duration > 1440 - start) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: durationMinutes',
+        );
+      }
+    }
+  }
+
+  static void _validateExamDurationRanges(List exams) {
+    for (var index = 0; index < exams.length; index++) {
+      final exam = exams[index] as Map;
+      final duration = exam['durationSeconds'];
+      if (duration != null &&
+          (duration is! int || duration < 1 || duration > 24 * 60 * 60)) {
+        throw FormatException(
+          'Invalid exams record at index $index: durationSeconds',
+        );
+      }
+    }
+  }
 
   /// Exam answer maps are part of the portable backup contract. Reject
   /// malformed entries instead of letting ExamSheet.fromJson silently drop
@@ -244,7 +287,9 @@ class DarsYarBackupCodec {
       }
       for (final field in optionalNumbers) {
         final value = item[field];
-        if (item.containsKey(field) && value != null && value is! num) {
+        if (item.containsKey(field) &&
+            value != null &&
+            (value is! num || !value.isFinite)) {
           invalid(field);
         }
       }
