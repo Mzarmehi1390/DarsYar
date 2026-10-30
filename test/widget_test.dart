@@ -246,5 +246,82 @@ void main() {
   });
 
 
+  testWidgets('changing an exam answer key recalculates all linked results', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'default',
+          'name': 'آزمون باقی‌مانده',
+          'questionCount': 20,
+          'durationSeconds': 1800,
+          'answers': {},
+          'answerKey': {},
+          'marked': [],
+        },
+        {
+          'id': 'linked-exam',
+          'name': 'آزمون کلید',
+          'questionCount': 1,
+          'durationSeconds': 1800,
+          'isCompleted': true,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+          'marked': [],
+        },
+      ]),
+      'darsyar.activeExamId': 'default',
+      'darsyar.results': jsonEncode([
+        {
+          'id': 'linked-result',
+          'examId': 'linked-exam',
+          'examName': 'آزمون کلید',
+          'completedAt': '2026-10-30T10:00:00.000Z',
+          'questionCount': 1,
+          'correct': 1,
+          'wrong': 0,
+          'unanswered': 0,
+          'keyedQuestions': 1,
+          'percentage': 100.0,
+          'negativeMarking': false,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final examCard = find.ancestor(
+      of: find.text('آزمون کلید').first,
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(find.descendant(
+      of: examCard,
+      matching: find.byType(PopupMenuButton<String>),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ویرایش کلید پاسخ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ب').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ذخیره کلید').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    final savedResults = jsonDecode(prefs.getString('darsyar.results')!) as List;
+    final exam = savedExams.firstWhere((item) => item['id'] == 'linked-exam');
+    final result = savedResults.single;
+    expect(exam['answerKey'], {'1': 1});
+    expect(result['answerKey'], {'1': 1});
+    expect(result['correct'], 0);
+    expect(result['wrong'], 1);
+    expect(result['percentage'], 0.0);
+  });
+
+
 
 }
