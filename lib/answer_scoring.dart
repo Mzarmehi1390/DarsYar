@@ -54,7 +54,7 @@ AnswerScore calculateAnswerScore({
 
   final keyedQuestions = validKey.length;
   final unanswered = safeQuestionCount - validAnswers.length;
-  final rawScore = correct - (negativeMarking ? wrong / 3 : 0);
+  final rawScore = (correct - (negativeMarking ? wrong / 3 : 0)).toDouble();
   final percentage = keyedQuestions == 0
       ? null
       : (rawScore * 100 / keyedQuestions).clamp(0.0, 100.0).toDouble();
