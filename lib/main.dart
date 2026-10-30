@@ -445,7 +445,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
           ),
           Positioned.fill(
-            bottom: 92,
+            bottom: 94 + MediaQuery.of(context).padding.bottom,
             child: SafeArea(
               bottom: false,
               child: loading
@@ -455,13 +455,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ),
           if (!loading)
             Positioned(
-              left: 18,
-              right: 18,
-              bottom: 6,
-              child: SafeArea(
-                top: false,
-                child: _bottomNavigationDock(isDark),
-              ),
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _bottomNavigationDock(isDark),
             ),
         ],
       ),
@@ -469,83 +466,120 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget _bottomNavigationDock(bool isDark) => Padding(
-    padding: const EdgeInsets.fromLTRB(0, 2, 0, 9),
-    child: Container(
+  Widget _bottomNavigationDock(bool isDark) {
+    const navHeight = 94.0;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final inactiveColor =
+        isDark ? Colors.white70 : const Color(0xFF87948D);
+
+    return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(38),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
-            blurRadius: 34,
-            spreadRadius: -7,
-            offset: const Offset(0, 14),
-          ),
-          BoxShadow(
-            color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
-                .withValues(alpha: isDark ? 0.12 : 0.86),
-            blurRadius: 20,
-            spreadRadius: -9,
-            offset: const Offset(0, -4),
+            color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
+            blurRadius: 30,
+            spreadRadius: -8,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(38),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: SizedBox(
-            height: 70,
+            height: navHeight + bottomInset,
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Positioned.fill(
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 27,
+                  bottom: 0,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                         colors: isDark
                             ? [
-                                const Color(0xFF315B47).withValues(alpha: 0.54),
-                                const Color(0xFF12251B).withValues(alpha: 0.46),
-                                const Color(0xFF0C1712).withValues(alpha: 0.40),
+                                const Color(0xE62A4437),
+                                const Color(0xF20D1B14),
                               ]
                             : [
-                                Colors.white.withValues(alpha: 0.58),
-                                const Color(0xFFE8F8EF).withValues(alpha: 0.38),
-                                const Color(0xFFD9E9E1).withValues(alpha: 0.30),
+                                Colors.white.withValues(alpha: 0.86),
+                                const Color(0xF2F4FAF6),
                               ],
+                      ),
+                      border: Border(
+                        top: BorderSide(
+                          color: (isDark ? Colors.white : Colors.white)
+                              .withValues(alpha: isDark ? 0.20 : 0.78),
+                          width: 1,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 Positioned(
-                  top: 0,
-                  left: 30,
-                  right: 30,
-                  child: Container(
-                    height: 1.3,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: 0),
-                          Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
-                          Colors.white.withValues(alpha: 0),
-                        ],
+                  left: 0,
+                  right: 0,
+                  top: 27,
+                  bottom: 0,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _bottomNavItem(
+                        index: 0,
+                        icon: Icons.grid_view_rounded,
+                        label: 'خانه',
+                        isDark: isDark,
                       ),
-                    ),
+                      _bottomNavItem(
+                        index: 1,
+                        icon: Icons.calendar_month_rounded,
+                        label: 'برنامه‌ریزی',
+                        isDark: isDark,
+                      ),
+                      _bottomNavItem(
+                        index: 2,
+                        icon: Icons.fact_check_outlined,
+                        selectedIcon: Icons.fact_check_rounded,
+                        label: 'پاسخ‌برگ',
+                        isDark: isDark,
+                      ),
+                      _bottomNavItem(
+                        index: 3,
+                        icon: Icons.tune_rounded,
+                        label: 'تنظیمات',
+                        isDark: isDark,
+                      ),
+                    ],
                   ),
                 ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _bottomNavItem(index: 0, icon: Icons.grid_view_rounded, label: 'خانه', isDark: isDark),
-                      _bottomNavItem(index: 1, icon: Icons.calendar_month_rounded, label: 'برنامه‌ریزی', isDark: isDark),
-                      _bottomNavItem(index: 2, icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check_rounded, label: 'پاسخ‌برگ', isDark: isDark),
-                      _bottomNavItem(index: 3, icon: Icons.tune_rounded, label: 'تنظیمات', isDark: isDark),
-                    ],
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: Container(
+                        width: 1,
+                        height: 1,
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: accent.withValues(alpha: 0.12),
+                              blurRadius: 22,
+                              spreadRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -553,8 +587,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _bottomNavItem({
     required int index,
@@ -564,12 +598,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     required bool isDark,
   }) {
     final selected = tab == index;
-    final foreground = isDark ? Colors.white70 : const Color(0xFF52645A);
+    final inactiveColor =
+        isDark ? Colors.white70 : const Color(0xFF87948D);
+
     return Expanded(
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(28),
           onTap: () {
             if (index == 1) {
               _openPlanner();
@@ -578,30 +613,72 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             }
           },
           child: SizedBox(
-            height: 70,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
+            height: 67,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topCenter,
               children: [
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Center(
-                    child: selected
-                        ? _selectedNavIcon(selectedIcon ?? icon)
-                        : Icon(icon, color: foreground, size: 23),
+                if (selected)
+                  Positioned(
+                    top: -27,
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? const Color(0xFF193126).withValues(alpha: 0.96)
+                            : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
+                        border: Border.all(
+                          color: (isDark ? Colors.white : accent)
+                              .withValues(alpha: isDark ? 0.20 : 0.12),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.18 : 0.07,
+                            ),
+                            blurRadius: 16,
+                            offset: const Offset(0, 5),
+                          ),
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.14),
+                            blurRadius: 20,
+                            spreadRadius: -5,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          selectedIcon ?? icon,
+                          color: accent,
+                          size: 25,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  Positioned(
+                    top: 9,
+                    child: Icon(icon, color: inactiveColor, size: 23),
                   ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    height: 1.1,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? accent : foreground,
+                Positioned(
+                  top: 39,
+                  left: 2,
+                  right: 2,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      height: 1.1,
+                      fontWeight:
+                          selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected ? accent : inactiveColor,
+                    ),
                   ),
                 ),
               ],
