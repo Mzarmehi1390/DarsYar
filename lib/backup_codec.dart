@@ -81,17 +81,14 @@ class DarsYarBackupCodec {
     _validateRecords(
       payload['results'] as List,
       'results',
-      optionalNumbers: const [
-        'questionCount',
-        'correct',
-        'wrong',
-        'unanswered',
-        'keyedQuestions',
-        'percentage',
+      optionalNumbers: const ['percentage'],
+      optionalIntegers: const [
+        'questionCount', 'correct', 'wrong', 'unanswered', 'keyedQuestions',
       ],
       optionalStrings: const ['id', 'examName', 'completedAt'],
       optionalBooleans: const ['negativeMarking'],
     );
+    _validateResultAnswerData(payload['results'] as List);
 
     final exams = payload['exams'] as List;
     if (exams.isEmpty) {
@@ -181,6 +178,31 @@ class DarsYarBackupCodec {
             throw FormatException(
               'Invalid exams record at index $index: marked',
             );
+          }
+        }
+      }
+    }
+  }
+
+  static void _validateResultAnswerData(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      final rawCount = result['questionCount'] ?? 0;
+      final count = rawCount is num && rawCount % 1 == 0 ? rawCount.toInt() : 0;
+      for (final field in const ['answers', 'answerKey']) {
+        if (!result.containsKey(field)) continue;
+        final raw = result[field];
+        if (raw is! Map) {
+          throw FormatException('Invalid results record at index $index: $field');
+        }
+        final seen = <int>{};
+        for (final entry in raw.entries) {
+          final question = int.tryParse(entry.key.toString());
+          final option = entry.value;
+          if (question == null || question < 1 || question > count ||
+              !seen.add(question) || option is! num || option % 1 != 0 ||
+              option < 0 || option > 3) {
+            throw FormatException('Invalid results record at index $index: $field');
           }
         }
       }
