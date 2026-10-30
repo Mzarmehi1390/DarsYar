@@ -1819,13 +1819,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await save();
   }
 
-  Widget _resultsEmptyIllustration() => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(22),
-    ),
-    child: Column(children: [
+  Widget _resultsEmptyIllustration() => _glassSurface(
+    radius: 22,
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(children: [
       SizedBox(
         height: 112, width: 150,
         child: Stack(alignment: Alignment.center, children: [
@@ -1841,7 +1839,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Text('بعد از پایان آزمون، نتیجه‌ها و روند پیشرفتت اینجا نمایش داده می‌شوند.',
         textAlign: TextAlign.center,
         style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.6)),
-    ]),
+      ]),
+    ),
   );
 
   Future<void> addExam() async {
@@ -2276,13 +2275,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     )),
   ]);
 
-  Widget emptyState(IconData icon, String title, String subtitle) => Container(padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(22)),
-    child: Column(children: [
-      Icon(icon, color: accent, size: 38), SizedBox(height: 10),
-      Text(title, style: TextStyle(fontWeight: FontWeight.w800)),
-      SizedBox(height: 5), Text(subtitle, textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.6)),
-    ]));
+  Widget emptyState(IconData icon, String title, String subtitle) =>
+      _glassSurface(
+        radius: 22,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(children: [
+            Icon(icon, color: accent, size: 38),
+            SizedBox(height: 10),
+            Text(title, style: TextStyle(fontWeight: FontWeight.w800)),
+            SizedBox(height: 5),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                height: 1.6,
+              ),
+            ),
+          ]),
+        ),
+      );
 
   bool _hasOverlappingSession(StudySession candidate, {String? excludingId}) {
     return studySessions.any((session) {
