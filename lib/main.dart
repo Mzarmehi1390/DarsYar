@@ -178,7 +178,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String activeExamId = 'default';
 
   Timer? _examTimer;
-  int _remainingExamSeconds = 0;
+  int _setRemainingExamSeconds(0);
+  final ValueNotifier<int> _timerDisplaySeconds = ValueNotifier<int>(0);
   int examSection = 0;
   bool isTakingExam = false;
   int currentQuestionNumber = 1;
@@ -187,9 +188,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String? _timerExamId;
   DateTime? _examDeadline;
 
+  void _setRemainingExamSeconds(int value) {
+    _remainingExamSeconds = value;
+    _timerDisplaySeconds.value = value;
+  }
+
   @override
   void dispose() {
     _examTimer?.cancel();
+    _timerDisplaySeconds.dispose();
     super.dispose();
   }
 
@@ -1486,7 +1493,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final answered = exam.answers.length;
     return Column(children: [
       Material(color: Theme.of(context).colorScheme.surfaceContainerHigh, elevation: 3, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), Text(_formatDuration(remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent)), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
+        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), ValueListenableBuilder<int>(valueListenable: _timerDisplaySeconds, builder: (context, seconds, _) => Text(_formatDuration(_timerExamId == activeExamId ? seconds : remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent))), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
         LinearProgressIndicator(value: exam.questionCount == 0 ? 0 : answered / exam.questionCount, minHeight: 7),
         SizedBox(height: 6),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
@@ -1530,10 +1537,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _examTimer?.cancel();
       _examTimerRunning = false;
       _examDeadline = null;
-      _remainingExamSeconds = exam.durationSeconds;
+      _setRemainingExamSeconds(exam.durationSeconds);
       _timerExamId = exam.id;
     } else if (_remainingExamSeconds == 0) {
-      _remainingExamSeconds = exam.durationSeconds;
+      _setRemainingExamSeconds(exam.durationSeconds);
     }
     var firstUnansweredQuestion = 1;
     for (var question = 1; question <= exam.questionCount; question++) {
@@ -1738,7 +1745,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   void _startExamTimer() {
     _examTimer?.cancel();
     setState(() {
-      _remainingExamSeconds = activeExam.durationSeconds;
+      _setRemainingExamSeconds(activeExam.durationSeconds);
       _timerExamId = activeExamId;
       _examDeadline = DateTime.now().add(
         Duration(seconds: activeExam.durationSeconds),
@@ -1770,7 +1777,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (remaining <= 0) {
       _examTimer?.cancel();
       setState(() {
-        _remainingExamSeconds = 0;
+        _setRemainingExamSeconds(0);
         _examTimerRunning = false;
         _examDeadline = null;
       });
@@ -1798,7 +1805,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               : (millisecondsRemaining + 999) ~/ 1000;
       _examTimer?.cancel();
       setState(() {
-        _remainingExamSeconds = remaining.clamp(0, 24 * 60 * 60).toInt();
+        _setRemainingExamSeconds(remaining.clamp(0, 24 * 60 * 60).toInt());
         _examTimerRunning = false;
         _examDeadline = null;
       });
@@ -2329,7 +2336,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     _examTimer?.cancel();
     setState(() {
       _examTimerRunning = false;
-      _remainingExamSeconds = 0;
+      _setRemainingExamSeconds(0);
       _timerExamId = null;
       _examDeadline = null;
       tasks..clear()..addAll(importedTasks);
