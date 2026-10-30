@@ -26,6 +26,27 @@ void main() {
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
 
+  testWidgets('new exam setup starts a one-question-at-a-time answer flow', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('پاسخ‌برگ'));
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), 'آزمون آزمایشی');
+    await tester.enterText(fields.at(1), '3');
+    await tester.enterText(fields.at(2), '1');
+    await tester.enterText(fields.at(3), '30');
+    await tester.tap(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
+    await tester.pump();
+
+    expect(find.text('آزمون آزمایشی'), findsOneWidget);
+    expect(find.text('سؤال 1 از 3'), findsOneWidget);
+    await tester.tap(find.text('گزینه 2'));
+    await tester.pump();
+    expect(find.text('سؤال 2 از 3'), findsOneWidget);
+  });
+
   testWidgets('study tasks can be created and edited', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
