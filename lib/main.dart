@@ -852,17 +852,19 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     save();
   }
 
-  Future<void> _finishExam() async {
+  Future<void> _finishExam({bool automatic = false}) async {
     if (!isTakingExam) return;
-    final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: Text('پایان آزمون؟'),
-      content: Text('پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('ادامه')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('پایان')),
-      ],
-    ));
-    if (ok != true || !mounted) return;
+    if (!automatic) {
+      final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+        title: Text('پایان آزمون؟'),
+        content: Text('پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('ادامه')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('پایان')),
+        ],
+      ));
+      if (ok != true || !mounted) return;
+    }
     _examTimer?.cancel();
     setState(() {
       activeExam.isCompleted = true;
@@ -1008,6 +1010,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         style: TextStyle(fontSize: 12)),
                       if (result.percentage == null)
                         TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
+                      if (result.percentage == null)
+                        TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
                     ],
                   )),
                   Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
@@ -1065,9 +1069,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         _examTimerRunning = false;
         _examDeadline = null;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('زمان آزمون به پایان رسید.')),
-      );
+      if (isTakingExam) {
+        _finishExam(automatic: true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('زمان‌سنج به پایان رسید.')));
+      }
       return;
     }
 
