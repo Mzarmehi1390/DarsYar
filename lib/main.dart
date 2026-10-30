@@ -685,11 +685,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String _formatStudyTime(int minutes) =>
       '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
-  Widget summary(String label, int value, IconData icon) => Container(padding: const EdgeInsets.all(12),
+  Widget summary(String label, int? value, IconData icon) => Container(padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(icon, color: purple), SizedBox(height: 8),
-      Text(value.toString(), style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
+      Text(value?.toString() ?? '—', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
       Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     ]));
 
@@ -941,7 +941,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Row(children: [
           Expanded(child: summary('آزمون‌ها', results.length, Icons.assignment_turned_in_outlined)),
           SizedBox(width: 8),
-          Expanded(child: summary('میانگین درصد', average.round(), Icons.insights_rounded)),
+          Expanded(child: summary('میانگین درصد', scoredResults.isEmpty ? null : average.round(), Icons.insights_rounded)),
         ]),
         SizedBox(height: 20),
         if (results.isEmpty)
