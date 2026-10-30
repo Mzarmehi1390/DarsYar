@@ -757,7 +757,26 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Card(child: ListTile(
         title: Text(exam.name),
         subtitle: Text('${exam.questionCount} سؤال • ${_formatDuration(exam.durationSeconds)} • ${exam.answers.length} پاسخ'),
-        trailing: IconButton(icon: Icon(Icons.play_arrow), onPressed: exam.isCompleted ? null : () => _beginExam(exam)),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          IconButton(
+            tooltip: exam.isCompleted ? 'آزمون پایان یافته' : 'شروع یا ادامه آزمون',
+            icon: Icon(exam.isCompleted ? Icons.check_circle_outline : Icons.play_arrow_rounded),
+            onPressed: exam.isCompleted ? null : () => _beginExam(exam),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (action) {
+              setState(() => activeExamId = exam.id);
+              if (action == 'rename') renameExam();
+              if (action == 'delete') deleteExam();
+              if (action == 'key') editAnswerKey();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'rename', child: Text('تغییر نام')),
+              PopupMenuItem(value: 'key', child: Text('ویرایش کلید پاسخ')),
+              PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
+            ],
+          ),
+        ]),
       )),
     Text('نتایج آزمون‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
     SizedBox(height: 400, child: resultsHistory()),
