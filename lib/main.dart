@@ -461,7 +461,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
           ),
           Positioned.fill(
-            bottom: 94 + MediaQuery.of(context).padding.bottom,
+            bottom: 0,
             child: SafeArea(
               bottom: false,
               child: loading
@@ -495,27 +495,59 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget _bottomNavigationDock(bool isDark) {
-    // Lift the dock while keeping it attached to the bottom edge.
+    // Keep the navigation dock visible while allowing the page to scroll
+    // beneath its translucent glass surface.
     const navHeight = 102.0;
     const topInset = 27.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
-    return SizedBox(
-      height: navHeight + bottomInset,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Fully transparent overlay: content remains clear underneath.
-          Positioned.fill(
-            child: ClipPath(
-              clipBehavior: Clip.antiAlias,
-              clipper: _NotchedNavBarClipper(
-                centerX: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
-                topInset: topInset,
-              ),
-              child: const SizedBox.expand(),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.08),
+            blurRadius: 26,
+            spreadRadius: -8,
+            offset: const Offset(0, -5),
           ),
+        ],
+      ),
+      child: SizedBox(
+        height: navHeight + bottomInset,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipBehavior: Clip.antiAlias,
+                clipper: _NotchedNavBarClipper(
+                  centerX: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
+                  topInset: topInset,
+                ),
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: isDark
+                              ? [
+                                  const Color(0xC92A4437),
+                                  const Color(0xE60D1B14),
+                                ]
+                              : [
+                                  Colors.white.withValues(alpha: 0.76),
+                                  const Color(0xDDF4FAF6),
+                                ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Positioned(
               left: 0, right: 0, top: topInset, bottom: 0,
               child: Row(
@@ -541,7 +573,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
