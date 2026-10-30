@@ -485,4 +485,98 @@ void main() {
 
 
 
+
+  testWidgets('starting an exam persists the active exam selection', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'default',
+          'name': 'آزمون پیش‌فرض',
+          'questionCount': 2,
+          'durationSeconds': 1800,
+          'answers': <String, int>{},
+          'answerKey': <String, int>{},
+          'marked': <int>[],
+        },
+        {
+          'id': 'selected-exam',
+          'name': 'آزمون انتخاب‌شده',
+          'questionCount': 2,
+          'durationSeconds': 1800,
+          'answers': <String, int>{},
+          'answerKey': <String, int>{},
+          'marked': <int>[],
+        },
+      ]),
+      'darsyar.activeExamId': 'default',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final examCard = find.ancestor(
+      of: find.text('آزمون انتخاب‌شده').first,
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(find.descendant(
+      of: examCard,
+      matching: find.text('شروع آزمون'),
+    ));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('darsyar.activeExamId'), 'selected-exam');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('finishing an exam persists completion and its result together', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'exam-to-finish',
+          'name': 'آزمون پایان‌یافته',
+          'questionCount': 1,
+          'durationSeconds': 1800,
+          'isCompleted': false,
+          'answers': <String, int>{},
+          'answerKey': {'1': 0},
+          'marked': <int>[],
+        },
+      ]),
+      'darsyar.activeExamId': 'exam-to-finish',
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final examCard = find.ancestor(
+      of: find.text('آزمون پایان‌یافته').first,
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(find.descendant(
+      of: examCard,
+      matching: find.text('شروع آزمون'),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('گزینه 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'پایان آزمون'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('پایان').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    final savedResults = jsonDecode(prefs.getString('darsyar.results')!) as List;
+    expect(savedExams.single['isCompleted'], isTrue);
+    expect(savedResults, hasLength(1));
+    expect(savedResults.single['examId'], 'exam-to-finish');
+    expect(tester.takeException(), isNull);
+  });
+
 }
