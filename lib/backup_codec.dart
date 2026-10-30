@@ -73,7 +73,8 @@ class DarsYarBackupCodec {
       payload['exams'] as List,
       'exams',
       requiredStrings: const ['id', 'name'],
-      optionalIntegers: const ['questionCount'],
+      optionalIntegers: const ['questionCount', 'durationSeconds'],
+      optionalBooleans: const ['negativeMarking', 'isCompleted'],
     );
     _validateExamAnswerData(payload['exams'] as List);
 
@@ -89,6 +90,7 @@ class DarsYarBackupCodec {
         'percentage',
       ],
       optionalStrings: const ['id', 'examName', 'completedAt'],
+      optionalBooleans: const ['negativeMarking'],
     );
 
     final exams = payload['exams'] as List;
