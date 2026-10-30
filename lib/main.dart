@@ -128,7 +128,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
           indicatorColor: Colors.transparent,
         ),
         cardTheme: CardThemeData(
-          elevation: 1,
+          elevation: 0,
           color: const Color(0xE61A2B23),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
