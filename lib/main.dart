@@ -804,7 +804,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
-    final exam = activeExam, q = currentQuestionNumber.clamp(1, activeExam.questionCount);
+    final ExamSheet exam = activeExam;
+    final int q = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
     final remaining = _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
     final answered = exam.answers.length;
     return Column(children: [
@@ -815,7 +816,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
       ]))),
       Expanded(child: Row(children: [
-        if (_showQuestionNavigator) Container(width: (MediaQuery.of(context).size.width * 0.34).clamp(112.0, 190.0), color: Theme.of(context).colorScheme.surfaceContainer, child: ListView.builder(padding: const EdgeInsets.all(8), itemCount: exam.questionCount, itemBuilder: (context, index) {
+        if (_showQuestionNavigator) Container(width: (MediaQuery.of(context).size.width * 0.34).clamp(112.0, 190.0).toDouble(), color: Theme.of(context).colorScheme.surfaceContainer, child: ListView.builder(padding: const EdgeInsets.all(8), itemCount: exam.questionCount, itemBuilder: (context, index) {
           final number = index + 1; final current = number == q; final markedQuestion = exam.marked.contains(number); final hasAnswer = exam.answers.containsKey(number);
           return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? purple.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
         })),
