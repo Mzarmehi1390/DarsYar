@@ -1346,7 +1346,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? accent.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
         })),
         Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
-          Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
+          _glassSurface(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
             Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), SizedBox(height: 16),
             for (var option = 0; option < 4; option++) Padding(padding: const EdgeInsets.only(bottom: 8), child: SizedBox(width: double.infinity, child: FilledButton.tonal(style: FilledButton.styleFrom(backgroundColor: exam.answers[q] == option ? const Color(0xFFB8EBD2) : Theme.of(context).colorScheme.secondaryContainer, foregroundColor: exam.answers[q] == option ? const Color(0xFF155C3D) : null), onPressed: () => _answerQuestion(option), child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}')))),
             TextButton.icon(onPressed: () => _toggleQuestionMarked(q), icon: Icon(Icons.flag_outlined), label: Text(exam.marked.contains(q) ? 'حذف علامت مرور' : 'علامت برای مرور')),
@@ -1489,8 +1489,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
           )),
           SizedBox(height: 12),
-          Card(
-            child: Padding(
+          _glassSurface(child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
@@ -1518,8 +1517,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     ),
                 ],
               ),
-            ),
-          ),
+            )),
           ],
           SizedBox(height: 20),
           Text('همه نتایج', style: TextStyle(
@@ -1527,9 +1525,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           )),
           SizedBox(height: 10),
           for (final result in sorted)
-            Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: Padding(
+            Padding(padding: const EdgeInsets.only(bottom: 10), child: _glassSurface(child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(
@@ -1560,8 +1556,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: accent)),
                 ]),
-              ),
-            ),
+              ))),
         ],
       ],
     );
@@ -2135,7 +2130,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     SizedBox(height: 18),
-    Card(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    _glassSurface(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
       RadioGroup<ThemeMode>(
         groupValue: widget.mode,
@@ -2150,10 +2145,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
     ]))),
     SizedBox(height: 12),
-    Card(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: accent), title: Text('ذخیره‌سازی محلی'),
+    _glassSurface(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: accent), title: Text('ذخیره‌سازی محلی'),
       subtitle: Text('وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.'))),
     SizedBox(height: 12),
-    Card(child: Padding(
+    _glassSurface(child: Padding(
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
