@@ -1029,10 +1029,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   void _startExamTimer() {
     _examTimer?.cancel();
     setState(() {
-      _remainingExamSeconds = _selectedDurationMinutes * 60;
+      _remainingExamSeconds = activeExam.durationSeconds;
       _timerExamId = activeExamId;
       _examDeadline = DateTime.now().add(
-        Duration(seconds: _selectedDurationMinutes * 60),
+        Duration(seconds: activeExam.durationSeconds),
       );
       _examTimerRunning = true;
     });
@@ -1122,86 +1122,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
   }
 
-  Widget _buildExamTimerCard() {
-    final isForActiveExam = _timerExamId == activeExamId;
-    final remaining = isForActiveExam ? _remainingExamSeconds : 0;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Icon(Icons.timer_outlined, color: purple),
-              SizedBox(width: 8),
-              Text('زمان‌سنج آزمون', style: TextStyle(fontWeight: FontWeight.w800)),
-            ]),
-            SizedBox(height: 10),
-            Row(children: [
-              Expanded(
-                child: Text(
-                  _formatDuration(remaining),
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w800,
-                    color: remaining > 0 && remaining <= 60
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-              if (_examTimerRunning && isForActiveExam)
-                Chip(label: Text('در حال اجرا'))
-              else if (remaining > 0 && isForActiveExam)
-                Chip(label: Text('متوقف')),
-            ]),
-            SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final minutes in [15, 30, 45, 60])
-                  ChoiceChip(
-                    label: Text('$minutes دقیقه'),
-                    selected: _selectedDurationMinutes == minutes,
-                    onSelected: _examTimerRunning
-                        ? null
-                        : (_) => setState(() => _selectedDurationMinutes = minutes),
-                  ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Wrap(spacing: 8, runSpacing: 8, children: [
-              FilledButton.icon(
-                onPressed: _toggleExamTimer,
-                icon: Icon(_examTimerRunning && isForActiveExam
-                    ? Icons.pause_rounded
-                    : Icons.play_arrow_rounded),
-                label: Text(_examTimerRunning && isForActiveExam
-                    ? 'توقف موقت'
-                    : remaining > 0 && isForActiveExam
-                        ? 'ادامه'
-                        : 'شروع'),
-              ),
-              OutlinedButton.icon(
-                onPressed: remaining > 0 || (_examTimerRunning && isForActiveExam)
-                    ? _resetExamTimer
-                    : null,
-                icon: Icon(Icons.restart_alt_rounded),
-                label: Text('از نو'),
-              ),
-            ]),
-            SizedBox(height: 4),
-            Text(
-              'زمان‌سنج هنگام جابه‌جایی بین بخش‌های برنامه هم ادامه پیدا می‌کند؛ با بستن برنامه از نو شروع می‌شود.',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11, height: 1.5),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget legend(Color color, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
     SizedBox(width: 5), Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1216,6 +1136,106 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return <int, int>{};
     }
   }
+
+  void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking) {
+    final exam = ExamSheet(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: name,
+      questionCount: questionCount,
+      durationSeconds: durationSeconds,
+      negativeMarking: negativeMarking,
+    );
+    setState(() {
+      exams.add(exam);
+      activeExamId = exam.id;
+      examSection = 1;
+    });
+    save();
+    _beginExam(exam);
+  }
+
+  Future<void> editResultAnswerKey(ExamResult result) async {
+    final draft = Map<int, int>.from(result.answerKey);
+    final updatedKey = await showDialog<Map<int, int>>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
+        title: Text('کلید پاسخ: ' + result.examName),
+        content: SizedBox(
+          width: 440, height: 420,
+          child: ListView.builder(
+            itemCount: result.questionCount,
+            itemBuilder: (context, index) {
+              final q = index + 1;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Row(children: [
+                  SizedBox(width: 62, child: Text('سؤال ' + q.toString())),
+                  for (var option = 0; option < 4; option++)
+                    Expanded(child: ChoiceChip(
+                      label: Text((option + 1).toString()),
+                      selected: draft[q] == option,
+                      onSelected: (_) => dialogSet(() {
+                        if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; }
+                      }),
+                    )),
+                ]),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('محاسبه نتیجه')),
+        ],
+      )),
+    );
+    if (updatedKey == null || !mounted) return;
+    final score = calculateAnswerScore(
+      answers: result.answers,
+      answerKey: updatedKey,
+      questionCount: result.questionCount,
+      negativeMarking: result.negativeMarking,
+    );
+    final index = results.indexWhere((item) => item.id == result.id);
+    if (index < 0) return;
+    setState(() {
+      results[index] = result.copyWith(
+        correct: score.correct,
+        wrong: score.wrong,
+        unanswered: score.unanswered,
+        keyedQuestions: score.keyedQuestions,
+        percentage: score.percentage,
+        answerKey: updatedKey,
+      );
+    });
+    await save();
+  }
+
+  Widget _resultsEmptyIllustration() => Container(
+    padding: const EdgeInsets.all(24),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(22),
+    ),
+    child: Column(children: [
+      SizedBox(
+        height: 112, width: 150,
+        child: Stack(alignment: Alignment.center, children: [
+          Positioned(top: 5, right: 20, child: CircleAvatar(radius: 34, backgroundColor: purple.withValues(alpha: 0.12))),
+          Positioned(bottom: 5, left: 20, child: CircleAvatar(radius: 24, backgroundColor: Colors.teal.withValues(alpha: 0.13))),
+          Icon(Icons.assignment_turned_in_rounded, size: 66, color: purple),
+          Positioned(bottom: 8, right: 25, child: Icon(Icons.auto_graph_rounded, size: 30, color: Colors.teal)),
+        ]),
+      ),
+      SizedBox(height: 8),
+      Text('هنوز نتیجه‌ای ذخیره نشده', style: TextStyle(fontWeight: FontWeight.w800)),
+      SizedBox(height: 5),
+      Text('بعد از پایان آزمون، نتیجه‌ها و روند پیشرفتت اینجا نمایش داده می‌شوند.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12, height: 1.6)),
+    ]),
+  );
 
   Future<void> addExam() async {
     final name = await showDialog<String>(
