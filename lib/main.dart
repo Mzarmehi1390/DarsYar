@@ -1169,7 +1169,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(children: [
-                  SizedBox(width: 62, child: Text('سؤال $q'))
+                  SizedBox(width: 62, child: Text('سؤال $q')),
                   for (var option = 0; option < 4; option++)
                     Expanded(child: ChoiceChip(
                       label: Text((option + 1).toString()),
