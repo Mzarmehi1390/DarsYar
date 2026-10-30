@@ -3089,7 +3089,8 @@ class _NotchedNavBarClipper extends CustomClipper<Path> {
     const notchRadius = 36.0;
     const shoulderWidth = 15.0;
     const notchDepth = 30.0;
-    final centerX = size.width * (selectedIndex + 0.5) / 4;
+    // The navigation Row follows Persian RTL direction: index 0 is on the right.
+    final centerX = size.width * (3.5 - selectedIndex) / 4;
     final leftNotch = centerX - notchRadius;
     final rightNotch = centerX + notchRadius;
     return Path()
