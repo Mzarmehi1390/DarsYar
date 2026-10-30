@@ -334,7 +334,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
       await rollbackStoredValues(prefs, previousValues);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _showSnackBar(
           SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
         );
       }
@@ -344,7 +344,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         await rollbackStoredValues(prefs, previousValues);
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _showSnackBar(
           SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
         );
       }
@@ -378,7 +378,23 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget _selectedNavIcon(IconData icon) => Container(width: 38, height: 38, decoration: BoxDecoration(color: const Color(0xFF20C997).withValues(alpha: 0.18), shape: BoxShape.circle, border: Border.all(color: const Color(0xFF20C997), width: 1.8), boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.18), blurRadius: 10)]), child: Icon(icon, color: const Color(0xFF20C997), size: 21));
   void _revealSelectedDay() { WidgetsBinding.instance.addPostFrameCallback((_) { if (!mounted) return; for (final target in [_plannerDayKeys[selectedStudyDay]?.currentContext, _plannerWeekKeys[selectedStudyDay]?.currentContext]) { if (target != null) Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 350), alignment: 0.5); } }); }
-  void _showMessage(String message) { final now = DateTime.now(); if (_lastSnackMessage == message && _lastSnackAt != null && now.difference(_lastSnackAt!) < const Duration(seconds: 2)) return; _lastSnackMessage = message; _lastSnackAt = now; final messenger = ScaffoldMessenger.of(context); messenger.hideCurrentSnackBar(); messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2))); }
+  void _showSnackBar(SnackBar snackBar) {
+    final content = snackBar.content;
+    final message = content is Text ? (content.data ?? content.toString()) : content.toString();
+    final now = DateTime.now();
+    if (_lastSnackMessage == message && _lastSnackAt != null &&
+        now.difference(_lastSnackAt!) < const Duration(seconds: 2)) return;
+    _lastSnackMessage = message;
+    _lastSnackAt = now;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(snackBar.copyWith(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+    ));
+  }
+
+  void _showMessage(String message) => _showSnackBar(SnackBar(content: Text(message)));
 
   Widget dashboard()(padding: const EdgeInsets.all(20), children: [
     Row(children: [
@@ -565,7 +581,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         .toList()
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     if (sourceSessions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('برای کپی‌کردن، ابتدا در این روز جلسه‌ای بساز.')),
       );
       return;
@@ -580,7 +596,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     )).toList();
     final conflicts = copies.any((candidate) => _hasOverlappingSession(candidate));
     if (conflicts) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('برنامه ${weekDays[targetDay]} با ساعت یکی از جلسه‌های فعلی تداخل دارد؛ چیزی کپی نشد.')),
       );
       return;
@@ -591,7 +607,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    _showSnackBar(
       SnackBar(content: Text('${copies.length} جلسه به ${weekDays[targetDay]} کپی شد.')),
     );
   }
@@ -908,7 +924,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (!mounted) return;
     setState(() => _savingExamResult = false);
     if (saved) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      _showSnackBar(SnackBar(
         content: Text(score.percentage == null
           ? 'پاسخ‌ها ذخیره شدند؛ برای محاسبه درصد بعداً کلید را وارد کن.'
           : 'نتیجه آزمون در تاریخچه ذخیره شد.'),
@@ -1071,7 +1087,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (isTakingExam) {
         _finishExam(automatic: true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('زمان‌سنج به پایان رسید.')));
+        _showSnackBar(SnackBar(content: Text('زمان‌سنج به پایان رسید.')));
       }
       return;
     }
@@ -1097,7 +1113,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         _examDeadline = null;
       });
       if (remaining <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        _showSnackBar(
           SnackBar(content: Text('زمان آزمون به پایان رسید.')),
         );
       }
@@ -1263,7 +1279,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> deleteExam() async {
     if (exams.length == 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
       );
       return;
@@ -1389,12 +1405,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       final backup = DarsYarBackupCodec.encode(_createBackupPayload());
       await Clipboard.setData(ClipboardData(text: backup));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان در کلیپ‌بورد کپی شد؛ آن را در یک فایل امن ذخیره کن.')),
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('ساخت نسخه پشتیبان انجام نشد. دوباره تلاش کن.')),
       );
     }
@@ -1473,7 +1489,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
       importedActiveExamId = decoded['activeExamId'] as String;
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان معتبر نیست یا با این نسخه از درس‌یار سازگار نیست؛ اطلاعات فعلی تغییر نکرد.')),
       );
       return;
@@ -1520,7 +1536,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     if (await save()) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان با موفقیت بازیابی شد.')),
       );
       return;
@@ -1536,7 +1552,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
+    _showSnackBar(
       SnackBar(content: Text('ذخیره نسخه بازیابی‌شده ناموفق بود؛ اطلاعات قبلی در برنامه بازگردانده شد.')),
     );
   }
@@ -1688,14 +1704,14 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final seconds = int.tryParse(_seconds.text);
     if (name.isEmpty || count == null || count < 1 || count > 200 ||
         minutes == null || minutes < 0 || seconds == null || seconds < 0 || seconds > 59) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('نام، تعداد سؤال و زمان آزمون را درست وارد کن.')),
       );
       return;
     }
     final duration = minutes * 60 + seconds;
     if (duration < 1 || duration > 24 * 60 * 60) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      _showSnackBar(
         SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')),
       );
       return;
@@ -2033,6 +2049,6 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+    _showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
 }
