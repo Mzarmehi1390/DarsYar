@@ -351,10 +351,11 @@ void main() {
       ..['results'] = [
         {'percentage': 101}
       ];
-    final infinitePercentage = validPayload()
-      ..['results'] = [
-        {'percentage': double.infinity}
-      ];
+    final infinitePercentage = jsonEncode(
+      validPayload()..['results'] = [
+        {'percentage': 1}
+      ],
+    ).replaceFirst('"percentage":1', '"percentage":1e999');
 
     for (final payload in [
       invalidExamLink,
