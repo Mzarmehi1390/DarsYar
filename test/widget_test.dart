@@ -232,6 +232,59 @@ void main() {
   });
 
 
+  testWidgets('planner day chips do not display a selection checkmark', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final chips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
+    expect(chips, isNotEmpty);
+    expect(chips.every((chip) => chip.showCheckmark == false), isTrue);
+  });
+
+  testWidgets('my exams results are laid out in the same scrollable page', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'layout-exam',
+          'name': 'آزمون چیدمان',
+          'questionCount': 10,
+          'durationSeconds': 1800,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+          'marked': [],
+        },
+      ]),
+      'darsyar.activeExamId': 'layout-exam',
+      'darsyar.results': jsonEncode([
+        {
+          'id': 'layout-result',
+          'examId': 'layout-exam',
+          'examName': 'نتیجه قابل مشاهده',
+          'completedAt': '2026-10-30T10:00:00.000Z',
+          'questionCount': 10,
+          'correct': 8,
+          'wrong': 1,
+          'unanswered': 1,
+          'keyedQuestions': 10,
+          'percentage': 75.0,
+          'negativeMarking': false,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('آزمون چیدمان'), findsOneWidget);
+    expect(find.text('نتیجه قابل مشاهده'), findsOneWidget);
+    expect(find.text('75%'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('planner initially selects and reveals the current weekday', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
