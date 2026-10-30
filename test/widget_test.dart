@@ -83,7 +83,10 @@ void main() {
 
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('تغییر زمان'));
+    final changeDurationButton = find.text('تغییر زمان');
+    await tester.ensureVisible(changeDurationButton);
+    await tester.pumpAndSettle();
+    await tester.tap(changeDurationButton);
     await tester.pumpAndSettle();
 
     final dialog = tester.getSize(find.byType(AlertDialog));
