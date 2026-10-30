@@ -206,7 +206,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final rawExams = _readStoredList(prefs.getString('darsyar.exams'));
+    final storedExamsJson = prefs.getString('darsyar.exams');
+    final rawExams = _readStoredList(storedExamsJson);
     exams.clear();
     if (rawExams != null) {
       for (final item in rawExams) {
@@ -218,8 +219,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           // Skip only the invalid exam sheet.
         }
       }
-    } else {
-      // Migrate legacy single-sheet data without losing valid answers.
+    } else if (storedExamsJson == null) {
+      // Migrate legacy single-sheet data only when the current-format key
+      // does not exist. Corrupt current data must never resurrect stale
+      // legacy answers over the user's newer exam state.
       final legacyAnswers = _readIntMap(prefs.getString('darsyar.answers'));
       final legacyKey = _readIntMap(prefs.getString('darsyar.answerKey'));
       final legacyMarked = <int>{};
