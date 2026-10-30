@@ -1275,9 +1275,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         for (final exam in exams.reversed)
           Card(
             margin: const EdgeInsets.only(bottom: 10),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            color: Colors.transparent,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            child: _glassSurface(
+              radius: 22,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                   Expanded(child: Text(exam.name, maxLines: 2, overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
@@ -1311,7 +1316,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       icon: Icon(Icons.play_arrow_rounded),
                       label: Text(exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون'),
                     )),
-              ]),
+                ]),
+              ),
             ),
           ),
       SizedBox(height: 14),
