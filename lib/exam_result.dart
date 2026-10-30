@@ -1,6 +1,7 @@
 class ExamResult {
   const ExamResult({
     required this.id,
+    this.examId,
     required this.examName,
     required this.completedAt,
     required this.questionCount,
@@ -15,6 +16,7 @@ class ExamResult {
   });
 
   final String id;
+  final String? examId;
   final String examName;
   final String completedAt;
   final int questionCount;
@@ -32,6 +34,7 @@ class ExamResult {
       DateTime.fromMillisecondsSinceEpoch(0);
 
   ExamResult copyWith({
+    String? examName,
     int? correct,
     int? wrong,
     int? unanswered,
@@ -40,7 +43,8 @@ class ExamResult {
     Map<int, int>? answerKey,
   }) => ExamResult(
     id: id,
-    examName: examName,
+    examId: examId,
+    examName: examName ?? this.examName,
     completedAt: completedAt,
     questionCount: questionCount,
     correct: correct ?? this.correct,
@@ -55,6 +59,7 @@ class ExamResult {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'examId': examId,
     'examName': examName,
     'completedAt': completedAt,
     'questionCount': questionCount,
@@ -103,6 +108,7 @@ class ExamResult {
 
     return ExamResult(
       id: rawId is String && rawId.isNotEmpty ? rawId : 'legacy-result',
+      examId: json['examId'] is String ? json['examId'] as String : null,
       examName: rawName is String && rawName.trim().isNotEmpty ? rawName : 'آزمون',
       completedAt: rawCompletedAt is String ? rawCompletedAt : '',
       questionCount: questionCount,
