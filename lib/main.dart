@@ -2837,8 +2837,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         Text('زمان را به ساعت، دقیقه و ثانیه وارد کن.',
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         SizedBox(height: 18),
-        final compact = MediaQuery.sizeOf(context).width < 460;
-        if (compact)
+        if (MediaQuery.sizeOf(context).width < 460)
           Column(
             children: [
               _timeField('ساعت', _hours, expand: false),
