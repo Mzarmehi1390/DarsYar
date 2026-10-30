@@ -632,9 +632,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                                   ? const Color(0xFF193126).withValues(alpha: 0.96)
                                   : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
                               border: Border.all(
-                                color: (isDark ? Colors.white : accent)
-                                    .withValues(alpha: isDark ? 0.20 : 0.12),
-                                width: 1,
+                                color: (isDark ? const Color(0xFFB5F3D2) : accent)
+                                    .withValues(alpha: isDark ? 0.34 : 0.30),
+                                width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
