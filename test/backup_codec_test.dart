@@ -371,6 +371,26 @@ void main() {
     );
   });
 
+  test('rejects result counts outside their valid score ranges', () {
+    final invalidResults = [
+      {'questionCount': 201},
+      {'questionCount': 10, 'keyedQuestions': 11},
+      {'questionCount': 10, 'keyedQuestions': 5, 'correct': 6},
+      {'questionCount': 10, 'keyedQuestions': 5, 'correct': 3, 'wrong': 3},
+      {'questionCount': 10, 'unanswered': 11},
+      {'questionCount': -1},
+    ];
+
+    for (final result in invalidResults) {
+      final payload = validPayload()..['results'] = [result];
+      expect(
+        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
+        throwsFormatException,
+        reason: 'Invalid result should be rejected: $result',
+      );
+    }
+  });
+
   test('falls back to first exam if active exam ID is missing or stale', () {
     final stale = DarsYarBackupCodec.decode(
       jsonEncode(validPayload(activeExamId: 'deleted-exam')),
