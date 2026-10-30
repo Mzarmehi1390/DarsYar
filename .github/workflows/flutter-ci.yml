@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feat/darsyar-foundation
+      - feat/darsyar-ux-refinement
   pull_request:
     branches:
       - main
