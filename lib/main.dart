@@ -953,7 +953,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final base = tint ?? (isDark ? const Color(0xFF18372B) : const Color(0xFFF8FFFB));
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_radius),
+        borderRadius: BorderRadius.circular(radius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
@@ -971,12 +971,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(_radius),
+        borderRadius: BorderRadius.circular(radius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_radius),
+              borderRadius: BorderRadius.circular(radius),
               border: Border.all(
                 color: Colors.white.withValues(alpha: isDark ? 0.20 : 0.72),
                 width: 1,
