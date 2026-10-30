@@ -924,7 +924,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     final completedSessions = studySessions.where((session) => session.completed).length;
     final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
-    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, 90), children: [
+    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, 124), children: [
       Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
       SizedBox(height: 6),
       Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1474,7 +1474,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           final number = index + 1; final current = number == q; final markedQuestion = exam.marked.contains(number); final hasAnswer = exam.answers.containsKey(number);
           return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? accent.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
         })),
-        Expanded(child: ListView(padding: const EdgeInsets.all(20), children: [
+        Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
           _glassSurface(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
             Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), SizedBox(height: 16),
             for (var option = 0; option < 4; option++) Padding(padding: const EdgeInsets.only(bottom: 8), child: SizedBox(width: double.infinity, child: FilledButton.tonal(style: FilledButton.styleFrom(backgroundColor: exam.answers[q] == option ? const Color(0xFFB8EBD2) : Theme.of(context).colorScheme.secondaryContainer, foregroundColor: exam.answers[q] == option ? const Color(0xFF155C3D) : null), onPressed: () => _answerQuestion(option), child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}')))),
@@ -2334,7 +2334,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.all(20), children: [
+  Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
     Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
     SizedBox(height: 18),
