@@ -36,8 +36,6 @@ void main() {
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'آزمون آزمایشی');
     await tester.enterText(fields.at(1), '3');
-    await tester.enterText(fields.at(2), '1');
-    await tester.enterText(fields.at(3), '30');
     await tester.ensureVisible(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
