@@ -548,6 +548,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           key: _plannerDayKeys[day],
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
+            showCheckmark: false,
             label: Text(weekDays[day]),
             selected: selectedStudyDay == day,
             onSelected: (_) { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
@@ -850,35 +851,62 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]);
   }
 
-  Widget _myExamsView() => ListView(padding: const EdgeInsets.all(16), children: [
-    for (final exam in exams.reversed)
-      Card(child: ListTile(
-        title: Text(exam.name),
-        subtitle: Text('${exam.questionCount} سؤال • ${_formatDuration(exam.durationSeconds)} • ${exam.answers.length} پاسخ'),
-        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-          IconButton(
-            tooltip: exam.isCompleted ? 'آزمون پایان یافته' : 'شروع یا ادامه آزمون',
-            icon: Icon(exam.isCompleted ? Icons.check_circle_outline : Icons.play_arrow_rounded),
-            onPressed: exam.isCompleted ? null : () => _beginExam(exam),
+  Widget _myExamsView() => ListView(
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+    children: [
+      Text('پاسخ‌برگ‌های ذخیره‌شده', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+      SizedBox(height: 10),
+      if (exams.isEmpty)
+        emptyState(Icons.assignment_outlined, 'هنوز آزمونی نساخته‌ای', 'از بخش ساخت آزمون جدید، اولین پاسخ‌برگت را ایجاد کن.')
+      else
+        for (final exam in exams.reversed)
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  Expanded(child: Text(exam.name, maxLines: 2, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
+                  PopupMenuButton<String>(
+                    tooltip: 'مدیریت آزمون',
+                    onSelected: (action) {
+                      setState(() => activeExamId = exam.id);
+                      if (action == 'rename') renameExam();
+                      if (action == 'delete') deleteExam();
+                      if (action == 'key') editAnswerKey();
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'rename', child: Text('تغییر نام')),
+                      PopupMenuItem(value: 'key', child: Text('ویرایش کلید پاسخ')),
+                      PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
+                    ],
+                  ),
+                ]),
+                SizedBox(height: 4),
+                Text('${exam.questionCount} سؤال  •  ${_formatDuration(exam.durationSeconds)}  •  ${exam.answers.length} پاسخ',
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                SizedBox(height: 10),
+                Align(alignment: Alignment.centerLeft, child: exam.isCompleted
+                  ? Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.check_circle_rounded, size: 17, color: accent),
+                      SizedBox(width: 6),
+                      Text('آزمون پایان یافته', style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 12)),
+                    ])
+                  : FilledButton.tonalIcon(
+                      onPressed: () => _beginExam(exam),
+                      icon: Icon(Icons.play_arrow_rounded),
+                      label: Text(exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون'),
+                    )),
+              ]),
+            ),
           ),
-          PopupMenuButton<String>(
-            onSelected: (action) {
-              setState(() => activeExamId = exam.id);
-              if (action == 'rename') renameExam();
-              if (action == 'delete') deleteExam();
-              if (action == 'key') editAnswerKey();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'rename', child: Text('تغییر نام')),
-              PopupMenuItem(value: 'key', child: Text('ویرایش کلید پاسخ')),
-              PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
-            ],
-          ),
-        ]),
-      )),
-    Text('نتایج آزمون‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-    SizedBox(height: 400, child: resultsHistory()),
-  ]);
+      SizedBox(height: 14),
+      Text('نتایج آزمون‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+      SizedBox(height: 8),
+      resultsHistory(),
+    ],
+  );
 
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
@@ -1018,8 +1046,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final scoredResults = results.where((result) => result.percentage != null).toList();
     final average = scoredResults.isEmpty ? 0.0 :
         scoredResults.map((result) => result.percentage!).reduce((a, b) => a + b) / scoredResults.length;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text('تاریخچه و پیشرفت', style: TextStyle(
           fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
