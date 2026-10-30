@@ -350,7 +350,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (!_allStorageSections.containsAll(sections)) {
       throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
     }
-    SharedPreferences? prefs;
     try {
       // Encode only the sections changed by the caller. The storage layer
       // serializes writes and restores previous values if a write fails.
