@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
@@ -1684,8 +1685,7 @@ class _ExamSetupPanel extends StatefulWidget {
 class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   final _name = TextEditingController();
   final _count = TextEditingController(text: '20');
-  final _minutes = TextEditingController(text: '30');
-  final _seconds = TextEditingController(text: '0');
+  Duration _duration = const Duration(minutes: 30);
   final Map<int, int> _answerKey = {};
   bool _negativeMarking = false;
 
@@ -1693,28 +1693,19 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   void dispose() {
     _name.dispose();
     _count.dispose();
-    _minutes.dispose();
-    _seconds.dispose();
     super.dispose();
   }
 
   void _submit() {
     final name = _name.text.trim();
     final count = int.tryParse(_count.text);
-    final minutes = int.tryParse(_minutes.text);
-    final seconds = int.tryParse(_seconds.text);
-    if (name.isEmpty || count == null || count < 1 || count > 200 ||
-        minutes == null || minutes < 0 || seconds == null || seconds < 0 || seconds > 59) {
-      _showSnackBar(
-        SnackBar(content: Text('نام، تعداد سؤال و زمان آزمون را درست وارد کن.')),
-      );
+    if (name.isEmpty || count == null || count < 1 || count > 200) {
+      _showSnackBar(SnackBar(content: Text('نام و تعداد سؤال را درست وارد کن.')));
       return;
     }
-    final duration = minutes * 60 + seconds;
+    final duration = _duration.inSeconds;
     if (duration < 1 || duration > 24 * 60 * 60) {
-      _showSnackBar(
-        SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')),
-      );
+      _showSnackBar(SnackBar(content: Text('زمان آزمون باید بین یک ثانیه تا ۲۴ ساعت باشد.')));
       return;
     }
     widget.onCreate(name, count, duration, _negativeMarking, Map<int, int>.from(_answerKey));
@@ -1748,15 +1739,21 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           SizedBox(height: 14),
           Text('زمان دلخواه آزمون', style: TextStyle(fontWeight: FontWeight.w700)),
           SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: TextField(controller: _minutes, keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(labelText: 'دقیقه', border: OutlineInputBorder()))),
-            SizedBox(width: 12),
-            Expanded(child: TextField(controller: _seconds, keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2), TextInputFormatter.withFunction((oldValue, newValue) { final value = int.tryParse(newValue.text); return value != null && value > 59 ? oldValue : newValue; })],
-              decoration: InputDecoration(labelText: 'ثانیه (۰ تا ۵۹)', border: OutlineInputBorder()))),
-          ]),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: CupertinoTimerPicker(
+              mode: CupertinoTimerPickerMode.ms,
+              initialTimerDuration: _duration,
+              minuteInterval: 1,
+              secondInterval: 1,
+              onTimerDurationChanged: (value) => setState(() => _duration = value),
+            ),
+          ),
           SizedBox(height: 12),
           Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
           SizedBox(height: 8),
