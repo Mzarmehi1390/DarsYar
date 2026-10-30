@@ -1012,8 +1012,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         style: TextStyle(fontSize: 12)),
                       if (result.percentage == null)
                         TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
-                      if (result.percentage == null)
-                        TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
                     ],
                   )),
                   Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
