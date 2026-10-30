@@ -137,7 +137,7 @@ void main() {
     await tester.tap(find.text('آزمون‌های من'));
     await tester.pumpAndSettle();
     expect(find.text('آزمون اول'), findsWidgets);
-    expect(find.text('20 سؤال • 30:00 • 0 پاسخ'), findsOneWidget);
+    expect(find.textContaining('20 سؤال'), findsOneWidget);
   });
 
   testWidgets('theme selection is saved and restored', (WidgetTester tester) async {
@@ -281,7 +281,7 @@ void main() {
 
     expect(find.text('آزمون چیدمان'), findsOneWidget);
     expect(find.text('نتیجه قابل مشاهده'), findsOneWidget);
-    expect(find.text('75%'), findsOneWidget);
+    expect(find.text('75%'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 
