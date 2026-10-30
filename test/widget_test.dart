@@ -32,7 +32,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
-    for (final theme in [app.theme, app.darkTheme!]) {
+    for (final theme in [app.theme!, app.darkTheme!]) {
       expect(theme.splashFactory, NoSplash.splashFactory);
       expect(theme.splashColor, Colors.transparent);
       expect(theme.highlightColor, Colors.transparent);
