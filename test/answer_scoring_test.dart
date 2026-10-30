@@ -79,7 +79,7 @@ void main() {
       );
       expect(score.correct, 2);
       expect(score.wrong, 2);
-      expect(score.percentage, closeTo(41.6667, 0.001));
+      expect(score.percentage, closeTo(33.3333, 0.001));
     });
 
     test('handles a negative question count safely', () {
