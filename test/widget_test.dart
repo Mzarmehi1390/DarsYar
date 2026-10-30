@@ -36,7 +36,7 @@ void main() {
     final fields = find.byType(TextField);
     await tester.enterText(fields.at(0), 'آزمون آزمایشی');
     await tester.enterText(fields.at(1), '3');
-    await tester.ensureVisible(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
+    await tester.scrollUntilVisible(find.text('ساخت پاسخ‌برگ و شروع آزمون'), 220, scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
     await tester.pump();
