@@ -91,7 +91,7 @@ void main() {
 
       expect(score.keyedQuestions, 0);
       expect(score.unanswered, 0);
-      expect(score.percentage, 0);
+      expect(score.percentage, isNull);
     });
 
   });
