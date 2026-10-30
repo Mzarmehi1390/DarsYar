@@ -330,7 +330,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<bool> _saveCurrentState(Set<String> sections) async {
     if (sections.isEmpty) return true;
-    if (! _allStorageSections.containsAll(sections)) {
+    if (!_allStorageSections.containsAll(sections)) {
       throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
     }
     SharedPreferences? prefs;
@@ -1953,7 +1953,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         results[index] = _recalculateResult(result, updatedKey);
       }
     });
-    await save();
+    await save(sections: {'exams', 'results'});
   }
 
   Widget _resultsEmptyIllustration() => _glassSurface(
@@ -2468,7 +2468,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       selectedStudyDay = result.weekday;
     });
     _revealSelectedDay();
-    await save();
+    await save(sections: {'studySessions'});
   }
 
   Future<void> addTask([StudyTask? existing]) async {
@@ -2488,7 +2488,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         }
       }
     });
-    await save(sections: {'studySessions'});
+    await save(sections: {'tasks'});
   }
 }
 
