@@ -18,6 +18,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Generate Android launcher icon densities
+        shell: bash
+        run: |
+          python3 -m pip install --disable-pip-version-check pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          source = Image.open("assets/branding/darsyar_launcher.png").convert("RGBA")
+          targets = {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192,
+          }
+          for folder, size in targets.items():
+              output = Path("android/app/src/main/res") / folder / "ic_launcher.png"
+              output.parent.mkdir(parents=True, exist_ok=True)
+              source.resize((size, size), Image.Resampling.LANCZOS).save(output, optimize=True)
+          PY
+
       - name: Configure Android release signing
         shell: bash
         env:
