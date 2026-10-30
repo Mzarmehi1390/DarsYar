@@ -10,6 +10,8 @@ void main() {
         id: 'exam-1',
         name: 'آزمون ریاضی',
         questionCount: 30,
+        durationSeconds: 2700,
+        negativeMarking: true,
         answers: {1: 0, 7: 3},
         answerKey: {1: 0, 7: 2},
         marked: {3, 9},
@@ -22,6 +24,8 @@ void main() {
       expect(restored.id, original.id);
       expect(restored.name, original.name);
       expect(restored.questionCount, 30);
+      expect(restored.durationSeconds, 2700);
+      expect(restored.negativeMarking, isTrue);
       expect(restored.answers, {1: 0, 7: 3});
       expect(restored.answerKey, {1: 0, 7: 2});
       expect(restored.marked, {3, 9});
