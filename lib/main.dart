@@ -394,12 +394,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     child: Container(
       width: 38, height: 38,
       decoration: BoxDecoration(
-        color: const Color(0xFF20C997).withValues(alpha: 0.18),
+        color: accent.withValues(alpha: 0.18),
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFF20C997), width: 1.8),
-        boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.18), blurRadius: 10)],
+        border: Border.all(color: accent, width: 1.8),
+        boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.18), blurRadius: 10)],
       ),
-      child: Icon(icon, color: const Color(0xFF20C997), size: 21),
+      child: Icon(icon, color: accent, size: 21),
     ),
   );
   void _openPlanner() {
@@ -491,7 +491,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         color: Theme.of(context).cardColor.withValues(alpha: 0.96),
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: accent.withValues(alpha: 0.20))),
-        borderRadius: BorderRadius.circular(22),
         child: InkWell(
           onTap: action,
           borderRadius: BorderRadius.circular(22),
@@ -507,8 +506,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       : [const Color(0xFFDDF5E9), const Color(0xFFC6EBDD)],
                   ),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFF20C997).withValues(alpha: 0.28)),
-                  boxShadow: [BoxShadow(color: const Color(0xFF20C997).withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 5))],
+                  border: Border.all(color: accent.withValues(alpha: 0.28)),
+                  boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 5))],
                 ),
                 child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF73E8B8) : const Color(0xFF087B55)),
               ),
