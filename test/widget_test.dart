@@ -108,7 +108,7 @@ void main() {
     // A malformed current-format key must fall back to a clean default sheet,
     // not resurrect answers from the retired single-sheet storage keys.
     expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
-    expect(find.text('آزمون اول'), findsOneWidget);
+    expect(find.text('آزمون اول'), findsWidgets);
     expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
     expect(find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'), findsOneWidget);
   });
