@@ -443,7 +443,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 10),
       SizedBox(height: 44, child: ListView(
         scrollDirection: Axis.horizontal,
-        reverse: true,
         children: weekDayOrder.map((day) => Padding(
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
@@ -458,7 +457,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 10),
       SizedBox(height: 124, child: ListView(
         scrollDirection: Axis.horizontal,
-        reverse: true,
         children: weekDayOrder.map((day) => Padding(
           padding: const EdgeInsets.only(left: 10),
           child: SizedBox(width: 190, child: weekOverviewCard(day)),
