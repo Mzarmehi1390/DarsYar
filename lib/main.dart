@@ -92,7 +92,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
       themeMode: mode,
       theme: ThemeData(useMaterial3: true, colorScheme: lightScheme, scaffoldBackgroundColor: canvas,
         appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink),
-        cardTheme: CardThemeData(elevation: 3, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFC8D9CE), width: 1.2))),
+        cardTheme: CardThemeData(elevation: 3, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFC8D9CE), width: 1.2)))),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
