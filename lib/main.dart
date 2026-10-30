@@ -487,7 +487,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 22),
       Row(children: [
         Expanded(child: Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
-        FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('افزودن وظیفه')),
+        OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.calendar_month_rounded), label: Text('جلسه جدید')),
+        SizedBox(width: 6),
+        FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('وظیفه')),
       ]),
       SizedBox(height: 10),
       if (tasks.isEmpty)
