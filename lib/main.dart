@@ -364,7 +364,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     // while the next save is allowed to run normally.
     _saveQueue = pending.then<void>(
       (_) {},
-      onError: (Object _, StackTrace __) {},
+      onError: (Object _, StackTrace _) {},
     );
     return pending;
   }
