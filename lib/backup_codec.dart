@@ -52,13 +52,38 @@ class DarsYarBackupCodec {
       }
     }
 
-    _validateRecords(payload['tasks'] as List, 'tasks', const ['id', 'title']);
+    _validateRecords(
+      payload['tasks'] as List,
+      'tasks',
+      requiredStrings: const ['id', 'title'],
+      optionalBooleans: const ['done'],
+    );
     _validateRecords(
       payload['studySessions'] as List,
       'studySessions',
-      const ['id', 'title'],
+      requiredStrings: const ['id', 'title'],
+      optionalNumbers: const ['weekday', 'startMinutes', 'durationMinutes'],
+      optionalBooleans: const ['completed'],
     );
-    _validateRecords(payload['exams'] as List, 'exams', const ['id', 'name']);
+    _validateRecords(
+      payload['exams'] as List,
+      'exams',
+      requiredStrings: const ['id', 'name'],
+      optionalNumbers: const ['questionCount'],
+    );
+    _validateRecords(
+      payload['results'] as List,
+      'results',
+      optionalNumbers: const [
+        'questionCount',
+        'correct',
+        'wrong',
+        'unanswered',
+        'keyedQuestions',
+        'percentage',
+      ],
+      optionalStrings: const ['id', 'examName', 'completedAt'],
+    );
 
     final exams = payload['exams'] as List;
     if (exams.isEmpty) {
@@ -88,17 +113,40 @@ class DarsYarBackupCodec {
 
   static void _validateRecords(
     List items,
-    String collection,
-    List<String> requiredStringFields,
-  ) {
+    String collection, {
+    List<String> requiredStrings = const [],
+    List<String> optionalStrings = const [],
+    List<String> optionalNumbers = const [],
+    List<String> optionalBooleans = const [],
+  }) {
     for (var index = 0; index < items.length; index++) {
       final item = items[index] as Map;
-      for (final field in requiredStringFields) {
+      void invalid(String field) {
+        throw FormatException(
+          'Invalid $collection record at index $index: $field',
+        );
+      }
+
+      for (final field in requiredStrings) {
         final value = item[field];
-        if (value is! String || value.trim().isEmpty) {
-          throw FormatException(
-            'Invalid $collection record at index $index: $field',
-          );
+        if (value is! String || value.trim().isEmpty) invalid(field);
+      }
+      for (final field in optionalStrings) {
+        final value = item[field];
+        if (item.containsKey(field) && value != null && value is! String) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalNumbers) {
+        final value = item[field];
+        if (item.containsKey(field) && value != null && value is! num) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalBooleans) {
+        final value = item[field];
+        if (item.containsKey(field) && value != null && value is! bool) {
+          invalid(field);
         }
       }
     }
