@@ -127,17 +127,27 @@ class DarsYarBackupCodec {
       final weekday = session['weekday'] ?? 0;
       final start = session['startMinutes'] ?? 960;
       final duration = session['durationMinutes'] ?? 55;
-      if (weekday is! int || weekday < 0 || weekday > 6) {
+      if (weekday is! num ||
+          !weekday.isFinite ||
+          weekday % 1 != 0 ||
+          weekday < 0 ||
+          weekday > 6) {
         throw FormatException(
           'Invalid studySessions record at index $index: weekday',
         );
       }
-      if (start is! int || start < 0 || start >= 1440) {
+      if (start is! num ||
+          !start.isFinite ||
+          start % 1 != 0 ||
+          start < 0 ||
+          start >= 1440) {
         throw FormatException(
           'Invalid studySessions record at index $index: startMinutes',
         );
       }
-      if (duration is! int ||
+      if (duration is! num ||
+          !duration.isFinite ||
+          duration % 1 != 0 ||
           duration < 1 ||
           duration > 1440 - start) {
         throw FormatException(
@@ -152,7 +162,11 @@ class DarsYarBackupCodec {
       final exam = exams[index] as Map;
       final duration = exam['durationSeconds'];
       if (duration != null &&
-          (duration is! int || duration < 1 || duration > 24 * 60 * 60)) {
+          (duration is! num ||
+              !duration.isFinite ||
+              duration % 1 != 0 ||
+              duration < 1 ||
+              duration > 24 * 60 * 60)) {
         throw FormatException(
           'Invalid exams record at index $index: durationSeconds',
         );
