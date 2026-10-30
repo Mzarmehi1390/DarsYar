@@ -88,6 +88,43 @@ void main() {
     );
   });
 
+  test('rejects malformed field types before model deserialization', () {
+    final invalidTaskFlag = validPayload()
+      ..['tasks'] = [
+        {'id': 'task-1', 'title': 'مرور', 'done': 'yes'}
+      ];
+    final invalidSessionTime = validPayload()
+      ..['studySessions'] = [
+        {
+          'id': 'session-1',
+          'title': 'مطالعه',
+          'weekday': 2,
+          'startMinutes': 'عصر',
+          'durationMinutes': 45,
+        }
+      ];
+    final invalidExamCount = validPayload()
+      ..['exams'] = [
+        {'id': 'exam-1', 'name': 'آزمون', 'questionCount': 'بیست'}
+      ];
+    final invalidResultScore = validPayload()
+      ..['results'] = [
+        {'correct': 'پانزده'}
+      ];
+
+    for (final payload in [
+      invalidTaskFlag,
+      invalidSessionTime,
+      invalidExamCount,
+      invalidResultScore,
+    ]) {
+      expect(
+        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
+        throwsFormatException,
+      );
+    }
+  });
+
   test('rejects empty and duplicate exam IDs', () {
     final duplicateIds = validPayload(exams: [
       {'id': 'same-id', 'name': 'آزمون اول'},
