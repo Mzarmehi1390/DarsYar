@@ -469,8 +469,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget _bottomNavigationDock(bool isDark) {
     const navHeight = 94.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    final inactiveColor =
-        isDark ? Colors.white70 : const Color(0xFF87948D);
 
     return Container(
       decoration: BoxDecoration(
