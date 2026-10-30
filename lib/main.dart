@@ -1121,16 +1121,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  void _resetExamTimer() {
-    _examTimer?.cancel();
-    setState(() {
-      _examTimerRunning = false;
-      _remainingExamSeconds = 0;
-      _timerExamId = null;
-      _examDeadline = null;
-    });
-  }
-
   Widget legend(Color color, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
     SizedBox(width: 5), Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1338,11 +1328,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save();
   }
-
-  Widget _scoreMetric(String label, int value, Color color, {String suffix = ''}) => Column(children: [
-    Text('$value$suffix', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: color)),
-    Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-  ]);
 
   Future<void> editAnswerKey() async {
     if (answerKey.length < count) {
