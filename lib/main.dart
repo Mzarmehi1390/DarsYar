@@ -119,7 +119,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   @override
   void initState() {
     super.initState();
-    tab = widget.initialTab.clamp(0, 4);
+    tab = widget.initialTab.clamp(0, 3);
     load();
   }
   bool loading = true;
@@ -130,6 +130,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final studySessions = <StudySession>[];
   int selectedStudyDay = DateTime.now().weekday % 7;
   static const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+  static const weekDayOrder = [6, 0, 1, 2, 3, 4, 5];
   final exams = <ExamSheet>[
     ExamSheet(id: 'default', name: 'آزمون اول'),
   ];
@@ -349,25 +350,23 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [dashboard(), planner(), answerSheet(), resultsHistory(), settings()];
+    final pages = [dashboard(), planner(), answerSheet(), settings()];
     return Scaffold(
       body: SafeArea(child: loading ? Center(child: CircularProgressIndicator()) : pages[tab]),
       // Keep navigation and creation actions unavailable until stored data
       // has been restored, otherwise a fast tap can race the initial load.
       bottomNavigationBar: loading ? null : NavigationBar(
+        indicatorColor: Colors.transparent,
         selectedIndex: tab,
         onDestinationSelected: (value) => setState(() => tab = value),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.grid_view_rounded), label: 'خانه'),
           NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
           NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'پاسخ‌برگ'),
-          NavigationDestination(icon: Icon(Icons.insights_rounded), label: 'نتایج'),
           NavigationDestination(icon: Icon(Icons.tune_rounded), label: 'تنظیمات'),
         ],
       ),
-      floatingActionButton: !loading && tab == 1 ? FloatingActionButton.extended(
-        onPressed: addStudySession, backgroundColor: purple, foregroundColor: Colors.white,
-        icon: Icon(Icons.add_rounded), label: Text('جلسه جدید')) : null,
+      floatingActionButton: null,
     );
   }
 
@@ -389,10 +388,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         SizedBox(height: 8),
         Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.', style: TextStyle(color: Colors.white70)),
         SizedBox(height: 22),
-        Text('وظایف انجام‌شده: $completed از ${tasks.length}', style: TextStyle(color: Colors.white)),
+        Text(tasks.isEmpty ? 'هنوز وظیفه‌ای ثبت نشده است' : 'وظایف انجام‌شده: $completed از ${tasks.length}', style: TextStyle(color: Colors.white)),
         SizedBox(height: 10),
         ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(
-          minHeight: 7, value: tasks.isEmpty ? 0 : completed / tasks.length, backgroundColor: Colors.white30, color: Colors.white)),
+          minHeight: 8, value: tasks.isEmpty ? 0 : completed / tasks.length, backgroundColor: Colors.white54, color: Colors.white)),
       ]),
     ),
     SizedBox(height: 24),
@@ -403,7 +402,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(width: 12),
       Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFE0F5ED))),
     ]),
-    SizedBox(height: 24),
+    SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
       TextButton(onPressed: () => setState(() => tab = 1), child: Text('مشاهده همه'))]),
     if (tasks.where((e) => !e.done).isEmpty)
@@ -415,7 +414,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(22), child: InkWell(
       onTap: action, borderRadius: BorderRadius.circular(22), child: Padding(padding: const EdgeInsets.all(16), child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(14)), child: Icon(icon, color: purple)),
+          Container(width: 44, height: 44, decoration: BoxDecoration(color: Theme.of(context).brightness == Brightness.dark ? purple.withValues(alpha: 0.22) : tint, borderRadius: BorderRadius.circular(14)), child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFC7B8FF) : purple)),
           SizedBox(height: 14), Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
           SizedBox(height: 4), Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
         ]))));
@@ -440,15 +439,29 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 20),
       Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       SizedBox(height: 10),
-      Wrap(spacing: 6, runSpacing: 6, children: List.generate(7, (day) => ChoiceChip(
-        label: Text(weekDays[day]),
-        selected: selectedStudyDay == day,
-        onSelected: (_) => setState(() => selectedStudyDay = day),
-      ))),
+      SizedBox(height: 44, child: ListView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        children: weekDayOrder.map((day) => Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: ChoiceChip(
+            label: Text(weekDays[day]),
+            selected: selectedStudyDay == day,
+            onSelected: (_) => setState(() => selectedStudyDay = day),
+          ),
+        )).toList(),
+      )),
       SizedBox(height: 20),
       Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       SizedBox(height: 10),
-      Wrap(spacing: 10, runSpacing: 10, children: List.generate(7, weekOverviewCard)),
+      SizedBox(height: 124, child: ListView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        children: weekDayOrder.map((day) => Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: SizedBox(width: 190, child: weekOverviewCard(day)),
+        )).toList(),
+      )),
       SizedBox(height: 16),
       weeklyReportCard(),
       SizedBox(height: 20),
@@ -464,16 +477,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             child: Text('کپی برنامه به ${weekDays[day]}'),
           )),
         ),
-        TextButton.icon(onPressed: addTask, icon: Icon(Icons.checklist_rounded), label: Text('وظیفه')),
       ]),
       if (daySessions.isEmpty)
         emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
       else ...daySessions.map(studySessionTile),
       SizedBox(height: 22),
-      Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
+      Row(children: [
+        Expanded(child: Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
+        FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('افزودن وظیفه')),
+      ]),
       SizedBox(height: 10),
       if (tasks.isEmpty)
-        emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، از دکمه «وظیفه» استفاده کن.')
+        emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، دکمه «افزودن وظیفه» را بزن.')
       else ...tasks.map(taskTile),
     ]);
   }
@@ -1339,7 +1354,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           width: 520,
           child: SingleChildScrollView(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('متن JSON نسخه پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید با اطلاعات نسخه پشتیبان جایگزین می‌شوند.'),
+              Text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
               SizedBox(height: 12),
               TextField(
                 controller: controller,
@@ -1507,13 +1522,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         SizedBox(width: double.infinity, child: FilledButton.icon(
           onPressed: exportBackup,
           icon: Icon(Icons.copy_all_rounded),
-          label: Text('ساخت نسخه پشتیبان و کپی JSON'),
+          label: Text('ساخت فایل پشتیبان'),
         )),
         SizedBox(height: 8),
         SizedBox(width: double.infinity, child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error, side: BorderSide(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7))),
           onPressed: importBackup,
-          icon: Icon(Icons.restore_rounded),
-          label: Text('بازیابی از متن JSON'),
+          icon: Icon(Icons.warning_amber_rounded),
+          label: Text('بازیابی فایل پشتیبان'),
         )),
       ]),
     )),
