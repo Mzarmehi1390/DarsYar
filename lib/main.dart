@@ -610,19 +610,107 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ]),
     ]),
     SizedBox(height: 24),
-    Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(
-      gradient: const LinearGradient(colors: [Color(0xFF16865B), Color(0xFF0D5138)], begin: Alignment.topRight, end: Alignment.bottomLeft),
-      borderRadius: BorderRadius.circular(26)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('هر روز، یک قدم به هدفت نزدیک‌تر', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-        SizedBox(height: 8),
-        Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.', style: TextStyle(color: Colors.white70)),
-        SizedBox(height: 22),
-        Text(tasks.isEmpty ? 'هنوز وظیفه‌ای ثبت نشده است' : 'وظایف انجام‌شده: $completed از ${tasks.length}', style: TextStyle(color: Colors.white)),
-        SizedBox(height: 10),
-        ClipRRect(borderRadius: BorderRadius.circular(10), child: LinearProgressIndicator(
-          minHeight: 8, value: tasks.isEmpty ? 0 : completed / tasks.length, backgroundColor: Colors.white54, color: Colors.white)),
-      ]),
+    ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A9B6B), Color(0xFF126448), Color(0xFF0B3D30)],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.42), width: 1.2),
+          boxShadow: [
+            BoxShadow(color: accent.withValues(alpha: 0.24), blurRadius: 28, offset: const Offset(0, 14)),
+            BoxShadow(color: Colors.white.withValues(alpha: 0.18), blurRadius: 1, offset: const Offset(0, 1)),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: -58,
+              left: -28,
+              child: IgnorePointer(
+                child: Container(
+                  width: 190,
+                  height: 190,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [Colors.white.withValues(alpha: 0.30), Colors.white.withValues(alpha: 0)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -74,
+              right: -36,
+              child: IgnorePointer(
+                child: Container(
+                  width: 210,
+                  height: 210,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [const Color(0xFF72E8BB).withValues(alpha: 0.24), Colors.transparent],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text('هر روز، یک قدم به هدفت نزدیک‌تر',
+                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+                      ),
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.32)),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 12, offset: const Offset(0, 5))],
+                        ),
+                        child: Icon(Icons.auto_awesome_rounded, color: Colors.white.withValues(alpha: 0.95)),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.82))),
+                  SizedBox(height: 22),
+                  Text(tasks.isEmpty ? 'هنوز وظیفه‌ای ثبت نشده است' : 'وظایف انجام‌شده: $completed از ${tasks.length}',
+                    style: TextStyle(color: Colors.white)),
+                  SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
+                      duration: const Duration(milliseconds: 850),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, progress, _) => LinearProgressIndicator(
+                        minHeight: 8,
+                        value: progress,
+                        backgroundColor: Colors.white.withValues(alpha: 0.24),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
     SizedBox(height: 24),
     Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
@@ -640,44 +728,62 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     else ...tasks.where((e) => !e.done).take(3).map(taskTile),
   ]);
 
-  Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) => ClipRRect(
-    borderRadius: BorderRadius.circular(22),
-    child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-      child: Material(
-        color: Theme.of(context).cardColor.withValues(alpha: 0.96),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: accent.withValues(alpha: 0.20))),
-        child: InkWell(
-          onTap: action,
-          borderRadius: BorderRadius.circular(22),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: Theme.of(context).brightness == Brightness.dark
-                      ? [const Color(0xFF214B39), const Color(0xFF173529)]
-                      : [const Color(0xFFDDF5E9), const Color(0xFFC6EBDD)],
+  Widget quickAction(IconData icon, String title, String subtitle, VoidCallback action, Color tint) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(23),
+        boxShadow: [
+          BoxShadow(color: accent.withValues(alpha: isDark ? 0.10 : 0.09), blurRadius: 20, offset: const Offset(0, 9)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(23),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Material(
+            color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.64 : 0.70),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(23),
+              side: BorderSide(color: Colors.white.withValues(alpha: isDark ? 0.15 : 0.82), width: 1.1),
+            ),
+            child: InkWell(
+              onTap: action,
+              borderRadius: BorderRadius.circular(23),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    width: 46, height: 46,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [const Color(0xFF285744), const Color(0xFF142F25)]
+                            : [const Color(0xFFE8FFF4), const Color(0xFFBCEBD6)],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.70), width: 1),
+                      boxShadow: [
+                        BoxShadow(color: accent.withValues(alpha: 0.22), blurRadius: 15, offset: const Offset(0, 6)),
+                        BoxShadow(color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.75), blurRadius: 1, offset: const Offset(0, 1)),
+                      ],
+                    ),
+                    child: Icon(icon, color: isDark ? const Color(0xFF9BF2CC) : const Color(0xFF087B55)),
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: accent.withValues(alpha: 0.28)),
-                  boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 5))],
-                ),
-                child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF73E8B8) : const Color(0xFF087B55)),
+                  SizedBox(height: 14),
+                  Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
+                  SizedBox(height: 4),
+                  Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
+                ]),
               ),
-              SizedBox(height: 14),
-              Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w800)),
-              SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-            ]),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget planner() {
     final daySessions = studySessions.where((session) => session.weekday == selectedStudyDay).toList()
@@ -760,14 +866,25 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         .where((session) => session.completed)
         .fold<int>(0, (sum, session) => sum + session.durationMinutes);
     final completion = plannedMinutes == 0 ? 0.0 : completedMinutes / plannedMinutes;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: Theme.of(context).brightness == Brightness.dark
+                  ? [const Color(0xFF294238).withValues(alpha: 0.70), const Color(0xFF14251E).withValues(alpha: 0.82)]
+                  : [Colors.white.withValues(alpha: 0.82), const Color(0xFFE9F5EE).withValues(alpha: 0.72)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.76), width: 1.1),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 18, offset: const Offset(0, 8))],
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Icon(Icons.insights_rounded, color: accent),
           SizedBox(width: 8),
@@ -795,7 +912,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               : '${studySessions.where((session) => session.completed).length} از ${studySessions.length} جلسه تکمیل شده است.',
           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
-      ]),
+          ]),
+        ),
+      ),
     );
   }
 
