@@ -138,7 +138,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Timer? _examTimer;
   int _remainingExamSeconds = 0;
-  int _selectedDurationMinutes = 30;
+  int _selectedDurationSeconds = 1800;
+  int examSection = 0;
+  bool isTakingExam = false;
+  int currentQuestionNumber = 1;
   bool _examTimerRunning = false;
   bool _savingExamResult = false;
   String? _timerExamId;
