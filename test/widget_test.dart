@@ -23,6 +23,7 @@ void main() {
     await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('جلسه جدید'), 250, scrollable: find.byType(Scrollable).first);
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
 
@@ -37,6 +38,8 @@ void main() {
     await tester.enterText(fields.at(1), '3');
     await tester.enterText(fields.at(2), '1');
     await tester.enterText(fields.at(3), '30');
+    await tester.ensureVisible(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('ساخت پاسخ‌برگ و شروع آزمون'));
     await tester.pump();
 
