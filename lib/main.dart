@@ -218,7 +218,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     // Read each storage key independently: one damaged section must not hide
     // otherwise valid tasks, study sessions, exam sheets, or results.
-    final rawTasks = _readStoredList(prefs.getString('darsyar.tasks'));
+    final rawTasks = _readStoredList(_readStoredString(prefs, 'darsyar.tasks'));
     if (rawTasks != null) {
       for (final item in rawTasks) {
         try {
@@ -231,7 +231,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final rawSessions = _readStoredList(prefs.getString('darsyar.studySessions'));
+    final rawSessions = _readStoredList(_readStoredString(prefs, 'darsyar.studySessions'));
     if (rawSessions != null) {
       for (final item in rawSessions) {
         try {
@@ -244,7 +244,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final rawResults = _readStoredList(prefs.getString('darsyar.results'));
+    final rawResults = _readStoredList(_readStoredString(prefs, 'darsyar.results'));
     if (rawResults != null) {
       for (final item in rawResults) {
         try {
@@ -257,7 +257,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       }
     }
 
-    final storedExamsJson = prefs.getString('darsyar.exams');
+    final storedExamsJson = _readStoredString(prefs, 'darsyar.exams');
+    final hasStoredExamsKey = _hasStoredKey(prefs, 'darsyar.exams');
     final rawExams = _readStoredList(storedExamsJson);
     exams.clear();
     if (rawExams != null) {
@@ -270,21 +271,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           // Skip only the invalid exam sheet.
         }
       }
-    } else if (storedExamsJson == null) {
+    } else if (!hasStoredExamsKey) {
       // Migrate legacy single-sheet data only when the current-format key
       // does not exist. Corrupt current data must never resurrect stale
       // legacy answers over the user's newer exam state.
-      final legacyAnswers = _readIntMap(prefs.getString('darsyar.answers'));
-      final legacyKey = _readIntMap(prefs.getString('darsyar.answerKey'));
+      final legacyAnswers = _readIntMap(_readStoredString(prefs, 'darsyar.answers'));
+      final legacyKey = _readIntMap(_readStoredString(prefs, 'darsyar.answerKey'));
       final legacyMarked = <int>{};
-      final legacyMarkedRaw = prefs.getString('darsyar.marked');
+      final legacyMarkedRaw = _readStoredString(prefs, 'darsyar.marked');
       final decodedMarked = _readStoredList(legacyMarkedRaw);
       if (decodedMarked != null) {
         for (final item in decodedMarked) {
           if (item is num) legacyMarked.add(item.toInt());
         }
       }
-      final legacyCount = (prefs.getInt('darsyar.count') ?? 20).clamp(1, 200).toInt();
+      final legacyCount = (_readStoredInt(prefs, 'darsyar.count') ?? 20).clamp(1, 200).toInt();
       exams.add(ExamSheet(
         id: 'default',
         name: 'آزمون اول',
@@ -298,13 +299,39 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (exams.isEmpty) {
       exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
     }
-    activeExamId = prefs.getString('darsyar.activeExamId') ?? exams.first.id;
+    activeExamId = _readStoredString(prefs, 'darsyar.activeExamId') ?? exams.first.id;
     if (!exams.any((exam) => exam.id == activeExamId)) {
       activeExamId = exams.first.id;
     }
     if (mounted) {
       setState(() => loading = false);
       if (tab == 1) _revealSelectedDay();
+    }
+  }
+
+  String? _readStoredString(SharedPreferences prefs, String key) {
+    try {
+      final value = prefs.get(key);
+      return value is String ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  int? _readStoredInt(SharedPreferences prefs, String key) {
+    try {
+      final value = prefs.get(key);
+      return value is int ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _hasStoredKey(SharedPreferences prefs, String key) {
+    try {
+      return prefs.containsKey(key);
+    } catch (_) {
+      return false;
     }
   }
 
