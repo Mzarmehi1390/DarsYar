@@ -953,7 +953,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final base = tint ?? (isDark ? const Color(0xFF18372B) : const Color(0xFFF8FFFB));
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(_radius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
@@ -971,12 +971,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(_radius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
+              borderRadius: BorderRadius.circular(_radius),
               border: Border.all(
                 color: Colors.white.withValues(alpha: isDark ? 0.20 : 0.72),
                 width: 1,
@@ -2343,15 +2343,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
 
 class _LiquidGlassPanel extends StatelessWidget {
-  const _LiquidGlassPanel({
-    required this.child,
-    this.radius = 22,
-    this.padding = EdgeInsets.zero,
-  });
+  const _LiquidGlassPanel({required this.child});
 
   final Widget child;
-  final double radius;
-  final EdgeInsetsGeometry padding;
+  static const double _radius = 22;
+  static const EdgeInsetsGeometry _padding = EdgeInsets.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -2359,7 +2355,7 @@ class _LiquidGlassPanel extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(_radius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
@@ -2375,12 +2371,12 @@ class _LiquidGlassPanel extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
+        borderRadius: BorderRadius.circular(_radius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
+              borderRadius: BorderRadius.circular(_radius),
               border: Border.all(
                 color: colors.outlineVariant.withValues(alpha: isDark ? 0.42 : 0.58),
               ),
@@ -2394,7 +2390,7 @@ class _LiquidGlassPanel extends StatelessWidget {
                 ],
               ),
             ),
-            child: Padding(padding: padding, child: child),
+            child: Padding(padding: _padding, child: child),
           ),
         ),
       ),
