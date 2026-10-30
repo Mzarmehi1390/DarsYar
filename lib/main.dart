@@ -786,7 +786,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               minHeight: 7,
             ),
             SizedBox(height: 6),
-            Text('سؤال ' + q.toString() + ' از ' + exam.questionCount.toString()),
+            Text('سؤال $q از ${exam.questionCount}'),
           ]),
         ),
       ),
@@ -794,14 +794,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Card(child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(children: [
-            Text('سؤال ' + q.toString(), style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+            Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
             SizedBox(height: 16),
             for (var option = 0; option < 4; option++)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: SizedBox(width: double.infinity, child: FilledButton.tonal(
                   onPressed: () => _answerQuestion(option),
-                  child: Text('گزینه ' + (option + 1).toString() + (exam.answers[q] == option ? ' ✓' : '')),
+                  child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}'),
                 )),
               ),
             TextButton.icon(
@@ -1161,7 +1161,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final updatedKey = await showDialog<Map<int, int>>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: Text('کلید پاسخ: ' + result.examName),
+        title: Text('کلید پاسخ: ${result.examName}'),
         content: SizedBox(
           width: 440, height: 420,
           child: ListView.builder(
@@ -1171,7 +1171,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(children: [
-                  SizedBox(width: 62, child: Text('سؤال ' + q.toString())),
+                  SizedBox(width: 62, child: Text('سؤال $q'))
                   for (var option = 0; option < 4; option++)
                     Expanded(child: ChoiceChip(
                       label: Text((option + 1).toString()),
