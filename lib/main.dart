@@ -311,22 +311,30 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  Future<bool> save() {
-    final pending = _saveQueue.then((_) => _saveCurrentState());
+  static const _allStorageSections = <String>{
+    'tasks',
+    'exams',
+    'activeExam',
+    'results',
+    'studySessions',
+  };
+
+  Future<bool> save({Set<String> sections = _allStorageSections}) {
+    final requestedSections = Set<String>.unmodifiable(sections);
+    final pending = _saveQueue.then(
+      (_) => _saveCurrentState(requestedSections),
+    );
     _saveQueue = pending;
     return pending;
   }
 
-  Future<bool> _saveCurrentState() async {
+  Future<bool> _saveCurrentState(Set<String> sections) async {
+    if (sections.isEmpty) return true;
+    if (! _allStorageSections.containsAll(sections)) {
+      throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
+    }
     SharedPreferences? prefs;
     Map<String, String?>? previousValues;
-    const storageKeys = <String>[
-      'darsyar.tasks',
-      'darsyar.exams',
-      'darsyar.activeExamId',
-      'darsyar.results',
-      'darsyar.studySessions',
-    ];
 
     Future<void> rollbackStoredValues(
       SharedPreferences store,
@@ -346,20 +354,25 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
 
     try {
-      // Serialize everything before touching storage, so a bad model cannot
-      // leave only some sections updated.
+      // Encode only the sections changed by the caller. This keeps unrelated
+      // collections out of the write transaction and avoids needless JSON work.
       final values = <String, String>{
-        'darsyar.tasks': jsonEncode(tasks.map((e) => e.toJson()).toList()),
-        'darsyar.exams': jsonEncode(exams.map((exam) => exam.toJson()).toList()),
-        'darsyar.activeExamId': activeExamId,
-        'darsyar.results': jsonEncode(results.map((result) => result.toJson()).toList()),
-        'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
+        if (sections.contains('tasks'))
+          'darsyar.tasks': jsonEncode(tasks.map((e) => e.toJson()).toList()),
+        if (sections.contains('exams'))
+          'darsyar.exams': jsonEncode(exams.map((exam) => exam.toJson()).toList()),
+        if (sections.contains('activeExam'))
+          'darsyar.activeExamId': activeExamId,
+        if (sections.contains('results'))
+          'darsyar.results': jsonEncode(results.map((result) => result.toJson()).toList()),
+        if (sections.contains('studySessions'))
+          'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
       };
 
       final store = await SharedPreferences.getInstance();
       prefs = store;
       previousValues = {
-        for (final key in storageKeys) key: store.getString(key),
+        for (final key in values.keys) key: store.getString(key),
       };
 
       var writesSucceeded = true;
@@ -1188,7 +1201,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       studySessions.addAll(copies);
       selectedStudyDay = targetDay;
     });
-    await save();
+    await save(sections: {'studySessions'});
     if (!mounted) return;
     _revealSelectedDay();
     _showSnackBar(
@@ -1257,7 +1270,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final index = studySessions.indexWhere((item) => item.id == session.id);
         if (index < 0) return;
         setState(() => studySessions[index] = session.copyWith(completed: value ?? false));
-        await save();
+        await save(sections: {'studySessions'});
       }),
       Container(width: 4, height: 42, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(4))),
       SizedBox(width: 10),
@@ -1300,7 +1313,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         );
         if (confirmed != true || !mounted) return;
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
-        await save();
+        await save(sections: {'studySessions'});
       }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ]),
       ),
@@ -1331,7 +1344,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(children: [
-      Checkbox(value: task.done, activeColor: accent, onChanged: (value) async { setState(() => task.done = value ?? false); await save(); }),
+      Checkbox(value: task.done, activeColor: accent, onChanged: (value) async { setState(() => task.done = value ?? false); await save(sections: {'tasks'}); }),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
         SizedBox(height: 4), Text(task.subject, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1368,7 +1381,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         );
         if (confirmed != true || !mounted) return;
         setState(() => tasks.removeWhere((e) => e.id == task.id));
-        await save();
+        await save(sections: {'tasks'});
       },
         icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ]),
@@ -1502,14 +1515,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       activeExam.marked.remove(currentQuestionNumber);
       if (currentQuestionNumber < activeExam.questionCount) currentQuestionNumber++;
     });
-    await save();
+    await save(sections: {'exams'});
   }
 
   Future<void> _toggleQuestionMarked(int question) async {
     setState(() {
       if (!activeExam.marked.add(question)) activeExam.marked.remove(question);
     });
-    await save();
+    await save(sections: {'exams'});
   }
 
   void _beginExam(ExamSheet exam) {
@@ -1535,7 +1548,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       currentQuestionNumber = firstUnansweredQuestion;
     });
     if (!_examTimerRunning) _toggleExamTimer();
-    save();
+    save(sections: {'exams'});
   }
 
   Future<void> _finishExam({bool automatic = false}) async {
@@ -1600,7 +1613,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _savingExamResult = true;
       results.add(result);
     });
-    final saved = await save();
+    final saved = await save(sections: {'results'});
     if (!mounted) return;
     setState(() => _savingExamResult = false);
     if (saved) {
@@ -1839,7 +1852,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       activeExamId = exam.id;
       examSection = 1;
     });
-    save();
     _beginExam(exam);
   }
 
@@ -1983,7 +1995,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       activeExamId = exam.id;
       tab = 2;
     });
-    await save();
+    await save(sections: {'exams'});
   }
 
   Future<void> renameExam() async {
@@ -2002,7 +2014,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         }
       }
     });
-    await save();
+    await save(sections: {'exams', 'results'});
   }
 
   Future<void> deleteExam() async {
@@ -2038,12 +2050,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       results.removeWhere((result) => result.examId == deletedExam.id || (result.examId == null && result.examName == deletedExam.name));
       activeExamId = exams[(index - 1).clamp(0, exams.length - 1).toInt()].id;
     });
-    await save();
+    await save(sections: {'exams', 'results', 'activeExam'});
   }
 
   Future<void> resize(int value) async {
     setState(() { count = value; answers.removeWhere((key, _) => key > count); answerKey.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
-    await save();
+    await save(sections: {'exams'});
   }
 
   Future<void> editAnswer(int number) async {
@@ -2089,7 +2101,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         if (result.marked) { marked.add(number); } else { marked.remove(number); }
       }
     });
-    await save();
+    await save(sections: {'exams'});
   }
 
   Future<void> editAnswerKey() async {
@@ -2159,7 +2171,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ..addAll(result);
       _syncExamResults(activeExam);
     });
-    await save();
+    await save(sections: {'exams', 'results'});
   }
 
 
@@ -2476,7 +2488,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         }
       }
     });
-    await save();
+    await save(sections: {'studySessions'});
   }
 }
 
