@@ -91,6 +91,10 @@ class _DarsYarAppState extends State<DarsYarApp> {
       themeMode: mode,
       theme: ThemeData(
         useMaterial3: true,
+        splashFactory: NoSplash.splashFactory,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         colorScheme: lightScheme,
         scaffoldBackgroundColor: const Color(0xFFEAF2EE),
         appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, foregroundColor: ink),
@@ -100,7 +104,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
           indicatorColor: Colors.transparent,
         ),
         cardTheme: CardThemeData(
-          elevation: 1,
+          elevation: 0,
           color: const Color(0xF2FFFFFF),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
@@ -110,6 +114,10 @@ class _DarsYarAppState extends State<DarsYarApp> {
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
+        splashFactory: NoSplash.splashFactory,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent,
         colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF08130F),
@@ -453,26 +461,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   : AnimatedSwitcher(
                       duration: MediaQuery.of(context).disableAnimations
                           ? Duration.zero
-                          : const Duration(milliseconds: 190),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) {
-                        final curved = CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeOutCubic,
-                          reverseCurve: Curves.easeInCubic,
-                        );
-                        return FadeTransition(
-                          opacity: curved,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0, 0.012),
-                              end: Offset.zero,
-                            ).animate(curved),
-                            child: child,
-                          ),
-                        );
-                      },
+                          : const Duration(milliseconds: 140),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
                       child: KeyedSubtree(
                         key: ValueKey<int>(tab),
                         child: pages[tab],
@@ -625,16 +618,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         : const Duration(milliseconds: 170),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.10),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    ),
+                    transitionBuilder: (child, animation) =>
+                        FadeTransition(opacity: animation, child: child),
                     child: selected
                         ? Container(
                             key: ValueKey<String>('selected-$index'),

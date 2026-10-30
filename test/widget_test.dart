@@ -27,6 +27,20 @@ void main() {
     expect(find.text('جلسه جدید'), findsOneWidget);
   });
 
+  testWidgets('tap feedback is disabled and card elevation stays fixed', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    for (final theme in [app.theme, app.darkTheme!]) {
+      expect(theme.splashFactory, NoSplash.splashFactory);
+      expect(theme.splashColor, Colors.transparent);
+      expect(theme.highlightColor, Colors.transparent);
+      expect(theme.hoverColor, Colors.transparent);
+      expect(theme.cardTheme.elevation, 0);
+    }
+  });
+
   testWidgets('page and bottom navigation transitions stay lightweight', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
