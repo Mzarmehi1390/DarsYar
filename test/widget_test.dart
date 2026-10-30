@@ -113,7 +113,7 @@ void main() {
     await tester.tap(find.text('آزمون‌های من'));
     await tester.pumpAndSettle();
     expect(find.text('آزمون اول'), findsWidgets);
-    expect(find.text('پاسخ ثبت‌شده: 0 از 20 • کلید: 0 سؤال'), findsOneWidget);
+    expect(find.text('20 سؤال • 30:00 • 0 پاسخ'), findsOneWidget);
   });
 
   testWidgets('theme selection is saved and restored', (WidgetTester tester) async {
