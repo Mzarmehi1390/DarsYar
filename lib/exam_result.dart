@@ -103,9 +103,16 @@ class ExamResult {
     final rawName = json['examName'];
     final rawCompletedAt = json['completedAt'];
     final rawPercentage = json['percentage'];
+    final negativeMarking = json['negativeMarking'] == true;
     final parsedPercentage = rawPercentage is num
         ? rawPercentage.toDouble().clamp(0.0, 100.0).toDouble()
-        : (keyedQuestions == 0 ? null : correct * 100 / keyedQuestions);
+        : (keyedQuestions == 0
+            ? null
+            : ((correct - (negativeMarking ? wrong / 3 : 0)) *
+                    100 /
+                    keyedQuestions)
+                .clamp(0.0, 100.0)
+                .toDouble());
 
     return ExamResult(
       id: rawId is String && rawId.isNotEmpty ? rawId : 'legacy-result',
@@ -118,7 +125,7 @@ class ExamResult {
       unanswered: unanswered,
       keyedQuestions: keyedQuestions,
       percentage: parsedPercentage,
-      negativeMarking: json['negativeMarking'] == true,
+      negativeMarking: negativeMarking,
       answers: readAnswers('answers'),
       answerKey: readAnswers('answerKey'),
     );

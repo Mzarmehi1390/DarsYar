@@ -42,6 +42,36 @@ void main() {
       expect(result.questionCount, 0);
       expect(result.percentage, isNull);
     });
+    test('reconstructs a legacy percentage using negative marking', () {
+      final result = ExamResult.fromJson({
+        'id': 'legacy-negative',
+        'examName': 'آزمون قدیمی',
+        'completedAt': '2026-10-29T10:30:00.000Z',
+        'questionCount': 10,
+        'correct': 2,
+        'wrong': 3,
+        'unanswered': 5,
+        'keyedQuestions': 9,
+        'negativeMarking': true,
+      });
+
+      // 2 correct - (3 wrong / 3) = 1 net point out of 9 keyed questions.
+      expect(result.percentage, closeTo(100 / 9, 0.001));
+      expect(result.negativeMarking, isTrue);
+    });
+
+    test('reconstructs legacy scores without negative marking', () {
+      final result = ExamResult.fromJson({
+        'id': 'legacy-standard',
+        'questionCount': 10,
+        'correct': 2,
+        'wrong': 3,
+        'keyedQuestions': 9,
+      });
+
+      expect(result.percentage, closeTo(200 / 9, 0.001));
+    });
+
     test('sanitizes malformed scores and avoids fake current timestamps', () {
       final result = ExamResult.fromJson({
         'id': '',
