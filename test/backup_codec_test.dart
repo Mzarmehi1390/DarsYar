@@ -125,6 +125,26 @@ void main() {
     }
   });
 
+  test('rejects non-string optional subjects before model deserialization', () {
+    final invalidTaskSubject = validPayload()
+      ..['tasks'] = [
+        {'id': 'task-1', 'title': 'مرور', 'subject': 42}
+      ];
+    final invalidSessionSubject = validPayload()
+      ..['studySessions'] = [
+        {'id': 'session-1', 'title': 'مطالعه', 'subject': false}
+      ];
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(invalidTaskSubject)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(invalidSessionSubject)),
+      throwsFormatException,
+    );
+  });
+
   test('rejects duplicate task and study session IDs', () {
     final duplicateTasks = validPayload()
       ..['tasks'] = [
