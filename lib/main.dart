@@ -1749,7 +1749,9 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
 
   void _showValidationMessage(String message) {
     final now = DateTime.now();
-    if (_lastError == message && _lastErrorAt != null && now.difference(_lastErrorAt!) < const Duration(seconds: 2)) return;
+    if (_lastError == message && _lastErrorAt != null && now.difference(_lastErrorAt!) < const Duration(seconds: 2)) {
+      return;
+    }
     _lastError = message; _lastErrorAt = now;
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
