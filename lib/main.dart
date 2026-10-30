@@ -1247,6 +1247,34 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     _beginExam(exam);
   }
 
+  ExamResult _recalculateResult(ExamResult result, Map<int, int> key) {
+    final score = calculateAnswerScore(
+      answers: result.answers,
+      answerKey: key,
+      questionCount: result.questionCount,
+      negativeMarking: result.negativeMarking,
+    );
+    return result.copyWith(
+      correct: score.correct,
+      wrong: score.wrong,
+      unanswered: score.unanswered,
+      keyedQuestions: score.keyedQuestions,
+      percentage: score.percentage,
+      clearPercentage: score.percentage == null,
+      answerKey: Map<int, int>.from(key),
+    );
+  }
+
+  void _syncExamResults(ExamSheet exam) {
+    for (var i = 0; i < results.length; i++) {
+      final result = results[i];
+      if (result.examId == exam.id ||
+          (result.examId == null && result.examName == exam.name)) {
+        results[i] = _recalculateResult(result, exam.answerKey);
+      }
+    }
+  }
+
   Future<void> editResultAnswerKey(ExamResult result) async {
     final draft = Map<int, int>.from(result.answerKey);
     final updatedKey = await showDialog<Map<int, int>>(
@@ -1284,23 +1312,27 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       )),
     );
     if (updatedKey == null || !mounted) return;
-    final score = calculateAnswerScore(
-      answers: result.answers,
-      answerKey: updatedKey,
-      questionCount: result.questionCount,
-      negativeMarking: result.negativeMarking,
-    );
     final index = results.indexWhere((item) => item.id == result.id);
     if (index < 0) return;
+
+    ExamSheet? linkedExam;
+    for (final exam in exams) {
+      if (exam.id == result.examId ||
+          (result.examId == null && exam.name == result.examName)) {
+        linkedExam = exam;
+        break;
+      }
+    }
+
     setState(() {
-      results[index] = result.copyWith(
-        correct: score.correct,
-        wrong: score.wrong,
-        unanswered: score.unanswered,
-        keyedQuestions: score.keyedQuestions,
-        percentage: score.percentage,
-        answerKey: updatedKey,
-      );
+      if (linkedExam != null) {
+        linkedExam.answerKey
+          ..clear()
+          ..addAll(updatedKey);
+        _syncExamResults(linkedExam);
+      } else {
+        results[index] = _recalculateResult(result, updatedKey);
+      }
     });
     await save();
   }
@@ -1475,7 +1507,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ));
     });
     if (result == null) return;
-    setState(() { answerKey..clear()..addAll(result); });
+    setState(() {
+      answerKey
+        ..clear()
+        ..addAll(result);
+      _syncExamResults(activeExam);
+    });
     await save();
   }
 
