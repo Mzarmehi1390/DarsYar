@@ -66,14 +66,14 @@ class DarsYarBackupCodec {
       requiredStrings: const ['id', 'title'],
       uniqueId: true,
       optionalStrings: const ['subject'],
-      optionalNumbers: const ['weekday', 'startMinutes', 'durationMinutes'],
+      optionalIntegers: const ['weekday', 'startMinutes', 'durationMinutes'],
       optionalBooleans: const ['completed'],
     );
     _validateRecords(
       payload['exams'] as List,
       'exams',
       requiredStrings: const ['id', 'name'],
-      optionalNumbers: const ['questionCount'],
+      optionalIntegers: const ['questionCount'],
     );
     _validateRecords(
       payload['results'] as List,
@@ -122,6 +122,7 @@ class DarsYarBackupCodec {
     bool uniqueId = false,
     List<String> optionalStrings = const [],
     List<String> optionalNumbers = const [],
+    List<String> optionalIntegers = const [],
     List<String> optionalBooleans = const [],
   }) {
     final seenIds = <String>{};
@@ -150,6 +151,14 @@ class DarsYarBackupCodec {
       for (final field in optionalNumbers) {
         final value = item[field];
         if (item.containsKey(field) && value != null && value is! num) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalIntegers) {
+        final value = item[field];
+        if (item.containsKey(field) &&
+            value != null &&
+            (value is! num || value % 1 != 0)) {
           invalid(field);
         }
       }
