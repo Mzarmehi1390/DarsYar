@@ -2819,6 +2819,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    scrollable: true,
     backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
     surfaceTintColor: Colors.transparent,
     elevation: 18,
