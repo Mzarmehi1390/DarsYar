@@ -41,7 +41,7 @@ void main() {
       expect(score.wrong, 0);
       expect(score.unanswered, 1);
       expect(score.keyedQuestions, 0);
-      expect(score.percentage, 0);
+      expect(score.percentage, isNull);
     });
 
     test('ignores key entries outside the question range', () {
@@ -68,6 +68,18 @@ void main() {
       expect(score.keyedQuestions, 3);
       expect(score.unanswered, 2);
       expect(score.percentage, closeTo(100 / 3, 0.001));
+    });
+
+    test('applies one-third deduction for each wrong answer when negative marking is enabled', () {
+      final score = calculateAnswerScore(
+        answers: {1: 0, 2: 1, 3: 2, 4: 0},
+        answerKey: {1: 0, 2: 2, 3: 1, 4: 0},
+        questionCount: 4,
+        negativeMarking: true,
+      );
+      expect(score.correct, 2);
+      expect(score.wrong, 2);
+      expect(score.percentage, closeTo(41.6667, 0.001));
     });
 
     test('handles a negative question count safely', () {
