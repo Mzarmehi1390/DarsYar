@@ -1747,7 +1747,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
             ),
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: CupertinoTimerPicker(
-              mode: CupertinoTimerPickerMode.ms,
+              mode: CupertinoTimerPickerMode.hms,
               initialTimerDuration: _duration,
               minuteInterval: 1,
               secondInterval: 1,
