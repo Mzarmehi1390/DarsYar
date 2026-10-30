@@ -473,67 +473,93 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ),
         ],
       ),
-      // Floating translucent navigation surface with a subtle highlight.
+      // Edge-light floating glass dock: no opaque rectangular tray or bottom stroke.
       bottomNavigationBar: loading
           ? null
           : Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isDark
-                            ? [
-                                const Color(0xFF263B32).withValues(alpha: 0.82),
-                                const Color(0xFF101E18).withValues(alpha: 0.88),
-                              ]
-                            : [
-                                Colors.white.withValues(alpha: 0.78),
-                                const Color(0xFFE8F4EE).withValues(alpha: 0.70),
-                              ],
-                      ),
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.17)
-                            : Colors.white.withValues(alpha: 0.92),
-                        width: 1.2,
-                      ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.09),
-                          blurRadius: 28,
-                          offset: const Offset(0, 10),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.72),
-                          blurRadius: 1,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
+              padding: const EdgeInsets.fromLTRB(18, 2, 18, 9),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(38),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.12),
+                      blurRadius: 34,
+                      spreadRadius: -7,
+                      offset: const Offset(0, 14),
                     ),
-                    child: NavigationBar(
-                      height: 72,
-                      backgroundColor: Colors.transparent,
-                      indicatorColor: Colors.transparent,
-                      selectedIndex: tab,
-                      onDestinationSelected: (value) {
-                        if (value == 1) {
-                          _openPlanner();
-                        } else {
-                          setState(() => tab = value);
-                        }
-                      },
-                      destinations: [
-                        NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
-                        NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
-                        NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
-                        NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
+                    BoxShadow(
+                      color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
+                          .withValues(alpha: isDark ? 0.12 : 0.86),
+                      blurRadius: 20,
+                      spreadRadius: -9,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(38),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isDark
+                                    ? [
+                                        const Color(0xFF315B47).withValues(alpha: 0.54),
+                                        const Color(0xFF12251B).withValues(alpha: 0.46),
+                                        const Color(0xFF0C1712).withValues(alpha: 0.40),
+                                      ]
+                                    : [
+                                        Colors.white.withValues(alpha: 0.58),
+                                        const Color(0xFFE8F8EF).withValues(alpha: 0.38),
+                                        const Color(0xFFD9E9E1).withValues(alpha: 0.30),
+                                      ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 30,
+                          right: 30,
+                          child: Container(
+                            height: 1.3,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withValues(alpha: 0),
+                                  Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
+                                  Colors.white.withValues(alpha: 0),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        NavigationBar(
+                          height: 70,
+                          backgroundColor: Colors.transparent,
+                          indicatorColor: Colors.transparent,
+                          selectedIndex: tab,
+                          onDestinationSelected: (value) {
+                            if (value == 1) {
+                              _openPlanner();
+                            } else {
+                              setState(() => tab = value);
+                            }
+                          },
+                          destinations: [
+                            NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
+                            NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
+                            NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
+                            NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -924,36 +950,83 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Color? tint,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                (tint ?? (isDark ? const Color(0xFF294238) : Colors.white))
-                    .withValues(alpha: isDark ? 0.62 : 0.76),
-                (tint ?? (isDark ? const Color(0xFF14251E) : const Color(0xFFE9F5EE)))
-                    .withValues(alpha: isDark ? 0.78 : 0.68),
+    final base = tint ?? (isDark ? const Color(0xFF18372B) : const Color(0xFFF8FFFB));
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
+            blurRadius: 30,
+            spreadRadius: -5,
+            offset: const Offset(0, 13),
+          ),
+          BoxShadow(
+            color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
+                .withValues(alpha: isDark ? 0.09 : 0.78),
+            blurRadius: 18,
+            spreadRadius: -8,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(radius),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: isDark ? 0.20 : 0.72),
+                width: 1,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            base.withValues(alpha: isDark ? 0.48 : 0.42),
+                            (isDark ? const Color(0xFF0B1B14) : const Color(0xFFE5F4EC))
+                                .withValues(alpha: isDark ? 0.62 : 0.34),
+                            (isDark ? const Color(0xFF6ABF91) : const Color(0xFFFFFFFF))
+                                .withValues(alpha: isDark ? 0.08 : 0.20),
+                          ],
+                          stops: const [0, 0.58, 1],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  left: radius * 0.8,
+                  right: radius * 0.8,
+                  child: IgnorePointer(
+                    child: Container(
+                      height: 1.2,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withValues(alpha: 0),
+                            Colors.white.withValues(alpha: isDark ? 0.62 : 0.96),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                child,
               ],
             ),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: isDark ? 0.16 : 0.78),
-              width: 1.05,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.14 : 0.055),
-                blurRadius: 17,
-                offset: const Offset(0, 7),
-              ),
-            ],
           ),
-          child: child,
         ),
       ),
     );
@@ -1055,11 +1128,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget studySessionTile(StudySession session) => Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
-    child: Row(children: [
+  Widget studySessionTile(StudySession session) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: _glassSurface(
+      radius: 19,
+      tint: session.completed ? accent.withValues(alpha: 0.07) : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(children: [
       Checkbox(value: session.completed, activeColor: accent, onChanged: (value) async {
         final index = studySessions.indexWhere((item) => item.id == session.id);
         if (index < 0) return;
@@ -1099,7 +1175,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
         await save();
       }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-    ]),
+        ]),
+      ),
+    ),
   );
 
   String _formatStudyTime(int minutes) =>
@@ -1118,9 +1196,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
   );
 
-  Widget taskTile(StudyTask task) => Container(margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(18)),
-    child: Row(children: [
+  Widget taskTile(StudyTask task) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: _glassSurface(
+      radius: 19,
+      tint: task.done ? accent.withValues(alpha: 0.07) : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(children: [
       Checkbox(value: task.done, activeColor: accent, onChanged: (value) async { setState(() => task.done = value ?? false); await save(); }),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
@@ -1151,7 +1234,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         await save();
       },
         icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-    ]));
+        ]),
+      ),
+    ),
+  );
 
   Widget answerSheet() {
     if (isTakingExam) return _takingExamView();
