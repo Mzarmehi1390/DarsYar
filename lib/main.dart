@@ -841,7 +841,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(23),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Material(
             color: Theme.of(context).cardColor.withValues(alpha: isDark ? 0.64 : 0.70),
             shape: RoundedRectangleBorder(
@@ -970,7 +970,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -1048,7 +1048,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(radius),
@@ -2463,7 +2463,7 @@ class _LiquidGlassPanel extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(_radius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_radius),
