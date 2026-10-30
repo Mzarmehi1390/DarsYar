@@ -38,6 +38,8 @@ void main() {
     await tester.tap(find.text('تغییر زمان'));
     await tester.pumpAndSettle();
     expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
+    expect(find.text('90 دقیقه'), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsWidgets);
 
     await tester.enterText(find.widgetWithText(TextField, 'دقیقه'), '45');
     await tester.tap(find.text('ذخیره زمان'));

@@ -89,16 +89,44 @@ class _DarsYarAppState extends State<DarsYarApp> {
       debugShowCheckedModeBanner: false,
       title: 'درس‌یار',
       themeMode: mode,
-      theme: ThemeData(useMaterial3: true, colorScheme: lightScheme, scaffoldBackgroundColor: canvas,
-        appBarTheme: const AppBarTheme(backgroundColor: canvas, foregroundColor: ink),
-        cardTheme: CardThemeData(elevation: 3, color: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: const BorderSide(color: Color(0xFFC8D9CE), width: 1.2)))),
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: lightScheme,
+        scaffoldBackgroundColor: const Color(0xFFEAF2EE),
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, foregroundColor: ink),
+        navigationBarTheme: const NavigationBarThemeData(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          indicatorColor: Colors.transparent,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 1,
+          color: const Color(0xF2FFFFFF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: const BorderSide(color: Color(0xBFFFFFFF), width: 1.1),
+          ),
+        ),
+      ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF090F0C),
-        appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF090F0C), foregroundColor: Colors.white),
-        cardTheme: CardThemeData(elevation: 3, color: const Color(0xFF17251D), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: const Color(0xFF4E735D).withValues(alpha: 0.58), width: 1.1))),
+        scaffoldBackgroundColor: const Color(0xFF08130F),
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, foregroundColor: Colors.white),
+        navigationBarTheme: const NavigationBarThemeData(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          indicatorColor: Colors.transparent,
+        ),
+        cardTheme: CardThemeData(
+          elevation: 1,
+          color: const Color(0xE61A2B23),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: const Color(0xFFB5F5D2).withValues(alpha: 0.16), width: 1.1),
+          ),
+        ),
       ),
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
@@ -361,27 +389,157 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   @override
   Widget build(BuildContext context) {
     final pages = [dashboard(), planner(), answerSheet(), settings()];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: SafeArea(child: loading ? Center(child: CircularProgressIndicator()) : pages[tab]),
-      // Keep navigation and creation actions unavailable until stored data
-      // has been restored, otherwise a fast tap can race the initial load.
-      bottomNavigationBar: loading ? null : NavigationBar(
-        indicatorColor: Colors.transparent,
-        selectedIndex: tab,
-        onDestinationSelected: (value) {
-          if (value == 1) {
-            _openPlanner();
-          } else {
-            setState(() => tab = value);
-          }
-        },
-        destinations: [
-          NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
-          NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
-          NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
-          NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: isDark
+                    ? const [Color(0xFF0B1D15), Color(0xFF07100D), Color(0xFF101A24)]
+                    : const [Color(0xFFF4FAF7), Color(0xFFE8F1EC), Color(0xFFE8EDF5)],
+              ),
+            ),
+          ),
+          Positioned(
+            top: -150,
+            right: -125,
+            child: IgnorePointer(
+              child: Container(
+                width: 330,
+                height: 330,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      accent.withValues(alpha: isDark ? 0.22 : 0.16),
+                      accent.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -175,
+            left: -135,
+            child: IgnorePointer(
+              child: Container(
+                width: 370,
+                height: 370,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      (isDark ? const Color(0xFF4B83A5) : const Color(0xFF8BB9D5))
+                          .withValues(alpha: isDark ? 0.16 : 0.20),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: loading
+                ? const Center(child: CircularProgressIndicator())
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 320),
+                    reverseDuration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final slide = Tween<Offset>(
+                        begin: const Offset(0, 0.018),
+                        end: Offset.zero,
+                      ).animate(CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      ));
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(position: slide, child: child),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey(tab),
+                      child: pages[tab],
+                    ),
+                  ),
+          ),
         ],
       ),
+      // Floating translucent navigation surface with a subtle highlight.
+      bottomNavigationBar: loading
+          ? null
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                const Color(0xFF263B32).withValues(alpha: 0.82),
+                                const Color(0xFF101E18).withValues(alpha: 0.88),
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.78),
+                                const Color(0xFFE8F4EE).withValues(alpha: 0.70),
+                              ],
+                      ),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.17)
+                            : Colors.white.withValues(alpha: 0.92),
+                        width: 1.2,
+                      ),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.09),
+                          blurRadius: 28,
+                          offset: const Offset(0, 10),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: isDark ? 0.05 : 0.72),
+                          blurRadius: 1,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: NavigationBar(
+                      height: 72,
+                      backgroundColor: Colors.transparent,
+                      indicatorColor: Colors.transparent,
+                      selectedIndex: tab,
+                      onDestinationSelected: (value) {
+                        if (value == 1) {
+                          _openPlanner();
+                        } else {
+                          setState(() => tab = value);
+                        }
+                      },
+                      destinations: [
+                        NavigationDestination(icon: Icon(Icons.grid_view_rounded), selectedIcon: _selectedNavIcon(Icons.grid_view_rounded), label: 'خانه'),
+                        NavigationDestination(key: ValueKey('nav-planner'), icon: Icon(Icons.calendar_month_rounded), selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded), label: 'برنامه‌ریزی'),
+                        NavigationDestination(icon: Icon(Icons.fact_check_outlined), selectedIcon: _selectedNavIcon(Icons.fact_check_rounded), label: 'پاسخ‌برگ'),
+                        NavigationDestination(icon: Icon(Icons.tune_rounded), selectedIcon: _selectedNavIcon(Icons.tune_rounded), label: 'تنظیمات'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
       floatingActionButton: null,
     );
   }
@@ -2096,7 +2254,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         Wrap(spacing: 7, runSpacing: 7, children: [
           for (final preset in [15, 30, 45, 60, 90, 120])
             ActionChip(
-              label: Text(preset < 60 ? '$preset دقیقه' : '${preset ~/ 60} ساعت'),
+              label: Text('$preset دقیقه'),
               onPressed: () => _setPreset(preset),
             ),
         ]),
