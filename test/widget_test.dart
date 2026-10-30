@@ -119,6 +119,7 @@ void main() {
   });
 
   testWidgets('study tasks can be created and edited', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({'darsyar.tasks': 42});
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
@@ -147,6 +148,10 @@ void main() {
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
+    final prefsAfterCreate = await SharedPreferences.getInstance();
+    final savedTasksAfterCreate = jsonDecode(prefsAfterCreate.getString('darsyar.tasks')!) as List;
+    expect(savedTasksAfterCreate.single['title'], 'مرور ریاضی');
+
     final createdTask = find.text('مرور ریاضی');
     await revealByScrolling(createdTask);
     expect(createdTask, findsOneWidget);
@@ -159,6 +164,9 @@ void main() {
 
     expect(find.text('تمرین ریاضی'), findsOneWidget);
     expect(find.text('مرور ریاضی'), findsNothing);
+    final prefsAfterEdit = await SharedPreferences.getInstance();
+    final savedTasksAfterEdit = jsonDecode(prefsAfterEdit.getString('darsyar.tasks')!) as List;
+    expect(savedTasksAfterEdit.single['title'], 'تمرین ریاضی');
   });
   testWidgets('saving a task leaves unrelated exam storage untouched', (WidgetTester tester) async {
     final storedExam = jsonEncode([
@@ -508,7 +516,7 @@ void main() {
           'marked': <int>[],
         },
       ]),
-      'darsyar.activeExamId': 'default',
+      'darsyar.activeExamId': 7,
     });
 
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
