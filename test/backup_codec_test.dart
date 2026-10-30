@@ -125,6 +125,32 @@ void main() {
     }
   });
 
+  test('rejects fractional values for integer backup fields', () {
+    final fractionalSessionTime = validPayload()
+      ..['studySessions'] = [
+        {
+          'id': 'session-1',
+          'title': 'مطالعه',
+          'weekday': 2.5,
+          'startMinutes': 600,
+          'durationMinutes': 45,
+        }
+      ];
+    final fractionalExamCount = validPayload()
+      ..['exams'] = [
+        {'id': 'exam-1', 'name': 'آزمون', 'questionCount': 20.5}
+      ];
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(fractionalSessionTime)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(fractionalExamCount)),
+      throwsFormatException,
+    );
+  });
+
   test('rejects non-string optional subjects before model deserialization', () {
     final invalidTaskSubject = validPayload()
       ..['tasks'] = [
