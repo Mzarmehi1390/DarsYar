@@ -2647,34 +2647,56 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.35)),
             ),
-            child: Row(children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.timer_outlined, color: accent),
-              ),
-              SizedBox(width: 12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('مدت آزمون', style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  )),
-                  SizedBox(height: 3),
-                  Text(_formatExamDuration(_duration),
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
-                ],
-              )),
-              OutlinedButton(
-                onPressed: _editDuration,
-                child: Text('تغییر زمان'),
-              ),
-            ]),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 300;
+                final timerIcon = Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.timer_outlined, color: accent),
+                );
+                final durationLabel = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('مدت آزمون', style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    )),
+                    SizedBox(height: 3),
+                    Text(_formatExamDuration(_duration),
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  ],
+                );
+                final editButton = OutlinedButton(
+                  onPressed: _editDuration,
+                  child: Text('تغییر زمان'),
+                );
+                if (compact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(children: [
+                        timerIcon,
+                        SizedBox(width: 12),
+                        Expanded(child: durationLabel),
+                      ]),
+                      SizedBox(height: 8),
+                      Align(alignment: Alignment.centerLeft, child: editButton),
+                    ],
+                  );
+                }
+                return Row(children: [
+                  timerIcon,
+                  SizedBox(width: 12),
+                  Expanded(child: durationLabel),
+                  editButton,
+                ]);
+              },
+            ),
           ),
           SizedBox(height: 12),
           Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
