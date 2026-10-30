@@ -565,7 +565,10 @@ void main() {
 
     await tester.tap(find.text('گزینه 1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'پایان آزمون'));
+    final finishButton = find.widgetWithText(FilledButton, 'پایان آزمون');
+    await tester.ensureVisible(finishButton);
+    await tester.pumpAndSettle();
+    await tester.tap(finishButton);
     await tester.pumpAndSettle();
     await tester.tap(find.text('پایان').last);
     await tester.pumpAndSettle();
