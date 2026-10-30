@@ -494,88 +494,123 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         borderRadius: BorderRadius.circular(38),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [
-                              const Color(0xFF315B47).withValues(alpha: 0.54),
-                              const Color(0xFF12251B).withValues(alpha: 0.46),
-                              const Color(0xFF0C1712).withValues(alpha: 0.40),
-                            ]
-                          : [
-                              Colors.white.withValues(alpha: 0.58),
-                              const Color(0xFFE8F8EF).withValues(alpha: 0.38),
-                              const Color(0xFFD9E9E1).withValues(alpha: 0.30),
-                            ],
+          child: SizedBox(
+            height: 70,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isDark
+                            ? [
+                                const Color(0xFF315B47).withValues(alpha: 0.54),
+                                const Color(0xFF12251B).withValues(alpha: 0.46),
+                                const Color(0xFF0C1712).withValues(alpha: 0.40),
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.58),
+                                const Color(0xFFE8F8EF).withValues(alpha: 0.38),
+                                const Color(0xFFD9E9E1).withValues(alpha: 0.30),
+                              ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Positioned(
-                top: 0,
-                left: 30,
-                right: 30,
-                child: Container(
-                  height: 1.3,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withValues(alpha: 0),
-                        Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
-                        Colors.white.withValues(alpha: 0),
-                      ],
+                Positioned(
+                  top: 0,
+                  left: 30,
+                  right: 30,
+                  child: Container(
+                    height: 1.3,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white.withValues(alpha: isDark ? 0.58 : 0.96),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              NavigationBar(
-                height: 70,
-                backgroundColor: Colors.transparent,
-                indicatorColor: Colors.transparent,
-                selectedIndex: tab,
-                onDestinationSelected: (value) {
-                  if (value == 1) {
-                    _openPlanner();
-                  } else {
-                    setState(() => tab = value);
-                  }
-                },
-                destinations: [
-                  NavigationDestination(
-                    icon: Icon(Icons.grid_view_rounded),
-                    selectedIcon: _selectedNavIcon(Icons.grid_view_rounded),
-                    label: 'خانه',
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _bottomNavItem(index: 0, icon: Icons.grid_view_rounded, label: 'خانه', isDark: isDark),
+                      _bottomNavItem(index: 1, icon: Icons.calendar_month_rounded, label: 'برنامه‌ریزی', isDark: isDark),
+                      _bottomNavItem(index: 2, icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check_rounded, label: 'پاسخ‌برگ', isDark: isDark),
+                      _bottomNavItem(index: 3, icon: Icons.tune_rounded, label: 'تنظیمات', isDark: isDark),
+                    ],
                   ),
-                  NavigationDestination(
-                    key: ValueKey('nav-planner'),
-                    icon: Icon(Icons.calendar_month_rounded),
-                    selectedIcon: _selectedNavIcon(Icons.calendar_month_rounded),
-                    label: 'برنامه‌ریزی',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.fact_check_outlined),
-                    selectedIcon: _selectedNavIcon(Icons.fact_check_rounded),
-                    label: 'پاسخ‌برگ',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.tune_rounded),
-                    selectedIcon: _selectedNavIcon(Icons.tune_rounded),
-                    label: 'تنظیمات',
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     ),
   );
+
+  Widget _bottomNavItem({
+    required int index,
+    required IconData icon,
+    IconData? selectedIcon,
+    required String label,
+    required bool isDark,
+  }) {
+    final selected = tab == index;
+    final foreground = isDark ? Colors.white70 : const Color(0xFF52645A);
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () {
+            if (index == 1) {
+              _openPlanner();
+            } else {
+              setState(() => tab = index);
+            }
+          },
+          child: SizedBox(
+            height: 70,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Center(
+                    child: selected
+                        ? _selectedNavIcon(selectedIcon ?? icon)
+                        : Icon(icon, color: foreground, size: 23),
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    height: 1.1,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? accent : foreground,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _selectedNavIcon(IconData icon) => Container(
       width: 38, height: 38,
