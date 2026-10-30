@@ -613,7 +613,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               clipBehavior: Clip.none,
               alignment: Alignment.topCenter,
               children: [
-                Positioned(
+                AnimatedPositioned(
+                  duration: MediaQuery.of(context).disableAnimations
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
+                  curve: Curves.easeInOutCubic,
                   top: selected ? -34 : 9,
                   child: AnimatedSwitcher(
                     duration: MediaQuery.of(context).disableAnimations
