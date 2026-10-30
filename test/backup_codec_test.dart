@@ -62,6 +62,32 @@ void main() {
         throwsFormatException);
   });
 
+  test('rejects records with missing or blank required fields', () {
+    final missingTaskTitle = validPayload()
+      ..['tasks'] = [{'id': 'task-1'}];
+    final blankSessionId = validPayload()
+      ..['studySessions'] = [
+        {'id': ' ', 'title': 'جلسه مطالعه'}
+      ];
+    final missingExamName = validPayload()
+      ..['exams'] = [
+        {'id': 'exam-1'}
+      ];
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(missingTaskTitle)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(blankSessionId)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(missingExamName)),
+      throwsFormatException,
+    );
+  });
+
   test('rejects empty and duplicate exam IDs', () {
     final duplicateIds = validPayload(exams: [
       {'id': 'same-id', 'name': 'آزمون اول'},
