@@ -125,6 +125,28 @@ void main() {
     }
   });
 
+  test('rejects duplicate task and study session IDs', () {
+    final duplicateTasks = validPayload()
+      ..['tasks'] = [
+        {'id': 'same', 'title': 'اول'},
+        {'id': 'same', 'title': 'دوم'},
+      ];
+    final duplicateSessions = validPayload()
+      ..['studySessions'] = [
+        {'id': 'same', 'title': 'اول'},
+        {'id': 'same', 'title': 'دوم'},
+      ];
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(duplicateTasks)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(duplicateSessions)),
+      throwsFormatException,
+    );
+  });
+
   test('rejects empty and duplicate exam IDs', () {
     final duplicateIds = validPayload(exams: [
       {'id': 'same-id', 'name': 'آزمون اول'},
