@@ -278,6 +278,96 @@ void main() {
     }
   });
 
+  test('rejects study sessions whose times would be silently clamped', () {
+    final invalidWeekday = validPayload()
+      ..['studySessions'] = [
+        {
+          'id': 'session-1',
+          'title': 'مطالعه',
+          'weekday': 7,
+          'startMinutes': 600,
+          'durationMinutes': 45,
+        }
+      ];
+    final invalidStart = validPayload()
+      ..['studySessions'] = [
+        {
+          'id': 'session-1',
+          'title': 'مطالعه',
+          'weekday': 2,
+          'startMinutes': 1440,
+          'durationMinutes': 45,
+        }
+      ];
+    final durationPastMidnight = validPayload()
+      ..['studySessions'] = [
+        {
+          'id': 'session-1',
+          'title': 'مطالعه',
+          'weekday': 2,
+          'startMinutes': 1400,
+          'durationMinutes': 60,
+        }
+      ];
+
+    for (final payload in [
+      invalidWeekday,
+      invalidStart,
+      durationPastMidnight,
+    ]) {
+      expect(
+        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
+        throwsFormatException,
+      );
+    }
+  });
+
+  test('rejects exam durations outside the supported one-day limit', () {
+    final zeroDuration = validPayload()
+      ..['exams'] = [
+        {'id': 'exam-1', 'name': 'آزمون', 'durationSeconds': 0}
+      ];
+    final excessiveDuration = validPayload()
+      ..['exams'] = [
+        {'id': 'exam-1', 'name': 'آزمون', 'durationSeconds': 86401}
+      ];
+
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(zeroDuration)),
+      throwsFormatException,
+    );
+    expect(
+      () => DarsYarBackupCodec.decode(jsonEncode(excessiveDuration)),
+      throwsFormatException,
+    );
+  });
+
+  test('rejects malformed result links and non-finite percentages', () {
+    final invalidExamLink = validPayload()
+      ..['results'] = [
+        {'examId': 42}
+      ];
+    final excessivePercentage = validPayload()
+      ..['results'] = [
+        {'percentage': 101}
+      ];
+    final infinitePercentage = validPayload()
+      ..['results'] = [
+        {'percentage': double.infinity}
+      ];
+
+    for (final payload in [
+      invalidExamLink,
+      excessivePercentage,
+      infinitePercentage,
+    ]) {
+      expect(
+        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
+        throwsFormatException,
+      );
+    }
+  });
+
   test('falls back to first exam if active exam ID is missing or stale', () {
     final stale = DarsYarBackupCodec.decode(
       jsonEncode(validPayload(activeExamId: 'deleted-exam')),
