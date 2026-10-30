@@ -161,5 +161,76 @@ void main() {
   });
 
 
+  testWidgets('deleting an exam also removes its linked results', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'default',
+          'name': 'آزمون باقی‌مانده',
+          'questionCount': 20,
+          'durationSeconds': 1800,
+          'answers': {},
+          'answerKey': {},
+          'marked': [],
+        },
+        {
+          'id': 'exam-to-delete',
+          'name': 'آزمون حذف‌شدنی',
+          'questionCount': 3,
+          'durationSeconds': 1800,
+          'isCompleted': true,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+          'marked': [],
+        },
+      ]),
+      'darsyar.activeExamId': 'default',
+      'darsyar.results': jsonEncode([
+        {
+          'id': 'result-to-delete',
+          'examId': 'exam-to-delete',
+          'examName': 'آزمون حذف‌شدنی',
+          'completedAt': '2026-10-30T10:00:00.000Z',
+          'questionCount': 3,
+          'correct': 1,
+          'wrong': 0,
+          'unanswered': 2,
+          'keyedQuestions': 1,
+          'percentage': 100.0,
+          'negativeMarking': false,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final examCard = find.ancestor(
+      of: find.text('آزمون حذف‌شدنی').first,
+      matching: find.byType(Card),
+    ).first;
+    await tester.tap(find.descendant(
+      of: examCard,
+      matching: find.byType(PopupMenuButton<String>),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف آزمون'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('حذف').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    final savedResults = jsonDecode(prefs.getString('darsyar.results')!) as List;
+    expect(savedExams.map((item) => item['id']), ['default']);
+    expect(savedResults, isEmpty);
+    expect(find.text('آزمون حذف‌شدنی'), findsNothing);
+  });
+
+
 
 }
