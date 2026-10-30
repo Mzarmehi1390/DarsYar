@@ -467,7 +467,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget _bottomNavigationDock(bool isDark) {
-    const navHeight = 94.0;
+    // Lift the dock while keeping it attached to the bottom edge.
+    const navHeight = 102.0;
+    const topInset = 27.0;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Container(
@@ -481,108 +483,56 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(30),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: SizedBox(
-            height: navHeight + bottomInset,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 27,
-                  bottom: 0,
+      child: SizedBox(
+        height: navHeight + bottomInset,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: ClipPath(
+                clipper: _NotchedNavBarClipper(selectedIndex: tab, topInset: topInset),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: isDark
-                            ? [
-                                const Color(0xE62A4437),
-                                const Color(0xF20D1B14),
-                              ]
-                            : [
-                                Colors.white.withValues(alpha: 0.86),
-                                const Color(0xF2F4FAF6),
-                              ],
-                      ),
-                      border: Border(
-                        top: BorderSide(
-                          color: (isDark ? Colors.white : Colors.white)
-                              .withValues(alpha: isDark ? 0.20 : 0.78),
-                          width: 1,
-                        ),
+                            ? [const Color(0xE62A4437), const Color(0xF20D1B14)]
+                            : [Colors.white.withValues(alpha: 0.86), const Color(0xF2F4FAF6)],
                       ),
                     ),
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 27,
-                  bottom: 0,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _bottomNavItem(
-                        index: 0,
-                        icon: Icons.grid_view_rounded,
-                        label: 'خانه',
-                        isDark: isDark,
-                      ),
-                      _bottomNavItem(
-                        index: 1,
-                        icon: Icons.calendar_month_rounded,
-                        label: 'برنامه‌ریزی',
-                        isDark: isDark,
-                      ),
-                      _bottomNavItem(
-                        index: 2,
-                        icon: Icons.fact_check_outlined,
-                        selectedIcon: Icons.fact_check_rounded,
-                        label: 'پاسخ‌برگ',
-                        isDark: isDark,
-                      ),
-                      _bottomNavItem(
-                        index: 3,
-                        icon: Icons.tune_rounded,
-                        label: 'تنظیمات',
-                        isDark: isDark,
-                      ),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: IgnorePointer(
-                    child: Center(
-                      child: Container(
-                        width: 1,
-                        height: 1,
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: accent.withValues(alpha: 0.12),
-                              blurRadius: 22,
-                              spreadRadius: 8,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              left: 0, right: 0, top: topInset, bottom: 0,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _bottomNavItem(index: 0, icon: Icons.grid_view_rounded, label: 'خانه', isDark: isDark),
+                  _bottomNavItem(index: 1, icon: Icons.calendar_month_rounded, label: 'برنامه‌ریزی', isDark: isDark),
+                  _bottomNavItem(index: 2, icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check_rounded, label: 'پاسخ‌برگ', isDark: isDark),
+                  _bottomNavItem(index: 3, icon: Icons.tune_rounded, label: 'تنظیمات', isDark: isDark),
+                ],
+              ),
+            ),
+            Positioned(
+              top: 0, left: 0, right: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: Container(
+                    width: 1, height: 1,
+                    decoration: BoxDecoration(
+                      boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.16), blurRadius: 24, spreadRadius: 9)],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -3126,4 +3076,34 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
+}
+
+class _NotchedNavBarClipper extends CustomClipper<Path> {
+  const _NotchedNavBarClipper({required this.selectedIndex, required this.topInset});
+
+  final int selectedIndex;
+  final double topInset;
+
+  @override
+  Path getClip(Size size) {
+    const notchRadius = 36.0;
+    const shoulderWidth = 15.0;
+    const notchDepth = 30.0;
+    final centerX = size.width * (selectedIndex + 0.5) / 4;
+    final leftNotch = centerX - notchRadius;
+    final rightNotch = centerX + notchRadius;
+    return Path()
+      ..moveTo(0, topInset)
+      ..lineTo(leftNotch - shoulderWidth, topInset)
+      ..cubicTo(leftNotch + 3, topInset, leftNotch + 2, topInset + notchDepth, centerX, topInset + notchDepth)
+      ..cubicTo(rightNotch - 2, topInset + notchDepth, rightNotch - 3, topInset, rightNotch + shoulderWidth, topInset)
+      ..lineTo(size.width, topInset)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant _NotchedNavBarClipper oldClipper) =>
+      oldClipper.selectedIndex != selectedIndex || oldClipper.topInset != topInset;
 }
