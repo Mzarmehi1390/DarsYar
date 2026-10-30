@@ -1908,6 +1908,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
   late int _weekday;
   late int _startMinutes;
   late int _durationMinutes;
+  late final TextEditingController _durationController;
 
   @override
   void initState() {
@@ -1917,12 +1918,14 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     _weekday = widget.existing?.weekday ?? widget.initialWeekday;
     _startMinutes = widget.existing?.startMinutes ?? 16 * 60;
     _durationMinutes = widget.existing?.durationMinutes ?? 55;
+    _durationController = TextEditingController(text: _durationMinutes.toString());
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _subjectController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 
@@ -1974,20 +1977,12 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
             }
           },
         ),
-        DropdownButtonFormField<int>(
-          initialValue: _durationMinutes,
-          decoration: InputDecoration(labelText: 'مدت جلسه'),
-          items: const [
-            DropdownMenuItem(value: 25, child: Text('۲۵ دقیقه')),
-            DropdownMenuItem(value: 45, child: Text('۴۵ دقیقه')),
-            DropdownMenuItem(value: 55, child: Text('۵۵ دقیقه')),
-            DropdownMenuItem(value: 60, child: Text('۶۰ دقیقه')),
-            DropdownMenuItem(value: 90, child: Text('۹۰ دقیقه')),
-            DropdownMenuItem(value: 120, child: Text('۱۲۰ دقیقه')),
-          ],
-          onChanged: (value) {
-            if (value != null) setState(() => _durationMinutes = value);
-          },
+        TextField(
+          controller: _durationController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+          decoration: InputDecoration(labelText: 'مدت جلسه (دقیقه)', helperText: 'مدت دلخواهت را از ۱ تا ۱۴۴۰ دقیقه وارد کن.'),
+          onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
         ),
       ]),
     ),
@@ -2008,6 +2003,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
 
   void _submit() {
     final title = _titleController.text.trim();
+    _durationMinutes = int.tryParse(_durationController.text) ?? 0;
+    if (_durationMinutes < 1 || _durationMinutes > 1440) { _showMessage('مدت جلسه باید بین ۱ تا ۱۴۴۰ دقیقه باشد.'); return; }
     if (title.isEmpty) {
       _showMessage('عنوان جلسه را وارد کن.');
       return;
@@ -2035,6 +2032,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
 }
