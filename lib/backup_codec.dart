@@ -91,6 +91,7 @@ class DarsYarBackupCodec {
       optionalBooleans: const ['negativeMarking'],
     );
     _validateResultAnswerData(payload['results'] as List);
+    _validateResultRanges(payload['results'] as List);
     _validateResultPercentages(payload['results'] as List);
 
     final exams = payload['exams'] as List;
@@ -153,6 +154,34 @@ class DarsYarBackupCodec {
           duration > 1440 - start) {
         throw FormatException(
           'Invalid studySessions record at index $index: durationMinutes',
+        );
+      }
+    }
+  }
+
+  static void _validateResultRanges(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      int readCount(String field) => (result[field] as num?)?.toInt() ?? 0;
+
+      final questionCount = readCount('questionCount');
+      final keyedQuestions = readCount('keyedQuestions');
+      final correct = readCount('correct');
+      final wrong = readCount('wrong');
+      final unanswered = readCount('unanswered');
+
+      if (questionCount < 0 ||
+          questionCount > 200 ||
+          keyedQuestions < 0 ||
+          keyedQuestions > questionCount ||
+          correct < 0 ||
+          correct > keyedQuestions ||
+          wrong < 0 ||
+          wrong > keyedQuestions - correct ||
+          unanswered < 0 ||
+          unanswered > questionCount) {
+        throw FormatException(
+          'Invalid results record at index $index: score ranges',
         );
       }
     }
