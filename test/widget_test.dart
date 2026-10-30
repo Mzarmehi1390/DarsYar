@@ -91,6 +91,25 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+
+  testWidgets('corrupt current exam storage does not restore stale legacy answers', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': '{broken json',
+      'darsyar.count': 3,
+      'darsyar.answers': jsonEncode({'1': 2}),
+      'darsyar.answerKey': jsonEncode({'1': 2}),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    // A malformed current-format key must fall back to a clean default sheet,
+    // not resurrect answers from the retired single-sheet storage keys.
+    expect(find.text('20'), findsOneWidget);
+    expect(find.text('کلید ثبت‌شده: 0 از 20 سؤال'), findsOneWidget);
+    expect(find.text('پاسخ‌ها: 0 از 20  •  علامت مرور: 0'), findsOneWidget);
+  });
+
   testWidgets('theme selection is saved and restored', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'darsyar.themeMode': 'dark',
