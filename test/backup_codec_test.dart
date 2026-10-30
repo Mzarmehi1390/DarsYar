@@ -212,6 +212,72 @@ void main() {
     );
   });
 
+  test('rejects malformed nested exam answers and review markers', () {
+    final invalidAnswers = validPayload(exams: [
+      {
+        'id': 'exam-1',
+        'name': 'آزمون',
+        'questionCount': 10,
+        'answers': {'1': 4},
+        'answerKey': <String, int>{},
+        'marked': <int>[],
+      },
+    ]);
+    final fractionalAnswer = validPayload(exams: [
+      {
+        'id': 'exam-1',
+        'name': 'آزمون',
+        'questionCount': 10,
+        'answers': {'1': 1.5},
+        'answerKey': <String, int>{},
+        'marked': <int>[],
+      },
+    ]);
+    final outOfRangeQuestion = validPayload(exams: [
+      {
+        'id': 'exam-1',
+        'name': 'آزمون',
+        'questionCount': 10,
+        'answers': {'11': 1},
+        'answerKey': <String, int>{},
+        'marked': <int>[],
+      },
+    ]);
+    final invalidMarked = validPayload(exams: [
+      {
+        'id': 'exam-1',
+        'name': 'آزمون',
+        'questionCount': 10,
+        'answers': <String, int>{},
+        'answerKey': <String, int>{},
+        'marked': [1, 2.5],
+      },
+    ]);
+    final malformedAnswerMap = validPayload(exams: [
+      {
+        'id': 'exam-1',
+        'name': 'آزمون',
+        'questionCount': 10,
+        'answers': [1, 2],
+        'answerKey': <String, int>{},
+        'marked': <int>[],
+      },
+    ]);
+
+    for (final payload in [
+      invalidAnswers,
+      fractionalAnswer,
+      outOfRangeQuestion,
+      invalidMarked,
+      malformedAnswerMap,
+    ]) {
+      expect(
+        () => DarsYarBackupCodec.decode(jsonEncode(payload)),
+        throwsFormatException,
+      );
+    }
+  });
+
   test('falls back to first exam if active exam ID is missing or stale', () {
     final stale = DarsYarBackupCodec.decode(
       jsonEncode(validPayload(activeExamId: 'deleted-exam')),
