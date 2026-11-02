@@ -694,6 +694,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ),
       ),
     );
+  }
+
   void _openPlanner() {
     setState(() => tab = 1);
     _revealSelectedDay();
