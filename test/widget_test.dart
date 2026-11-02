@@ -50,23 +50,34 @@ void main() {
     await tester.pumpAndSettle();
 
     final home = find.byKey(const ValueKey<String>('bottom-nav-item-0'));
-    final homeNode = tester.getSemantics(home);
-    expect(homeNode.label, 'خانه');
-    expect(homeNode.hasFlag(SemanticsFlag.isButton), isTrue);
-    expect(homeNode.hasFlag(SemanticsFlag.isSelected), isTrue);
-    expect(homeNode.hasAction(SemanticsAction.tap), isTrue);
+    expect(
+      tester.getSemantics(home),
+      isSemantics(
+        label: 'خانه',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
 
     await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
 
     expect(
-      tester.getSemantics(home).hasFlag(SemanticsFlag.isSelected),
-      isFalse,
+      tester.getSemantics(home),
+      isSemantics(hasSelectedState: true, isSelected: false),
     );
     final planner = find.byKey(const ValueKey<String>('bottom-nav-item-1'));
     expect(
-      tester.getSemantics(planner).hasFlag(SemanticsFlag.isSelected),
-      isTrue,
+      tester.getSemantics(planner),
+      isSemantics(
+        label: 'برنامه‌ریزی',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
     );
   });
 
