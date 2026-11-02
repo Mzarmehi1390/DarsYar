@@ -42,6 +42,34 @@ void main() {
     }
   });
 
+  testWidgets('bottom navigation exposes selected destination semantics', (WidgetTester tester) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    final home = find.byKey(const ValueKey<String>('bottom-nav-item-0'));
+    final homeNode = tester.getSemantics(home);
+    expect(homeNode.label, 'خانه');
+    expect(homeNode.hasFlag(SemanticsFlag.isButton), isTrue);
+    expect(homeNode.hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(homeNode.hasAction(SemanticsAction.tap), isTrue);
+
+    await tester.tap(find.text('برنامه‌ریزی').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSemantics(home).hasFlag(SemanticsFlag.isSelected),
+      isFalse,
+    );
+    final planner = find.byKey(const ValueKey<String>('bottom-nav-item-1'));
+    expect(
+      tester.getSemantics(planner).hasFlag(SemanticsFlag.isSelected),
+      isTrue,
+    );
+  });
+
   testWidgets('page and bottom navigation transitions stay lightweight', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
@@ -114,6 +142,14 @@ void main() {
 
     expect(find.text('آزمون آزمایشی'), findsOneWidget);
     expect(find.text('سؤال 1 از 3'), findsOneWidget);
+    expect(
+      tester.widget<IconButton>(find.byIcon(Icons.arrow_forward)).tooltip,
+      'بازگشت به پاسخ‌برگ',
+    );
+    expect(
+      tester.widget<IconButton>(find.byIcon(Icons.pause)).tooltip,
+      'توقف زمان‌سنج',
+    );
     await tester.tap(find.text('گزینه 2'));
     await tester.pump();
     expect(find.text('سؤال 2 از 3'), findsOneWidget);

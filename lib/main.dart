@@ -583,18 +583,27 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final inactiveColor =
         isDark ? Colors.white70 : const Color(0xFF87948D);
 
+    void selectTab() {
+      if (index == 1) {
+        _openPlanner();
+      } else {
+        setState(() => tab = index);
+      }
+    }
+
     return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            if (index == 1) {
-              _openPlanner();
-            } else {
-              setState(() => tab = index);
-            }
-          },
-          child: SizedBox(
+      child: Semantics(
+        key: ValueKey<String>('bottom-nav-item-$index'),
+        button: true,
+        selected: selected,
+        label: label,
+        onTap: selectTab,
+        excludeSemantics: true,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: selectTab,
+            child: SizedBox(
             height: 67,
             child: Stack(
               clipBehavior: Clip.none,
@@ -682,6 +691,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -1466,7 +1476,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final answered = exam.answers.length;
     return Column(children: [
       Material(color: Theme.of(context).colorScheme.surfaceContainerHigh, elevation: 3, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-        Row(children: [IconButton(onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), ValueListenableBuilder<int>(valueListenable: _timerDisplaySeconds, builder: (context, seconds, _) => Text(_formatDuration(_timerExamId == activeExamId ? seconds : remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent))), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
+        Row(children: [IconButton(tooltip: 'بازگشت به پاسخ‌برگ', onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), ValueListenableBuilder<int>(valueListenable: _timerDisplaySeconds, builder: (context, seconds, _) => Text(_formatDuration(_timerExamId == activeExamId ? seconds : remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent))), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(tooltip: _examTimerRunning ? 'توقف زمان‌سنج' : 'ادامه زمان‌سنج', onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
         LinearProgressIndicator(value: exam.questionCount == 0 ? 0 : answered / exam.questionCount, minHeight: 7),
         SizedBox(height: 6),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
