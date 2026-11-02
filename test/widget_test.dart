@@ -143,11 +143,11 @@ void main() {
     expect(find.text('آزمون آزمایشی'), findsOneWidget);
     expect(find.text('سؤال 1 از 3'), findsOneWidget);
     expect(
-      tester.widget<IconButton>(find.byIcon(Icons.arrow_forward)).tooltip,
+      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.arrow_forward)).tooltip,
       'بازگشت به پاسخ‌برگ',
     );
     expect(
-      tester.widget<IconButton>(find.byIcon(Icons.pause)).tooltip,
+      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.pause)).tooltip,
       'توقف زمان‌سنج',
     );
     await tester.tap(find.text('گزینه 2'));

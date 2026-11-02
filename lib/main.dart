@@ -604,98 +604,96 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: InkWell(
             onTap: selectTab,
             child: SizedBox(
-            height: 67,
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.topCenter,
-              children: [
-                AnimatedPositioned(
-                  duration: MediaQuery.of(context).disableAnimations
-                      ? Duration.zero
-                      : const Duration(milliseconds: 180),
-                  curve: Curves.easeInOutCubic,
-                  top: selected ? -34 : 9,
-                  child: AnimatedSwitcher(
+              height: 67,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  AnimatedPositioned(
                     duration: MediaQuery.of(context).disableAnimations
                         ? Duration.zero
-                        : const Duration(milliseconds: 170),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) =>
-                        FadeTransition(opacity: animation, child: child),
-                    child: selected
-                        ? Container(
-                            key: ValueKey<String>('selected-$index'),
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isDark
-                                  ? const Color(0xFF193126).withValues(alpha: 0.96)
-                                  : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
-                              border: Border.all(
-                                color: (isDark ? const Color(0xFFB5F3D2) : accent)
-                                    .withValues(alpha: isDark ? 0.34 : 0.30),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isDark ? 0.18 : 0.07,
+                        : const Duration(milliseconds: 180),
+                    curve: Curves.easeInOutCubic,
+                    top: selected ? -34 : 9,
+                    child: AnimatedSwitcher(
+                      duration: MediaQuery.of(context).disableAnimations
+                          ? Duration.zero
+                          : const Duration(milliseconds: 170),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: selected
+                          ? Container(
+                              key: ValueKey<String>('selected-$index'),
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark
+                                    ? const Color(0xFF193126).withValues(alpha: 0.96)
+                                    : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
+                                border: Border.all(
+                                  color: (isDark ? const Color(0xFFB5F3D2) : accent)
+                                      .withValues(alpha: isDark ? 0.34 : 0.30),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: isDark ? 0.18 : 0.07,
+                                    ),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 5),
                                   ),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 5),
-                                ),
-                                BoxShadow(
-                                  color: accent.withValues(alpha: 0.14),
-                                  blurRadius: 20,
-                                  spreadRadius: -5,
-                                ),
-                              ],
-                            ),
-                            child: Center(
-                              child: Icon(
-                                selectedIcon ?? icon,
-                                color: accent,
-                                size: 25,
+                                  BoxShadow(
+                                    color: accent.withValues(alpha: 0.14),
+                                    blurRadius: 20,
+                                    spreadRadius: -5,
+                                  ),
+                                ],
                               ),
+                              child: Center(
+                                child: Icon(
+                                  selectedIcon ?? icon,
+                                  color: accent,
+                                  size: 25,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              icon,
+                              key: ValueKey<String>('inactive-$index'),
+                              color: inactiveColor,
+                              size: 23,
                             ),
-                          )
-                        : Icon(
-                            icon,
-                            key: ValueKey<String>('inactive-$index'),
-                            color: inactiveColor,
-                            size: 23,
-                          ),
-                  ),
-                ),
-                Positioned(
-                  top: 39,
-                  left: 2,
-                  right: 2,
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      height: 1.1,
-                      fontWeight:
-                          selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected ? accent : inactiveColor,
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    top: 39,
+                    left: 2,
+                    right: 2,
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        height: 1.1,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w500,
+                        color: selected ? accent : inactiveColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-      ),
     );
-  }
-
   void _openPlanner() {
     setState(() => tab = 1);
     _revealSelectedDay();
