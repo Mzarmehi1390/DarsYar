@@ -44,7 +44,6 @@ void main() {
 
   testWidgets('bottom navigation exposes selected destination semantics', (WidgetTester tester) async {
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
 
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
@@ -79,6 +78,7 @@ void main() {
         hasTapAction: true,
       ),
     );
+    semantics.dispose();
   });
 
   testWidgets('page and bottom navigation transitions stay lightweight', (WidgetTester tester) async {
