@@ -1490,8 +1490,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       onPressed: _toggleExamTimer,
                       icon: Icon(
                         _examTimerRunning
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
+                            ? Icons.pause
+                            : Icons.play_arrow,
                       ),
                     ),
                   ],
