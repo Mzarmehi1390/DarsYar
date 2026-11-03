@@ -1727,16 +1727,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       quality: GlassQuality.standard,
                       style: GlassButtonStyle.filled,
                       onTap: () => _beginExam(exam),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.play_arrow_rounded, size: 18),
-                          const SizedBox(width: 6),
-                          Text(
-                            exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ],
+                      child: Text(
+                        exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     )),
                 ]),
@@ -3612,14 +3605,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                       quality: GlassQuality.standard,
                       style: GlassButtonStyle.filled,
                       onTap: _editSetupAnswerKey,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.key_rounded, size: 16),
-                          SizedBox(width: 5),
-                          Text('ورود کلید'),
-                        ],
-                      ),
+                      child: const Text('ورود کلید'),
                     )]),
           const SizedBox(height: 8),
           Row(
@@ -3658,13 +3644,15 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               quality: GlassQuality.standard,
               style: GlassButtonStyle.prominent,
               onTap: _submit,
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.play_arrow_rounded, size: 21),
-                  SizedBox(width: 8),
-                  Text('ساخت پاسخ‌برگ و شروع آزمون', style: TextStyle(fontWeight: FontWeight.w800)),
-                ],
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  'ساخت پاسخ‌برگ و شروع آزمون',
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  softWrap: true,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                ),
               ),
             ),
           ),
