@@ -2546,9 +2546,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> importBackup() async {
-    final raw = await showDialog<String>(
+    final raw = await GlassModalSheet.show<String>(
       context: context,
       builder: (_) => const _BackupImportDialog(),
+      initialState: GlassSheetState.full,
+      fullSize: 0.90,
+      quality: GlassQuality.standard,
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+      barrierColor: Colors.black.withValues(alpha: 0.32),
     );
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
@@ -2735,7 +2740,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> addStudySession() => editStudySession();
 
   Future<void> editStudySession([StudySession? existing]) async {
-    final result = await showDialog<StudySession>(
+    final result = await GlassModalSheet.show<StudySession>(
       context: context,
       builder: (_) => _StudySessionEditorDialog(
         existing: existing,
@@ -2746,6 +2751,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           excludingId: existing?.id,
         ),
       ),
+      initialState: GlassSheetState.full,
+      fullSize: 0.90,
+      quality: GlassQuality.standard,
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+      barrierColor: Colors.black.withValues(alpha: 0.32),
     );
     if (result == null || !mounted) return;
     setState(() {
@@ -2850,9 +2860,14 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   }
 
   Future<void> _editDuration() async {
-    final updated = await showDialog<Duration>(
+    final updated = await GlassModalSheet.show<Duration>(
       context: context,
       builder: (_) => _ExamDurationDialog(initialDuration: _duration),
+      initialState: GlassSheetState.full,
+      fullSize: 0.82,
+      quality: GlassQuality.standard,
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+      barrierColor: Colors.black.withValues(alpha: 0.32),
     );
     if (updated != null && mounted) setState(() => _duration = updated);
   }
@@ -3079,80 +3094,158 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         ));
       return;
     }
-    Navigator.pop(context, duration);
+    Navigator.of(context).pop(duration);
   }
 
-  Widget _timeField(
-    String label,
-    TextEditingController controller, {
-    bool expand = true,
-  }) {
-    final field = TextField(
-      controller: controller,
-      textAlign: TextAlign.center,
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(2),
-      ],
-      decoration: InputDecoration(
-        labelText: label,
-        counterText: '',
-        filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    );
-    return expand ? Expanded(child: field) : field;
-  }
+  Widget _timeField(String label, TextEditingController controller) =>
+      Expanded(
+        child: GlassFormField(
+          label: label,
+          child: GlassTextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(2),
+            ],
+            maxLength: 2,
+            quality: GlassQuality.standard,
+            textInputAction: TextInputAction.next,
+          ),
+        ),
+      );
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    scrollable: true,
-    title: Text('تنظیم زمان آزمون'),
-    content: SizedBox(
-      width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('زمان را به ساعت، دقیقه و ثانیه وارد کن.',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-        SizedBox(height: 18),
+  Widget build(BuildContext context) => SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'تنظیم زمان آزمون',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'زمان را به ساعت، دقیقه و ثانیه وارد کن.',
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 18),
         if (MediaQuery.sizeOf(context).width < 460)
           Column(
             children: [
-              _timeField('ساعت', _hours, expand: false),
-              SizedBox(height: 10),
-              _timeField('دقیقه', _minutes, expand: false),
-              SizedBox(height: 10),
-              _timeField('ثانیه', _seconds, expand: false),
+              GlassFormField(
+                label: 'ساعت',
+                child: GlassTextField(
+                  controller: _hours,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
+                  ],
+                  maxLength: 2,
+                  quality: GlassQuality.standard,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GlassFormField(
+                label: 'دقیقه',
+                child: GlassTextField(
+                  controller: _minutes,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
+                  ],
+                  maxLength: 2,
+                  quality: GlassQuality.standard,
+                ),
+              ),
+              const SizedBox(height: 12),
+              GlassFormField(
+                label: 'ثانیه',
+                child: GlassTextField(
+                  controller: _seconds,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(2),
+                  ],
+                  maxLength: 2,
+                  quality: GlassQuality.standard,
+                ),
+              ),
             ],
           )
         else
-          Row(children: [
-            _timeField('ساعت', _hours),
-            SizedBox(width: 8),
-            _timeField('دقیقه', _minutes),
-            SizedBox(width: 8),
-            _timeField('ثانیه', _seconds),
-          ]),
-        SizedBox(height: 18),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Text('زمان‌های پیشنهادی',
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+          Row(
+            children: [
+              _timeField('ساعت', _hours),
+              const SizedBox(width: 8),
+              _timeField('دقیقه', _minutes),
+              const SizedBox(width: 8),
+              _timeField('ثانیه', _seconds),
+            ],
+          ),
+        const SizedBox(height: 20),
+        Text(
+          'زمان‌های پیشنهادی',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
-        SizedBox(height: 8),
-        Wrap(spacing: 7, runSpacing: 7, children: [
-          for (final preset in [15, 30, 45, 60, 90, 120])
-            ActionChip(
-              label: Text('$preset دقیقه'),
-              onPressed: () => _setPreset(preset),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final preset in [15, 30, 45, 60, 90, 120])
+              GlassChip(
+                label: '$preset دقیقه',
+                selected: _hours.text == (preset ~/ 60).toString() &&
+                    _minutes.text == (preset % 60).toString() &&
+                    _seconds.text == '0',
+                selectedColor: accent.withValues(alpha: 0.16),
+                quality: GlassQuality.standard,
+                onTap: () => _setPreset(preset),
+              ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        Row(
+          children: [
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
+                child: const Text('انصراف'),
+              ),
             ),
-        ]),
-      ]),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
+                onTap: _submit,
+                child: const Text(
+                  'ذخیره زمان',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
-    actions: [
-      TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
-      FilledButton(onPressed: _submit, child: Text('ذخیره زمان')),
-    ],
   );
 }
 
@@ -3179,37 +3272,69 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text('بازیابی نسخه پشتیبان'),
-    content: SizedBox(
-      width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
-      child: SingleChildScrollView(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
-          SizedBox(height: 12),
-          TextField(
+  Widget build(BuildContext context) => SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'بازیابی نسخه پشتیبان',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GlassFormField(
+          label: 'محتوای نسخه پشتیبان',
+          child: GlassTextField(
             controller: _controller,
-            minLines: 5,
+            minLines: 6,
             maxLines: 12,
             keyboardType: TextInputType.multiline,
-            decoration: InputDecoration(
-              hintText: 'محتوای نسخه پشتیبان…',
-              border: OutlineInputBorder(),
-            ),
+            placeholder: 'محتوای نسخه پشتیبان…',
+            quality: GlassQuality.standard,
           ),
-        ]),
-      ),
+        ),
+        const SizedBox(height: 22),
+        Row(
+          children: [
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
+                child: const Text('انصراف'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
+                onTap: () => Navigator.of(context).pop(_controller.text),
+                child: const Text(
+                  'بررسی نسخه',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text('انصراف'),
-      ),
-      FilledButton(
-        onPressed: () => Navigator.pop(context, _controller.text),
-        child: Text('بررسی نسخه'),
-      ),
-    ],
   );
 }
 
