@@ -152,3 +152,12 @@ The redesign must not alter:
 - Kept the existing JSON field names and defaults unchanged (`id`, `title`, `subject`, `done`) to preserve compatibility with locally stored data and backups.
 - Added a model round-trip test for the serialized representation.
 - Continue extracting feature boundaries in small, behavior-preserving steps; avoid moving timer, scoring, or persistence orchestration until dedicated regression coverage exists.
+
+
+## Shared modal typography and liquid-glass surface fix
+
+- Added `DarsYarModalContent` as a shared overlay scope. It explicitly restores RTL directionality and a high-contrast inherited text style with no underline decoration inside modal routes.
+- Wrapped every `GlassModalSheet.show` content builder (study-session editor, backup import, exam duration, answer-key editor, and time picker) with the shared scope.
+- Made Flutter's fallback dialog and bottom-sheet Material backgrounds transparent. The liquid-glass overlay must own its rendered surface; an opaque Material background beneath it masks refraction and produces a flat light/dark panel.
+- Added widget tests for light/dark overlay transparency and Persian RTL / text-decoration inheritance.
+- Verify on a physical device with the keyboard open, in both themes and with large text scaling. Yellow baseline guides shown only while Flutter debug baseline painting is enabled are diagnostics, not text decoration; release screenshots must be checked separately.
