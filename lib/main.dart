@@ -19,7 +19,12 @@ import 'study_session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await LiquidGlassWidgets.initialize();
+  try {
+    await LiquidGlassWidgets.initialize();
+  } catch (_) {
+    // The adaptive glass widgets retain their standard fallback if shader
+    // prewarming is unavailable on a particular device or renderer.
+  }
   runApp(
     LiquidGlassWidgets.wrap(
       child: const DarsYarApp(),
