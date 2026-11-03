@@ -171,7 +171,7 @@ abstract final class DarsYarTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(DarsYarTokens.radiusMedium),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w650),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
