@@ -701,8 +701,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         maxWidth: 360,
         quality: GlassQuality.standard,
         barrierColor: Colors.black.withValues(alpha: 0.30),
-        content: GlassFormField(
-          label: 'نام آزمون',
+        content: DarsYarModalContent(
+          child: GlassFormField(
+            label: 'نام آزمون',
           child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
@@ -711,6 +712,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             autofocus: true,
             textInputAction: TextInputAction.done,
           ),
+        ),
         ),
         actions: [
           GlassDialogAction(
@@ -3188,8 +3190,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       maxWidth: 360,
       quality: GlassQuality.standard,
       barrierColor: Colors.black.withValues(alpha: 0.30),
-      content: StatefulBuilder(
-        builder: (dialogContext, dialogSet) => Column(
+      content: DarsYarModalContent(
+        child: StatefulBuilder(
+          builder: (dialogContext, dialogSet) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -3249,6 +3252,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ),
             ),
           ],
+          ),
         ),
       ),
       actions: [
