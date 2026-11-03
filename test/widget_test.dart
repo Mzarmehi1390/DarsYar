@@ -809,6 +809,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('active exam answer selection persists and remains visible when revisiting a question', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'answer-selection-exam',
+          'name': 'آزمون انتخاب پاسخ',
+          'questionCount': 3,
+          'durationSeconds': 1800,
+          'answers': <String, int>{},
+          'answerKey': <String, int>{},
+          'marked': <int>[],
+        },
+      ]),
+      'darsyar.activeExamId': 'answer-selection-exam',
+    });
+
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('شروع آزمون'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('گزینه 3'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    var savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    expect((savedExams.single['answers'] as Map)['1'], 2);
+    expect(find.text('سؤال 2'), findsWidgets);
+
+    await tester.tap(find.text('قبلی'));
+    await tester.pumpAndSettle();
+    final selectedOption = tester.widget<GlassChip>(
+      find.widgetWithText(GlassChip, 'گزینه 3'),
+    );
+    expect(selectedOption.selected, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('finishing an exam persists completion and its result together', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'darsyar.exams': jsonEncode([
