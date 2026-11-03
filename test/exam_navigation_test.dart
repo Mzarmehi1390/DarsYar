@@ -57,7 +57,7 @@ void main() {
     await tester.scrollUntilVisible(
       find.text('سؤال 40'),
       240,
-      scrollable: navigatorFinder,
+      scrollable: find.descendant(\n        of: navigatorFinder,\n        matching: find.byType(Scrollable),\n      ),
     );
     await tester.ensureVisible(find.text('سؤال 40'));
     await tester.pumpAndSettle();
