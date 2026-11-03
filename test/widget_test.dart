@@ -520,10 +520,12 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    expect(
-      find.byKey(const ValueKey<String>('planner-week-selected-indicator')),
-      findsOneWidget,
+    final selectedIndicator = find.byKey(
+      const ValueKey<String>('planner-week-selected-indicator'),
     );
+    expect(selectedIndicator, findsOneWidget);
+    await tester.ensureVisible(selectedIndicator);
+    await tester.pumpAndSettle();
     expect(
       find.descendant(
         of: find.byKey(const ValueKey<String>('planner-week-selected-indicator')),
