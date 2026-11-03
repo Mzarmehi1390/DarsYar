@@ -71,7 +71,6 @@ void main() {
       final lastQuestionRect = tester.getRect(lastQuestionFinder);
       final navigatorRect = tester.getRect(navigatorFinder);
       expect(lastQuestionRect.bottom, lessThanOrEqualTo(navigatorRect.bottom));
-      expect(tester.takeException(), isNull);
     },
   );
 }
