@@ -1912,52 +1912,54 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                               ),
                             ),
                             const SizedBox(height: 14),
-                            for (var option = 0; option < 4; option++)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: FilledButton.tonal(
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: exam.answers[q] == option
-                                          ? selectedAnswerBackground
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .secondaryContainer,
-                                      foregroundColor: exam.answers[q] == option
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (var option = 0; option < 4; option++)
+                                  GlassChip(
+                                    label: 'گزینه ${option + 1}',
+                                    semanticLabel: 'سؤال $q، گزینه ${option + 1}',
+                                    selected: exam.answers[q] == option,
+                                    selectedColor: selectedAnswerBackground,
+                                    labelStyle: TextStyle(
+                                      color: exam.answers[q] == option
                                           ? markerForeground
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSecondaryContainer,
-                                      alignment: Alignment.centerRight,
+                                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
                                     ),
-                                    onPressed: () => _answerQuestion(option),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text('گزینه ${option + 1}'),
-                                        ),
-                                        if (exam.answers[q] == option)
-                                          const Icon(
-                                            Icons.check_circle_rounded,
-                                            size: 18,
-                                          ),
-                                      ],
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                                    quality: GlassQuality.standard,
+                                    onTap: () => _answerQuestion(option),
                                   ),
-                                ),
-                              ),
-                            TextButton.icon(
-                              onPressed: () => _toggleQuestionMarked(q),
-                              icon: Icon(
-                                exam.marked.contains(q)
-                                    ? Icons.flag_rounded
-                                    : Icons.flag_outlined,
-                              ),
-                              label: Text(
-                                exam.marked.contains(q)
-                                    ? 'حذف علامت مرور'
-                                    : 'علامت برای مرور',
+                              ],
+                            ),
+                            GlassButton.custom(
+                              height: 42,
+                              shape: const LiquidRoundedSuperellipse(borderRadius: 14),
+                              quality: GlassQuality.standard,
+                              style: GlassButtonStyle.transparent,
+                              onTap: () => _toggleQuestionMarked(q),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    exam.marked.contains(q)
+                                        ? Icons.flag_rounded
+                                        : Icons.flag_outlined,
+                                    size: 18,
+                                    color: exam.marked.contains(q)
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    exam.marked.contains(q)
+                                        ? 'حذف علامت مرور'
+                                        : 'علامت برای مرور',
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -1968,8 +1970,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
-                            onPressed: q > 1
+                          child: GlassButton.custom(
+                            width: double.infinity,
+                            height: 48,
+                            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                            quality: GlassQuality.standard,
+                            style: GlassButtonStyle.filled,
+                            onTap: q > 1
                                 ? () => setState(() => currentQuestionNumber--)
                                 : null,
                             child: const Text('قبلی'),
@@ -1977,12 +1984,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: FilledButton(
-                            onPressed: q < exam.questionCount
+                          child: GlassButton.custom(
+                            width: double.infinity,
+                            height: 48,
+                            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                            quality: GlassQuality.standard,
+                            style: GlassButtonStyle.prominent,
+                            onTap: q < exam.questionCount
                                 ? () => setState(() => currentQuestionNumber++)
                                 : _finishExam,
                             child: Text(
                               q == exam.questionCount ? 'پایان آزمون' : 'بعدی',
+                              style: const TextStyle(fontWeight: FontWeight.w800),
                             ),
                           ),
                         ),
@@ -3375,7 +3388,22 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
             ),
           ),
           SizedBox(height: 12),
-          Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
+          Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), GlassButton.custom(
+                      width: 112,
+                      height: 40,
+                      shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                      quality: GlassQuality.standard,
+                      style: GlassButtonStyle.filled,
+                      onTap: _editSetupAnswerKey,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.key_rounded, size: 16),
+                          SizedBox(width: 5),
+                          Text('ورود کلید'),
+                        ],
+                      ),
+                    )]),
           const SizedBox(height: 8),
           Row(
             children: [
