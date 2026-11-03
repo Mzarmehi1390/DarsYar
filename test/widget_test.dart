@@ -1078,7 +1078,8 @@ void main() {
           'id': 'compact-session',
           'title': 'مرور فصل‌های مهم زیست‌شناسی',
           'subject': 'زیست‌شناسی',
-          'weekday': DateTime.now().weekday % 7,
+          // Keep this fixture independent of the runner's local date.
+          'weekday': 3,
           'startMinutes': 600,
           'durationMinutes': 50,
           'completed': false,
@@ -1098,9 +1099,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
-    final selectedWeekday = DateTime.now().weekday % 7;
-    const weekdayLabels = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
-    await tester.tap(find.text(weekdayLabels[selectedWeekday]).first);
+    // Select the fixture's fixed weekday instead of relying on today's date.
+    await tester.tap(find.text('چهارشنبه').first);
     await tester.pumpAndSettle();
     await tester.ensureVisible(sessionTitle);
     await tester.pumpAndSettle();
