@@ -1006,11 +1006,46 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     SizedBox(height: 24),
     Text('دسترسی سریع', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
     SizedBox(height: 12),
-    Row(children: [
-      Expanded(child: quickAction(Icons.calendar_month_rounded, 'برنامه‌ریزی درسی', 'مدیریت وظایف', _openPlanner, const Color(0xFFDDF5E9))),
-      SizedBox(width: 12),
-      Expanded(child: quickAction(Icons.fact_check_rounded, 'پاسخ‌برگ آزمون', 'ثبت پاسخ‌ها', () => setState(() => tab = 2), const Color(0xFFD5F0E8))),
-    ]),
+    LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 350;
+        final actionHeight = compact ? 116.0 : 172.0;
+        final plannerAction = quickAction(
+          Icons.calendar_month_rounded,
+          'برنامه‌ریزی درسی',
+          'مدیریت وظایف',
+          _openPlanner,
+          const Color(0xFFDDF5E9),
+          compact: compact,
+          height: actionHeight,
+        );
+        final examAction = quickAction(
+          Icons.fact_check_rounded,
+          'پاسخ‌برگ آزمون',
+          'ثبت پاسخ‌ها',
+          () => setState(() => tab = 2),
+          const Color(0xFFD5F0E8),
+          compact: compact,
+          height: actionHeight,
+        );
+        if (compact) {
+          return Column(
+            children: [
+              plannerAction,
+              const SizedBox(height: 10),
+              examAction,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: plannerAction),
+            const SizedBox(width: 12),
+            Expanded(child: examAction),
+          ],
+        );
+      },
+    ),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
       GlassButton.custom(
@@ -1031,8 +1066,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     String title,
     String subtitle,
     VoidCallback action,
-    Color tint,
-  ) {
+    Color tint, {
+    bool compact = false,
+    double height = 172,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconTop = isDark
         ? Color.lerp(tint, const Color(0xFF18372B), 0.58)!
@@ -1046,40 +1083,53 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     return GlassButton.custom(
       width: double.infinity,
-      height: 188,
+      height: height,
       shape: const LiquidRoundedSuperellipse(borderRadius: 23),
       quality: GlassQuality.standard,
       style: GlassButtonStyle.filled,
       onTap: action,
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+        padding: EdgeInsets.all(compact ? 12 : 16),
+        child: compact
+            ? Row(
+                children: [
+                  _quickActionIcon(icon, iconTop, iconBottom, iconColor, isDark),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_left_rounded, size: 20),
+                ],
+              )
+            : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [iconTop, iconBottom],
-                ),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.76),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.18),
-                    blurRadius: 14,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: iconColor),
-            ),
+            _quickActionIcon(icon, iconTop, iconBottom, iconColor, isDark),
             const SizedBox(height: 12),
             Text(
               title,
@@ -1099,6 +1149,38 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _quickActionIcon(
+    IconData icon,
+    Color iconTop,
+    Color iconBottom,
+    Color iconColor,
+    bool isDark,
+  ) {
+    return Container(
+      width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [iconTop, iconBottom],
+                ),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: isDark ? 0.22 : 0.76),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+      child: Icon(icon, color: iconColor),
     );
   }
 
