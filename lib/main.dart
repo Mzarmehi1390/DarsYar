@@ -928,9 +928,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 20),
       Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       SizedBox(height: 10),
-      SizedBox(height: 44, child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: weekDayOrder.map((day) => Padding(
+      SizedBox(
+        height: 44,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: weekDayOrder.map((day) => Padding(
           key: _plannerDayKeys[day],
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
@@ -968,17 +971,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             },
           ),
         )).toList(),
-      )),
+          ),
+        ),
+      ),
       SizedBox(height: 20),
       Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       SizedBox(height: 10),
-      SizedBox(height: 124, child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: weekDayOrder.map((day) => Padding(
-          padding: const EdgeInsets.only(left: 10),
-          child: SizedBox(key: _plannerWeekKeys[day], width: 190, child: weekOverviewCard(day)),
-        )).toList(),
-      )),
+      SizedBox(
+        height: 124,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: weekDayOrder.map((day) => Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: SizedBox(
+                key: _plannerWeekKeys[day],
+                width: 190,
+                child: weekOverviewCard(day),
+              ),
+            )).toList(),
+          ),
+        ),
+      ),
       SizedBox(height: 16),
       weeklyReportCard(),
       SizedBox(height: 20),
@@ -1147,12 +1161,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final minutes = sessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
     final done = sessions.where((session) => session.completed).length;
     final selected = day == selectedStudyDay;
-    return SizedBox(
-      width: (MediaQuery.of(context).size.width - 54) / 2,
-      child: _glassSurface(
-        radius: 18,
-        tint: selected ? accent.withValues(alpha: 0.12) : null,
-        child: InkWell(
+    return _glassSurface(
+      radius: 18,
+      tint: selected ? accent.withValues(alpha: 0.12) : null,
+      child: InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: () { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
           child: Padding(
@@ -1206,8 +1218,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ]),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget studySessionTile(StudySession session) => Padding(
