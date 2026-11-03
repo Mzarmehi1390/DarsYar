@@ -593,13 +593,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       icon: Icons.auto_stories_rounded,
     ),
     SizedBox(height: 24),
-    DarsYarGlassSurface(
-      radius: 30,
-      elevation: 1.35,
-      blurSigma: 20,
-      tint: Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF285B59)
-          : const Color(0xFFD8F2E9),
+    GlassContainer.card(
+      padding: EdgeInsets.zero,
+      shape: const LiquidRoundedSuperellipse(borderRadius: 30),
+      useOwnLayer: true,
+      quality: GlassQuality.premium,
+      clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
           Positioned(
@@ -687,13 +686,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    DarsYarGlassSurface(
-                      radius: 20,
-                      elevation: 0,
-                      padding: const EdgeInsets.all(13),
-                      tint: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF356C69)
-                          : const Color(0xFFE8FAF3),
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(19),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
+                        ),
+                      ),
                       child: Icon(
                         Icons.auto_awesome_rounded,
                         color: Theme.of(context).colorScheme.primary,
@@ -1109,7 +1111,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     double radius = 20,
     Color? tint,
   }) =>
-      DarsYarGlassSurface(
+      DarsYarContentSurface(
         radius: radius,
         tint: tint,
         child: child,
@@ -2690,7 +2692,7 @@ class _LiquidGlassPanel extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => DarsYarGlassSurface(
+  Widget build(BuildContext context) => DarsYarContentSurface(
         radius: DarsYarTokens.radiusLarge,
         child: child,
       );
