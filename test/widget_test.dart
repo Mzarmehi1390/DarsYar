@@ -95,7 +95,8 @@ void main() {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
 
-    final home = find.byKey(const ValueKey<String>('bottom-nav-item-0'));
+    final home = find.bySemanticsLabel('خانه');
+    expect(home, findsOneWidget);
     expect(
       tester.getSemantics(home),
       isSemantics(
@@ -114,7 +115,8 @@ void main() {
       tester.getSemantics(home),
       isSemantics(hasSelectedState: true, isSelected: false),
     );
-    final planner = find.byKey(const ValueKey<String>('bottom-nav-item-1'));
+    final planner = find.bySemanticsLabel('برنامه‌ریزی');
+    expect(planner, findsOneWidget);
     expect(
       tester.getSemantics(planner),
       isSemantics(
