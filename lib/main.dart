@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' show FontFeature, ImageFilter;
+import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'answer_scoring.dart';
@@ -18,7 +19,14 @@ import 'study_session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const DarsYarApp());
+  await LiquidGlassWidgets.initialize();
+  runApp(
+    LiquidGlassWidgets.wrap(
+      child: const DarsYarApp(),
+      adaptiveQuality: true,
+      brightnessResolver: Theme.maybeBrightnessOf,
+    ),
+  );
 }
 
 const accent = DarsYarTokens.accent;
@@ -93,7 +101,13 @@ class _DarsYarAppState extends State<DarsYarApp> {
       themeMode: mode,
       theme: DarsYarTheme.light,
       darkTheme: DarsYarTheme.dark,
-      builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
+      builder: (context, child) => GlassTheme(
+        data: const GlassThemeData.ios27(),
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: child ?? const SizedBox(),
+        ),
+      ),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
     );
   }
@@ -356,199 +370,88 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     };
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: isDark
-                    ? const [Color(0xFF101D30), Color(0xFF0A1321), Color(0xFF1A2034)]
-                    : const [Color(0xFFF5F8FD), Color(0xFFE8F0F8), Color(0xFFF0ECF8)],
-              ),
-            ),
-          ),
-          Positioned(
-            top: -150,
-            right: -125,
-            child: IgnorePointer(
-              child: Container(
-                width: 330,
-                height: 330,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      accent.withValues(alpha: isDark ? 0.22 : 0.16),
-                      accent.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -175,
-            left: -135,
-            child: IgnorePointer(
-              child: Container(
-                width: 370,
-                height: 370,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      (isDark ? const Color(0xFF4F8EB8) : const Color(0xFF8EBBE8))
-                          .withValues(alpha: isDark ? 0.16 : 0.20),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 250,
-            left: -150,
-            child: IgnorePointer(
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      (isDark ? const Color(0xFF6673C8) : const Color(0xFFB8A8EE))
-                          .withValues(alpha: isDark ? 0.13 : 0.19),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            bottom: 0,
-            child: SafeArea(
-              bottom: false,
-              child: loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : AnimatedSwitcher(
-                      duration: MediaQuery.of(context).disableAnimations
-                          ? Duration.zero
-                          : const Duration(milliseconds: 190),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.018),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      ),
-                      child: KeyedSubtree(
-                        key: ValueKey<int>(tab),
-                        child: page,
-                      ),
-                    ),
-            ),
-          ),
-          if (!loading)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _bottomNavigationDock(isDark),
-            ),
-        ],
-      ),
-      floatingActionButton: null,
-    );
-  }
-
-  Widget _bottomNavigationDock(bool isDark) {
-    // Keep the navigation dock visible while allowing the page to scroll
-    // beneath its translucent glass surface.
-    const navHeight = 102.0;
-    const topInset = 27.0;
-    final bottomInset = MediaQuery.of(context).padding.bottom;
-
-    return Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.08),
-            blurRadius: 26,
-            spreadRadius: -8,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        height: navHeight + bottomInset,
-        child: Stack(
-          clipBehavior: Clip.none,
+      backgroundColor: Colors.transparent,
+      body: GlassScaffold(
+        background: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: navHeight,
-              child: ClipPath(
-                clipBehavior: Clip.antiAlias,
-                clipper: _NotchedNavBarClipper(
-                  centerX: MediaQuery.of(context).size.width * (3.5 - tab) / 4,
-                  topInset: topInset,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: isDark
+                      ? const [
+                          Color(0xFF101D30),
+                          Color(0xFF0A1321),
+                          Color(0xFF1A2034),
+                        ]
+                      : const [
+                          Color(0xFFF5F8FD),
+                          Color(0xFFE8F0F8),
+                          Color(0xFFF0ECF8),
+                        ],
                 ),
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: isDark
-                              ? [
-                                  const Color(0xB92B4560),
-                                  const Color(0xD90D1929),
-                                ]
-                              : [
-                                  Colors.white.withValues(alpha: 0.72),
-                                  const Color(0xD9EAF2FA),
-                                ],
-                        ),
-                      ),
+              ),
+            ),
+            Positioned(
+              top: -150,
+              right: -125,
+              child: IgnorePointer(
+                child: Container(
+                  width: 330,
+                  height: 330,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        accent.withValues(alpha: isDark ? 0.22 : 0.16),
+                        accent.withValues(alpha: 0),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
             Positioned(
-              left: 0, right: 0, top: topInset, bottom: 0,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _bottomNavItem(index: 0, icon: Icons.grid_view_rounded, label: 'خانه', isDark: isDark),
-                  _bottomNavItem(index: 1, icon: Icons.calendar_month_rounded, label: 'برنامه‌ریزی', isDark: isDark),
-                  _bottomNavItem(index: 2, icon: Icons.fact_check_outlined, selectedIcon: Icons.fact_check_rounded, label: 'پاسخ‌برگ', isDark: isDark),
-                  _bottomNavItem(index: 3, icon: Icons.tune_rounded, label: 'تنظیمات', isDark: isDark),
-                ],
+              bottom: -175,
+              left: -135,
+              child: IgnorePointer(
+                child: Container(
+                  width: 370,
+                  height: 370,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        (isDark
+                                ? const Color(0xFF4F8EB8)
+                                : const Color(0xFF8EBBE8))
+                            .withValues(alpha: isDark ? 0.16 : 0.20),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
             Positioned(
-              top: 0, left: 0, right: 0,
+              top: 250,
+              left: -150,
               child: IgnorePointer(
-                child: Center(
-                  child: Container(
-                    width: 1, height: 1,
-                    decoration: BoxDecoration(
-                      boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.16), blurRadius: 24, spreadRadius: 9)],
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        (isDark
+                                ? const Color(0xFF6673C8)
+                                : const Color(0xFFB8A8EE))
+                            .withValues(alpha: isDark ? 0.13 : 0.19),
+                        Colors.transparent,
+                      ],
                     ),
                   ),
                 ),
@@ -556,130 +459,83 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _bottomNavItem({
-    required int index,
-    required IconData icon,
-    IconData? selectedIcon,
-    required String label,
-    required bool isDark,
-  }) {
-    final selected = tab == index;
-    final inactiveColor =
-        isDark ? Colors.white70 : const Color(0xFF87948D);
-
-    void selectTab() {
-      if (index == 1) {
-        _openPlanner();
-      } else {
-        setState(() => tab = index);
-      }
-    }
-
-    return Expanded(
-      child: Semantics(
-        key: ValueKey<String>('bottom-nav-item-$index'),
-        button: true,
-        selected: selected,
-        label: label,
-        onTap: selectTab,
-        excludeSemantics: true,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: selectTab,
-            child: SizedBox(
-              height: 67,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topCenter,
-                children: [
-                  AnimatedPositioned(
-                    duration: MediaQuery.of(context).disableAnimations
-                        ? Duration.zero
-                        : const Duration(milliseconds: 180),
-                    curve: Curves.easeInOutCubic,
-                    top: selected ? -34 : 9,
-                    child: AnimatedSwitcher(
-                      duration: MediaQuery.of(context).disableAnimations
-                          ? Duration.zero
-                          : const Duration(milliseconds: 170),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(opacity: animation, child: child),
-                      child: selected
-                          ? Container(
-                              key: ValueKey<String>('selected-$index'),
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDark
-                                    ? const Color(0xFF193126).withValues(alpha: 0.96)
-                                    : const Color(0xFFF8FCF9).withValues(alpha: 0.98),
-                                border: Border.all(
-                                  color: (isDark ? const Color(0xFFB5F3D2) : accent)
-                                      .withValues(alpha: isDark ? 0.34 : 0.30),
-                                  width: 1.5,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(
-                                      alpha: isDark ? 0.18 : 0.07,
-                                    ),
-                                    blurRadius: 16,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                  BoxShadow(
-                                    color: accent.withValues(alpha: 0.14),
-                                    blurRadius: 20,
-                                    spreadRadius: -5,
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  selectedIcon ?? icon,
-                                  color: accent,
-                                  size: 25,
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              icon,
-                              key: ValueKey<String>('inactive-$index'),
-                              color: inactiveColor,
-                              size: 23,
-                            ),
+        body: SafeArea(
+          bottom: false,
+          child: loading
+              ? const Center(child: CircularProgressIndicator())
+              : AnimatedSwitcher(
+                  duration: MediaQuery.of(context).disableAnimations
+                      ? Duration.zero
+                      : const Duration(milliseconds: 190),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.018),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
                     ),
                   ),
-                  Positioned(
-                    top: 39,
-                    left: 2,
-                    right: 2,
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        height: 1.1,
-                        fontWeight:
-                            selected ? FontWeight.w700 : FontWeight.w500,
-                        color: selected ? accent : inactiveColor,
-                      ),
-                    ),
+                  child: KeyedSubtree(
+                    key: ValueKey<int>(tab),
+                    child: page,
+                  ),
+                ),
+        ),
+        bottomBar: loading
+            ? null
+            : GlassTabBar.bottom(
+                tabs: const [
+                  GlassTab(
+                    icon: Icon(Icons.grid_view_rounded),
+                    activeIcon: Icon(Icons.grid_view_rounded),
+                    label: 'خانه',
+                    semanticLabel: 'خانه',
+                    glowColor: accent,
+                  ),
+                  GlassTab(
+                    icon: Icon(Icons.calendar_month_outlined),
+                    activeIcon: Icon(Icons.calendar_month_rounded),
+                    label: 'برنامه‌ریزی',
+                    semanticLabel: 'برنامه‌ریزی',
+                    glowColor: accent,
+                  ),
+                  GlassTab(
+                    icon: Icon(Icons.fact_check_outlined),
+                    activeIcon: Icon(Icons.fact_check_rounded),
+                    label: 'پاسخ‌برگ',
+                    semanticLabel: 'پاسخ‌برگ',
+                    glowColor: accent,
+                  ),
+                  GlassTab(
+                    icon: Icon(Icons.tune_outlined),
+                    activeIcon: Icon(Icons.tune_rounded),
+                    label: 'تنظیمات',
+                    semanticLabel: 'تنظیمات',
+                    glowColor: accent,
                   ),
                 ],
+                selectedIndex: tab,
+                onTabSelected: (index) {
+                  if (index == 1) {
+                    _openPlanner();
+                  } else {
+                    setState(() => tab = index);
+                  }
+                },
+                selectedIconColor: isDark
+                    ? DarsYarTokens.accentLight
+                    : DarsYarTokens.accent,
+                unselectedIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                selectedLabelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                iconSize: 23,
+                labelFontSize: 10.5,
+                magnification: 1.12,
               ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -3537,33 +3393,4 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
-}
-
-class _NotchedNavBarClipper extends CustomClipper<Path> {
-  const _NotchedNavBarClipper({required this.centerX, required this.topInset});
-
-  final double centerX;
-  final double topInset;
-
-  @override
-  Path getClip(Size size) {
-    const notchRadius = 36.0;
-    const shoulderWidth = 15.0;
-    const notchDepth = 30.0;
-    final leftNotch = centerX - notchRadius;
-    final rightNotch = centerX + notchRadius;
-    return Path()
-      ..moveTo(0, topInset)
-      ..lineTo(leftNotch - shoulderWidth, topInset)
-      ..cubicTo(leftNotch + 3, topInset, leftNotch + 2, topInset + notchDepth, centerX, topInset + notchDepth)
-      ..cubicTo(rightNotch - 2, topInset + notchDepth, rightNotch - 3, topInset, rightNotch + shoulderWidth, topInset)
-      ..lineTo(size.width, topInset)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant _NotchedNavBarClipper oldClipper) =>
-      oldClipper.centerX != centerX || oldClipper.topInset != topInset;
 }
