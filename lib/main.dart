@@ -77,11 +77,35 @@ class DarsYarApp extends StatefulWidget {
 
 class _DarsYarAppState extends State<DarsYarApp> {
   ThemeMode mode = ThemeMode.system;
+  bool animationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _loadThemeMode();
+    _loadAnimationPreference();
+  }
+
+  Future<void> _loadAnimationPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() => animationsEnabled =
+            prefs.getBool('darsyar.animationsEnabled') ?? true);
+      }
+    } catch (_) {
+      // Keep animations enabled when preferences cannot be read.
+    }
+  }
+
+  Future<void> _setAnimationsEnabled(bool value) async {
+    setState(() => animationsEnabled = value);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('darsyar.animationsEnabled', value);
+    } catch (_) {
+      // The current session still uses the selected performance mode.
+    }
   }
 
   Future<void> _loadThemeMode() async {
@@ -128,14 +152,24 @@ class _DarsYarAppState extends State<DarsYarApp> {
         themeMode: mode,
         theme: DarsYarTheme.light,
         darkTheme: DarsYarTheme.dark,
-        builder: (context, child) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: child ?? const SizedBox(),
-        ),
+        builder: (context, child) {
+          final media = MediaQuery.of(context);
+          return MediaQuery(
+            data: media.copyWith(
+              disableAnimations: media.disableAnimations || !animationsEnabled,
+            ),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: SizedBox.expand(child: child ?? const SizedBox()),
+            ),
+          );
+        },
         home: DarsYarHome(
           initialTab: widget.initialTab,
           mode: mode,
           onModeChanged: _setThemeMode,
+          animationsEnabled: animationsEnabled,
+          onAnimationsChanged: _setAnimationsEnabled,
         ),
       ),
     );
@@ -143,10 +177,19 @@ class _DarsYarAppState extends State<DarsYarApp> {
 }
 
 class DarsYarHome extends StatefulWidget {
-  const DarsYarHome({required this.mode, required this.onModeChanged, this.initialTab = 0, super.key});
+  const DarsYarHome({
+    required this.mode,
+    required this.onModeChanged,
+    required this.animationsEnabled,
+    required this.onAnimationsChanged,
+    this.initialTab = 0,
+    super.key,
+  });
   final int initialTab;
   final ThemeMode mode;
   final ValueChanged<ThemeMode> onModeChanged;
+  final bool animationsEnabled;
+  final ValueChanged<bool> onAnimationsChanged;
   @override
   State<DarsYarHome> createState() => _DarsYarHomeState();
 }
@@ -499,7 +542,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: loading
               ? const Center(child: CircularProgressIndicator())
               : AnimatedSwitcher(
-                  duration: MediaQuery.of(context).disableAnimations
+                  duration: !widget.animationsEnabled ||
+                          MediaQuery.of(context).disableAnimations
                       ? Duration.zero
                       : const Duration(milliseconds: 190),
                   switchInCurve: Curves.easeOutCubic,
@@ -3436,6 +3480,62 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ),
       ),
     ]))),
+    SizedBox(height: 12),
+    _glassSurface(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                widget.animationsEnabled
+                    ? Icons.motion_photos_on_rounded
+                    : Icons.motion_photos_off_rounded,
+                color: accent,
+                size: 21,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'انیمیشن‌های برنامه',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    widget.animationsEnabled
+                        ? 'حرکت‌ها و جابه‌جایی‌های نرم فعال هستند.'
+                        : 'حرکت‌های غیرضروری غیرفعال شده‌اند تا رابط سبک‌تر اجرا شود.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.45,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            GlassSwitch(
+              value: widget.animationsEnabled,
+              activeColor: accent,
+              semanticLabel: 'روشن یا خاموش کردن انیمیشن‌های برنامه',
+              quality: GlassQuality.standard,
+              onChanged: widget.onAnimationsChanged,
+            ),
+          ],
+        ),
+      ),
+    ),
     SizedBox(height: 12),
     _glassSurface(
       child: Padding(
