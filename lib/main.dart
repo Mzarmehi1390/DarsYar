@@ -3373,7 +3373,7 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              '${_draft.length} از ${questionCount} سؤال دارای کلید پاسخ است.',
+              '${_draft.length} از $questionCount سؤال دارای کلید پاسخ است.',
               style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           );
