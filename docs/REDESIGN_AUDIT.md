@@ -177,3 +177,11 @@ The redesign must not alter:
 - Kept dense study information on the high-contrast content surface. The small metadata wells are tinted solid insets, not nested refractive glass renderers.
 - Preserved completion, edit and delete callbacks and their existing storage sections.
 - Added a 320 dp compact-width widget regression test that loads real stored session/task fixtures, checks metadata and actions, and verifies session completion persists.
+
+
+## Exam result history hierarchy
+
+- Restructured saved-result cards into a clear title/score header, a compact date/question metadata row, and separate correct/wrong/unanswered metric pills.
+- Kept the score in a restrained tinted badge with tabular numerals; missing-key results remain clearly distinct and retain the existing action to enter a key and calculate the score.
+- Dense result information remains on the high-contrast content surface; no nested glass shaders were introduced.
+- Added a 320 dp widget regression test for long Persian exam names, score visibility, question count, and all three result counts.
