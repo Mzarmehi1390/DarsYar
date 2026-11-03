@@ -2882,7 +2882,6 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
           mode: CupertinoDatePickerMode.time,
           initialDateTime: _selected,
           use24hFormat: true,
-          minuteInterval: 5,
           onDateTimeChanged: (value) => setState(() => _selected = value),
         ),
       ),
