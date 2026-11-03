@@ -1117,7 +1117,7 @@ void main() {
     expect(sessionTitle, findsOneWidget);
     expect(find.text('زیست‌شناسی'), findsWidgets);
     expect(find.text('10:00'), findsOneWidget);
-    expect(find.text('۵۰ دقیقه'), findsOneWidget);
+    expect(find.text('50 دقیقه'), findsOneWidget);
 
     final completeSession = find.bySemanticsLabel('علامت‌گذاری جلسه به‌عنوان انجام‌شده');
     expect(completeSession, findsOneWidget);
