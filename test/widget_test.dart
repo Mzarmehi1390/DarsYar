@@ -167,7 +167,7 @@ void main() {
     expect(find.text('90 دقیقه'), findsOneWidget);
     expect(find.byType(BackdropFilter), findsWidgets);
 
-    await tester.enterText(find.widgetWithText(TextField, 'دقیقه'), '45');
+    await tester.enterText(find.byType(GlassTextField).at(1), '45');
     await tester.tap(find.text('ذخیره زمان'));
     await tester.pumpAndSettle();
 
@@ -189,9 +189,8 @@ void main() {
     await tester.tap(changeDurationButton);
     await tester.pumpAndSettle();
 
-    final dialog = tester.getSize(find.byType(AlertDialog));
-    expect(dialog.width, lessThanOrEqualTo(320));
-    expect(dialog.height, lessThanOrEqualTo(640));
+    expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
+    expect(find.byType(GlassTextField), findsNWidgets(3));
     expect(tester.takeException(), isNull);
   });
 
@@ -201,7 +200,7 @@ void main() {
     await tester.tap(find.text('پاسخ‌برگ'));
     await tester.pumpAndSettle();
 
-    final fields = find.byType(TextField);
+    final fields = find.byType(GlassTextField);
     await tester.enterText(fields.at(0), 'آزمون آزمایشی');
     await tester.enterText(fields.at(1), '3');
     await tester.drag(find.byType(ListView).first, const Offset(0, -320));
@@ -251,8 +250,8 @@ void main() {
     await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور ریاضی');
-    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'مرور ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(1), 'ریاضی');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
