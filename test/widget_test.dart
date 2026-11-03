@@ -496,6 +496,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('planner week selection uses a subtle indicator instead of a checkmark', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey<String>('planner-week-selected-indicator')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('planner-week-selected-indicator')),
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('planner initially selects and reveals the current weekday', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
