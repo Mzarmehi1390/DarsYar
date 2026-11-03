@@ -2103,25 +2103,18 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    GlassIconButton(
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxWidth < 430;
+                    final backButton = GlassIconButton(
                       icon: const Icon(Icons.arrow_forward),
                       onPressed: () => setState(() => isTakingExam = false),
                       size: 40,
                       shape: GlassIconButtonShape.roundedSquare,
                       quality: GlassQuality.standard,
                       semanticLabel: 'بازگشت به پاسخ‌برگ',
-                    ),
-                    Expanded(
-                      child: Text(
-                        exam.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    Container(
+                    );
+                    final timerBadge = Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 7,
@@ -2158,8 +2151,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           ),
                         ],
                       ),
-                    ),
-                    GlassIconButton(
+                    );
+                    final navigatorButton = GlassIconButton(
                       icon: Icon(
                         Icons.format_list_numbered_rounded,
                         color: _showQuestionNavigator
@@ -2173,12 +2166,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       shape: GlassIconButtonShape.roundedSquare,
                       quality: GlassQuality.standard,
                       semanticLabel: 'فهرست سؤال‌ها',
-                    ),
-                    GlassIconButton(
+                    );
+                    final timerButton = GlassIconButton(
                       icon: Icon(
-                        _examTimerRunning
-                            ? Icons.pause
-                            : Icons.play_arrow,
+                        _examTimerRunning ? Icons.pause : Icons.play_arrow,
                       ),
                       onPressed: _toggleExamTimer,
                       size: 40,
@@ -2187,8 +2178,54 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       semanticLabel: _examTimerRunning
                           ? 'توقف زمان‌سنج'
                           : 'ادامه زمان‌سنج',
-                    ),
-                  ],
+                    );
+                    final examTitle = Expanded(
+                      child: Text(
+                        exam.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    );
+
+                    if (compact) {
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              backButton,
+                              const SizedBox(width: 6),
+                              examTitle,
+                              const SizedBox(width: 6),
+                              timerBadge,
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              navigatorButton,
+                              const SizedBox(width: 6),
+                              timerButton,
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        backButton,
+                        const SizedBox(width: 8),
+                        examTitle,
+                        const SizedBox(width: 8),
+                        timerBadge,
+                        const SizedBox(width: 4),
+                        navigatorButton,
+                        timerButton,
+                      ],
+                    );
+                  },
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
