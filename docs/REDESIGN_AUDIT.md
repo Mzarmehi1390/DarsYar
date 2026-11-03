@@ -98,6 +98,8 @@ The redesign must not alter:
 - Refined the navigation dock so the glass layer does not cover the bottom safe inset.
 - Added a subtle page transition with a reduced-motion fallback.
 - Added design-system documentation and a widget test for primary page headers.
+- Centralized theme-aware styling for dialogs, popup menus, bottom sheets, time pickers
+  and date pickers; feature-specific dialog content and actions remain unchanged.
 
 ## Remaining validation
 
@@ -106,4 +108,5 @@ The redesign must not alter:
 - Verify compact viewport and text scaling, long Persian labels and RTL overflow.
 - Profile scroll performance on lists with many sessions/tasks/results.
 - Continue the secondary dialog/sheet and detailed exam-flow visual audit.
+- Verify modal layouts with compact screens, keyboard visibility and large text scaling.
 - Do not merge to `main` until the full screen inventory and QA criteria are satisfied.
