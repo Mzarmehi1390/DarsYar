@@ -901,24 +901,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             children: weekDayOrder.map((day) => Padding(
           key: _plannerDayKeys[day],
           padding: const EdgeInsets.only(left: 8),
-          child: ChoiceChip(
-            showCheckmark: false,
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          child: GlassChip(
+            label: weekDays[day],
+            semanticLabel: weekDays[day],
+            selected: selectedStudyDay == day,
             selectedColor: accent.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark ? 0.24 : 0.13,
-            ),
-            backgroundColor: Theme.of(context)
-                .colorScheme
-                .surface
-                .withValues(alpha: 0.62),
-            side: BorderSide(
-              color: selectedStudyDay == day
-                  ? accent.withValues(alpha: 0.62)
-                  : Theme.of(context).colorScheme.outlineVariant,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.28 : 0.18,
             ),
             labelStyle: TextStyle(
               color: selectedStudyDay == day
@@ -927,10 +915,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               fontWeight: selectedStudyDay == day
                   ? FontWeight.w800
                   : FontWeight.w600,
+              fontSize: 13,
             ),
-            label: Text(weekDays[day]),
-            selected: selectedStudyDay == day,
-            onSelected: (_) {
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            quality: GlassQuality.standard,
+            onTap: () {
               setState(() => selectedStudyDay = day);
               _revealSelectedDay();
             },
@@ -1354,21 +1343,36 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             icon: Icons.fact_check_rounded,
           ),
           SizedBox(height: 14),
-          _glassSurface(
-            radius: 18,
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('ساخت آزمون جدید')),
-                  ButtonSegment(value: 1, label: Text('آزمون‌های من')),
-                ],
-                selected: {examSection},
-                showSelectedIcon: false,
-                onSelectionChanged: (value) =>
-                    setState(() => examSection = value.first),
+          GlassSegmentedControl(
+            segments: const [
+              GlassSegment(
+                label: 'ساخت آزمون جدید',
+                semanticLabel: 'ساخت آزمون جدید',
               ),
+              GlassSegment(
+                label: 'آزمون‌های من',
+                semanticLabel: 'آزمون‌های من',
+              ),
+            ],
+            selectedIndex: examSection,
+            onSegmentSelected: (value) =>
+                setState(() => examSection = value),
+            height: 46,
+            borderRadius: 20,
+            useOwnLayer: true,
+            quality: GlassQuality.standard,
+            selectedTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
             ),
+            unselectedTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+            backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
+            indicatorColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
           ),
         ]),
       ),
