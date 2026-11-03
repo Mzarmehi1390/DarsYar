@@ -1027,14 +1027,13 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    final today = DateTime.now().weekday % 7;
     SharedPreferences.setMockInitialValues({
       'darsyar.studySessions': jsonEncode([
         {
           'id': 'compact-session',
           'title': 'مرور فصل‌های مهم زیست‌شناسی',
           'subject': 'زیست‌شناسی',
-          'weekday': today,
+          'weekday': 0,
           'startMinutes': 600,
           'durationMinutes': 50,
           'completed': false,
@@ -1053,6 +1052,8 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.widgetWithText(GlassChip, 'یکشنبه'));
+    await tester.pumpAndSettle();
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
     await tester.ensureVisible(sessionTitle);
     await tester.pumpAndSettle();
