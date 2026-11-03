@@ -37,22 +37,20 @@ the component geometry requires it.
 
 ## Material roles
 
-- **Primary glass:** default cards, task rows, study-session rows and result cards.
-- **Secondary glass:** compact summaries and supporting information.
-- **Elevated glass:** important grouped panels such as exam setup and weekly reports.
-- **Navigation glass:** the bottom dock, with its own notch and selected-item treatment.
-- **Modal surfaces:** dialogs, popup menus, bottom sheets, time pickers and date pickers
-  share the same rounded geometry, theme-aware surfaces, restrained elevation and
-  high-contrast text. These defaults are centralized in `DarsYarTheme` so
-  transient UI does not drift between features.
+- **Focal glass:** the dashboard hero, rendered with the package's premium shader material.
+- **Navigation glass:** the floating iOS-style tab capsule and its liquid selection lens.
+- **Control glass:** planner weekday chips, segmented selectors, switches, pull-down menus and action buttons.
+- **Icon glass:** compact page-header icon wells, using standard quality.
+- **Content surfaces:** task rows, study-session rows, result cards, summaries, settings groups and exam setup panels use solid `DarsYarContentSurface` fills. This keeps long Persian copy and numeric data readable.
+- **Modal glass:** use `GlassDialog` for short confirmations and `GlassModalSheet` for multi-field editors, answer-key lists and pickers. Use a Cupertino wheel picker inside a glass sheet for time selection.
 
 The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. Planner weekday chips use `GlassChip`, and the exam-mode switcher uses `GlassSegmentedControl`. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
 
 ## Typography
 
 Use the platform's readable Persian-capable sans-serif fallback. Do not force a
-Latin-only font. The shared page header uses a 24 sp title and 12.5 sp supporting
-text, with a glass icon well. Screen titles, section titles, body text, labels and numeric metrics should
+Latin-only font. The shared page header uses a 26 sp title and 12.5 sp supporting
+text, with a shader-glass icon well. Screen titles, section titles, body text, labels and numeric metrics should
 remain distinct through size and weight rather than color alone.
 
 ## Atmospheric background and focal surfaces
@@ -76,7 +74,7 @@ remain distinct through size and weight rather than color alone.
 
 ## Navigation and safe areas
 
-The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule with a liquid selected indicator, Persian TalkBack labels and adaptive rendering quality. `GlassScaffold` owns bar z-ordering and bottom edge fading; page scroll padding remains sufficient to prevent the final content row from being obscured.
+The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule with a liquid selected indicator, Persian TalkBack labels and adaptive rendering quality. It intentionally follows the iOS floating-capsule pattern rather than the previous custom center notch. `GlassScaffold` owns bar z-ordering and bottom edge fading; page scroll padding remains sufficient to prevent the final content row from being obscured.
 
 ## Accessibility and localization
 
@@ -94,7 +92,8 @@ The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule w
 - Keep dense study content on solid grouped surfaces.
 - Use adaptive quality and retain a standard/minimal fallback on slower devices.
 - Blur only bounded surfaces.
-- Prefer the shared material over nested BackdropFilters.
+- Prefer the package's shared glass layer over nested independent glass renderers.
+- Do not use manual `BackdropFilter` surfaces as a substitute for the iOS 27 shader material.
 - Keep expensive effects out of large scrolling regions.
 - Do not add perpetual animation or unnecessary stateful rebuilds.
 - Validate scrolling and animation on a physical Android device before release.
