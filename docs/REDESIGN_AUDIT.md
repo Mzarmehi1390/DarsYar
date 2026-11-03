@@ -92,7 +92,7 @@ The redesign must not alter:
 ## Current redesign work
 
 - Centralized light/dark theme and visual tokens.
-- Integrated `liquid_glass_widgets` 1.16.1 using `GlassThemeData.ios27()`, shader prewarming and adaptive quality; Flutter remains the application framework.
+- Integrated `liquid_glass_widgets` 1.16.1 using `GlassThemeData.ios27()` and shader prewarming; explicit quality tiers avoid experimental auto-switching and keep premium shaders out of scrolling lists. Flutter remains the application framework.
 - Replaced the custom bottom dock with `GlassScaffold` and the shader-backed floating `GlassTabBar`.
 - Applied shader-backed `GlassContainer` materials to the dashboard hero and page-header icon wells; dense study content uses high-contrast `DarsYarContentSurface` rather than blur-heavy cards.
 - Converted planner weekday selection to `GlassChip` and exam-mode selection to `GlassSegmentedControl`.
