@@ -586,6 +586,36 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ));
   }
 
+  Future<bool> _confirmGlass({
+    required String title,
+    required String message,
+    required String confirmLabel,
+    String cancelLabel = 'انصراف',
+    bool destructive = false,
+  }) async {
+    final result = await GlassDialog.show<bool>(
+      context: context,
+      title: title,
+      message: message,
+      maxWidth: 340,
+      quality: GlassQuality.standard,
+      barrierDismissible: false,
+      actions: [
+        GlassDialogAction(
+          label: cancelLabel,
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+        GlassDialogAction(
+          label: confirmLabel,
+          isPrimary: !destructive,
+          isDestructive: destructive,
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+      ],
+    );
+    return result == true;
+  }
+
   Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
@@ -1246,24 +1276,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
         icon: Icon(Icons.edit_outlined, color: accent)),
       IconButton(tooltip: 'حذف جلسه', onPressed: () async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text('حذف جلسه مطالعه'),
-            content: Text('جلسه «${session.title}» حذف شود؟'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text('انصراف'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text('حذف'),
-              ),
-            ],
-          ),
+        final confirmed = await _confirmGlass(
+          title: 'حذف جلسه مطالعه',
+          message: 'جلسه «${session.title}» حذف شود؟',
+          confirmLabel: 'حذف',
+          destructive: true,
         );
-        if (confirmed != true || !mounted) return;
+        if (!confirmed || !mounted) return;
         setState(() => studySessions.removeWhere((item) => item.id == session.id));
         await save(sections: {'studySessions'});
       }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -1304,24 +1323,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
         icon: Icon(Icons.edit_outlined, color: accent)),
       IconButton(tooltip: 'حذف', onPressed: () async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text('حذف وظیفه'),
-            content: Text('وظیفه «${task.title}» حذف شود؟'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: Text('انصراف'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: Text('حذف'),
-              ),
-            ],
-          ),
+        final confirmed = await _confirmGlass(
+          title: 'حذف وظیفه',
+          message: 'وظیفه «${task.title}» حذف شود؟',
+          confirmLabel: 'حذف',
+          destructive: true,
         );
-        if (confirmed != true || !mounted) return;
+        if (!confirmed || !mounted) return;
         setState(() => tasks.removeWhere((e) => e.id == task.id));
         await save(sections: {'tasks'});
       },
@@ -1858,15 +1866,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> _finishExam({bool automatic = false}) async {
     if (!isTakingExam) return;
     if (!automatic) {
-      final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-        title: Text('پایان آزمون؟'),
-        content: Text('پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('ادامه')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('پایان')),
-        ],
-      ));
-      if (ok != true || !mounted || !isTakingExam) return;
+      final ok = await _confirmGlass(
+        title: 'پایان آزمون؟',
+        message: 'پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.',
+        confirmLabel: 'پایان',
+        cancelLabel: 'ادامه',
+      );
+      if (!ok || !mounted || !isTakingExam) return;
     }
     _examTimer?.cancel();
     setState(() {
@@ -2308,15 +2314,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
       return;
     }
-    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-      title: Text('حذف پاسخ‌برگ'),
-      content: Text('«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text('انصراف')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text('حذف')),
-      ],
-    ));
-    if (confirmed != true) return;
+    final confirmed = await _confirmGlass(
+      title: 'حذف پاسخ‌برگ',
+      message: '«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.',
+      confirmLabel: 'حذف',
+      destructive: true,
+    );
+    if (!confirmed) return;
     final deletedExam = activeExam;
     setState(() {
       final index = exams.indexWhere((exam) => exam.id == activeExamId);
@@ -2370,15 +2374,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> editAnswerKey() async {
     if (answerKey.length < count) {
-      final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-        title: Text('تنظیم کلید پاسخ'),
-        content: Text('برای محاسبه نتیجه، گزینه صحیح هر سؤال را وارد کن. فعلاً برای $count سؤال، کلید ${answerKey.length} سؤال ثبت شده است.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('بعداً')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text('شروع')),
-        ],
-      ));
-      if (!mounted || confirmed != true) return;
+      final confirmed = await _confirmGlass(
+        title: 'تنظیم کلید پاسخ',
+        message: 'برای محاسبه نتیجه، گزینه صحیح هر سؤال را وارد کن. فعلاً برای $count سؤال، کلید ${answerKey.length} سؤال ثبت شده است.',
+        confirmLabel: 'شروع',
+        cancelLabel: 'بعداً',
+      );
+      if (!mounted || !confirmed) return;
     }
     final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
       final draft = Map<int, int>.from(answerKey);
@@ -2494,22 +2496,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('جایگزینی اطلاعات؟'),
-        content: Text(
-          'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
+    final confirmed = await _confirmGlass(
+      title: 'جایگزینی اطلاعات؟',
+      message: 'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
           '${importedExams.length} پاسخ‌برگ و ${importedResults.length} نتیجه آزمون وجود دارد. '
           'اطلاعات فعلی با این داده‌ها جایگزین می‌شوند.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text('بازیابی')),
-        ],
-      ),
+      confirmLabel: 'بازیابی',
+      destructive: true,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final oldTasks = List<StudyTask>.from(tasks);
     final oldSessions = List<StudySession>.from(studySessions);
