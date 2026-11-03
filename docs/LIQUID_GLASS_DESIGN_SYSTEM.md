@@ -46,7 +46,7 @@ the component geometry requires it.
   high-contrast text. These defaults are centralized in `DarsYarTheme` so
   transient UI does not drift between features.
 
-The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. This provides the library's iOS 27 paraxial-lens material on supported Impeller devices and a quality-adapted fallback elsewhere. Keep refractive glass for floating navigation, controls and selected focal surfaces; dense study lists and grouped content should remain high-contrast solid surfaces. The legacy bounded `DarsYarGlassSurface` remains during the screen migration and must not become the default wrapper for every row.
+The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
 
 ## Typography
 
@@ -58,7 +58,8 @@ remain distinct through size and weight rather than color alone.
 ## Atmospheric background and focal surfaces
 
 - Use a cool, softly layered blue/green/violet ambient background so glass can pick up visible color variation.
-- The dashboard hero is a translucent elevated focal surface, not an opaque gradient banner.
+- The dashboard hero is a shader-backed, elevated focal glass surface, not an opaque gradient banner.
+- Page-header icon wells use small independent shader-glass surfaces; they do not contain nested glass controls.
 - Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
 - Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
 
@@ -87,7 +88,8 @@ The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule w
 
 ## Performance rules
 
-- Prefer the package's shader-backed glass for floating controls and navigation.
+- Prefer the package's shader-backed glass for floating controls, page-header icon wells, the dashboard focal hero and navigation.
+- Keep dense study content on solid grouped surfaces.
 - Use adaptive quality and retain a standard/minimal fallback on slower devices.
 - Blur only bounded surfaces.
 - Prefer the shared material over nested BackdropFilters.
