@@ -44,6 +44,20 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('dashboard glass quick actions fit a compact phone width', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('برنامه‌ریزی'), findsOneWidget);
+    expect(find.text('پاسخ‌برگ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('primary destinations use the shared Persian page header', (WidgetTester tester) async {
     for (final destination in const [
       (tab: 0, title: 'درس‌یار'),
