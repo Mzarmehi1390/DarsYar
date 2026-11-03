@@ -1192,16 +1192,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
             title: Text('حذف جلسه مطالعه'),
             content: Text('جلسه «${session.title}» حذف شود؟'),
             actions: [
@@ -1260,16 +1250,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
             title: Text('حذف وظیفه'),
             content: Text('وظیفه «${task.title}» حذف شود؟'),
             actions: [
@@ -1807,16 +1787,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (!isTakingExam) return;
     if (!automatic) {
       final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('پایان آزمون؟'),
         content: Text('پاسخ‌ها ذخیره و نتیجه ثبت می‌شود.'),
         actions: [
@@ -2140,16 +2110,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final updatedKey = await showDialog<Map<int, int>>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('کلید پاسخ: ${result.examName}'),
         content: SizedBox(
           width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
@@ -2277,16 +2237,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return;
     }
     final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
       title: Text('حذف پاسخ‌برگ'),
       content: Text('«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.'),
       actions: [
@@ -2315,16 +2265,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     bool flag = marked.contains(number);
     final result = await showDialog<({int? answer, bool marked})>(context: context, builder: (context) =>
       StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('سؤال $number'),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           Align(alignment: Alignment.centerRight, child: Text('گزینهٔ پاسخ')),
@@ -2359,16 +2299,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editAnswerKey() async {
     if (answerKey.length < count) {
       final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('تنظیم کلید پاسخ'),
         content: Text('برای محاسبه نتیجه، گزینه صحیح هر سؤال را وارد کن. فعلاً برای $count سؤال، کلید ${answerKey.length} سؤال ثبت شده است.'),
         actions: [
@@ -2381,16 +2311,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
       final draft = Map<int, int>.from(answerKey);
       return StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('کلید پاسخ‌ها'),
         content: SizedBox(width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(), height: (MediaQuery.sizeOf(context).height * 0.50).clamp(180.0, 420.0).toDouble(), child: ListView.builder(
           itemCount: count,
@@ -2505,16 +2425,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
         title: Text('جایگزینی اطلاعات؟'),
         content: Text(
           'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
@@ -2789,16 +2699,6 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
     final draft = Map<int, int>.from(_answerKey);
     final updated = await showDialog<Map<int, int>>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
       title: Text('کلید پاسخ آزمون'),
       content: SizedBox(
         width: (MediaQuery.sizeOf(context).width - 128)
@@ -3046,16 +2946,6 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
     title: Text('تنظیم زمان آزمون'),
     content: SizedBox(
       width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
@@ -3133,16 +3023,6 @@ class _TaskEditorDialogState extends State<_TaskEditorDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
     title: Text(widget.existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
     content: Column(mainAxisSize: MainAxisSize.min, children: [
       TextField(
@@ -3201,16 +3081,6 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
     title: Text('بازیابی نسخه پشتیبان'),
     content: SizedBox(
       width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
@@ -3271,16 +3141,6 @@ class _ExamNameDialogState extends State<_ExamNameDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
     title: Text(widget.isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید'),
     content: TextField(
       controller: _controller,
@@ -3359,16 +3219,6 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.88),
-    surfaceTintColor: Colors.transparent,
-    elevation: 18,
-    shadowColor: Colors.black.withValues(alpha: 0.22),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(26),
-      side: BorderSide(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.55),
-      ),
-    ),
     title: Text(widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه'),
     content: SingleChildScrollView(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
