@@ -16,6 +16,7 @@ import 'design_system/page_header.dart';
 import 'exam_result.dart';
 import 'exam_sheet.dart';
 import 'study_session.dart';
+import 'models/study_task.dart';
 
 void showDarsYarGlassSnackBar(
   BuildContext context,
@@ -65,19 +66,6 @@ Future<void> main() async {
 }
 
 const accent = DarsYarTokens.accent;
-
-class StudyTask {
-  StudyTask(this.id, this.title, this.subject, {this.done = false});
-  final String id;
-  final String title;
-  final String subject;
-  bool done;
-  Map<String, dynamic> toJson() => {'id': id, 'title': title, 'subject': subject, 'done': done};
-  factory StudyTask.fromJson(Map<String, dynamic> json) => StudyTask(
-    json['id'] as String, json['title'] as String, json['subject'] as String? ?? 'عمومی',
-    done: json['done'] as bool? ?? false,
-  );
-}
 
 class DarsYarApp extends StatefulWidget {
   const DarsYarApp({super.key, this.initialTab = 0});
