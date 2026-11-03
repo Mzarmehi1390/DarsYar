@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
-import 'design_system/darsyar_theme.dart';
-import 'design_system/glass_surface.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'answer_scoring.dart';
 import 'backup_codec.dart';
-import 'exam_sheet.dart';
-import 'exam_result.dart';
-import 'study_session.dart';
 import 'darsyar_storage.dart';
+import 'design_system/darsyar_theme.dart';
+import 'design_system/glass_surface.dart';
+import 'exam_result.dart';
+import 'exam_sheet.dart';
+import 'study_session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
