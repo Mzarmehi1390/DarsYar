@@ -29,23 +29,17 @@ void main() {
   });
 
   testWidgets('primary destinations use the shared Persian page header', (WidgetTester tester) async {
-    await tester.pumpWidget(const DarsYarApp());
-    await tester.pumpAndSettle();
-
-    expect(find.text('درس‌یار'), findsOneWidget);
-
-    await tester.tap(find.text('برنامه‌ریزی').last);
-    await tester.pumpAndSettle();
-    expect(find.text('برنامه‌ریزی درسی'), findsOneWidget);
-
-    await tester.tap(find.text('پاسخ‌برگ').last);
-    await tester.pumpAndSettle();
-    expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
-
-    await tester.tap(find.text('تنظیمات').last);
-    await tester.pumpAndSettle();
-    expect(find.text('تنظیمات'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    for (final destination in const [
+      (tab: 0, title: 'درس‌یار'),
+      (tab: 1, title: 'برنامه‌ریزی درسی'),
+      (tab: 2, title: 'پاسخ‌برگ آزمون'),
+      (tab: 3, title: 'تنظیمات'),
+    ]) {
+      await tester.pumpWidget(DarsYarApp(initialTab: destination.tab));
+      await tester.pumpAndSettle();
+      expect(find.text(destination.title), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('tap feedback is disabled and card elevation stays fixed', (WidgetTester tester) async {
