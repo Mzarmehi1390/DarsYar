@@ -780,7 +780,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
+  Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
       subtitle: 'برنامه‌ریزی هوشمند برای یادگیری بهتر',
@@ -1110,7 +1110,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     final completedSessions = studySessions.where((session) => session.completed).length;
     final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
-    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, 124), children: [
+    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance), children: [
       const DarsYarPageHeader(
         title: 'برنامه‌ریزی درسی',
         subtitle: 'برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.',
@@ -1744,7 +1744,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Widget _myExamsView() => ListView(
     key: const PageStorageKey<String>('my-exams-scroll'),
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, 124),
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, DarsYarTokens.pageBottomClearance),
     children: [
       Text('پاسخ‌برگ‌های ذخیره‌شده', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
       SizedBox(height: 10),
@@ -2070,7 +2070,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 18, 14, 124),
+                  padding: const EdgeInsets.fromLTRB(14, 18, 14, DarsYarTokens.pageBottomClearance),
                   children: [
                     _glassSurface(
                       radius: 24,
@@ -2997,7 +2997,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
+  Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'تنظیمات',
       subtitle: 'ظاهر و نگهداری اطلاعات برنامه را مدیریت کن.',
@@ -3589,7 +3589,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
 
   @override
   Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(20, 8, 20, 124),
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, DarsYarTokens.pageBottomClearance),
     children: [
       _LiquidGlassPanel(child: Padding(
         padding: const EdgeInsets.all(16),
