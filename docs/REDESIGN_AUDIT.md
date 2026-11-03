@@ -106,6 +106,9 @@ The redesign must not alter:
   week-card checkmark with a restrained, screen-reader-labelled selection dot.
 - Made the task editor's title and fields scroll together on compact viewports and
   added a 320 × 640 dp widget regression test.
+- Eagerly build the seven weekday chips and seven weekly cards inside bounded
+  horizontal scrollers so the selected day is always addressable by its reveal logic,
+  including on narrow phones.
 
 ## Remaining validation
 
