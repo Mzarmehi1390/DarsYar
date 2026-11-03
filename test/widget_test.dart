@@ -1099,8 +1099,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
-    // Select the fixture's fixed weekday instead of relying on today's date.
-    await tester.tap(find.text('چهارشنبه').first);
+    // Select the fixture's fixed weekday through its stable chip identity.
+    await tester.tap(find.byKey(const ValueKey<String>('planner-day-3')));
     await tester.pumpAndSettle();
     await tester.ensureVisible(sessionTitle);
     await tester.pumpAndSettle();
