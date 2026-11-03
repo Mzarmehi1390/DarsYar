@@ -2035,73 +2035,94 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]);
   }
 
-  Widget _myExamsView() => ListView(
-    key: const PageStorageKey<String>('my-exams-scroll'),
-    padding: const EdgeInsets.fromLTRB(16, 8, 16, DarsYarTokens.pageBottomClearance),
-    children: [
-      Text('پاسخ‌برگ‌های ذخیره‌شده', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-      SizedBox(height: 10),
-      if (exams.isEmpty)
-        emptyState(Icons.assignment_outlined, 'هنوز آزمونی نساخته‌ای', 'از بخش ساخت آزمون جدید، اولین پاسخ‌برگت را ایجاد کن.')
-      else
-        for (final exam in exams.reversed)
-          Card(
-            margin: const EdgeInsets.only(bottom: 10),
-            color: Colors.transparent,
-            elevation: 0,
-            surfaceTintColor: Colors.transparent,
-            child: _glassSurface(
-              radius: 22,
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                  Expanded(child: Text(exam.name, maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
-                  GlassPullDownButton(
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    semanticLabel: 'مدیریت آزمون ${exam.name}',
-                    quality: GlassQuality.standard,
-                    menuWidth: 220,
-                    items: [
-                      GlassMenuItem(
-                        title: 'تغییر نام',
-                        icon: const Icon(Icons.edit_rounded),
-                        onTap: () {
-                          setState(() => activeExamId = exam.id);
-                          renameExam();
-                        },
-                      ),
-                      GlassMenuItem(
-                        title: 'ویرایش کلید پاسخ',
-                        icon: const Icon(Icons.key_rounded),
-                        onTap: () {
-                          setState(() => activeExamId = exam.id);
-                          editAnswerKey();
-                        },
-                      ),
-                      GlassMenuItem(
-                        title: 'حذف آزمون',
-                        icon: const Icon(Icons.delete_outline_rounded),
-                        isDestructive: true,
-                        onTap: () {
-                          setState(() => activeExamId = exam.id);
-                          deleteExam();
-                        },
-                      ),
-                    ],
+  Widget _savedExamCard(exam) => Card(
+    margin: const EdgeInsets.only(bottom: 10),
+    color: Colors.transparent,
+    elevation: 0,
+    surfaceTintColor: Colors.transparent,
+    child: _glassSurface(
+      radius: 22,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    exam.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
                   ),
-                ]),
-                SizedBox(height: 4),
-                Text('${exam.questionCount} سؤال  •  ${_formatDuration(exam.durationSeconds)}  •  ${exam.answers.length} پاسخ',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-                SizedBox(height: 10),
-                Align(alignment: Alignment.centerLeft, child: exam.isCompleted
-                  ? Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(Icons.check_circle_rounded, size: 17, color: accent),
-                      SizedBox(width: 6),
-                      Text('آزمون پایان یافته', style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 12)),
-                    ])
+                ),
+                GlassPullDownButton(
+                  icon: const Icon(Icons.more_horiz_rounded),
+                  semanticLabel: 'مدیریت آزمون ${exam.name}',
+                  quality: GlassQuality.standard,
+                  menuWidth: 220,
+                  items: [
+                    GlassMenuItem(
+                      title: 'تغییر نام',
+                      icon: const Icon(Icons.edit_rounded),
+                      onTap: () {
+                        setState(() => activeExamId = exam.id);
+                        renameExam();
+                      },
+                    ),
+                    GlassMenuItem(
+                      title: 'ویرایش کلید پاسخ',
+                      icon: const Icon(Icons.key_rounded),
+                      onTap: () {
+                        setState(() => activeExamId = exam.id);
+                        editAnswerKey();
+                      },
+                    ),
+                    GlassMenuItem(
+                      title: 'حذف آزمون',
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      isDestructive: true,
+                      onTap: () {
+                        setState(() => activeExamId = exam.id);
+                        deleteExam();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${exam.questionCount} سؤال  •  ${_formatDuration(exam.durationSeconds)}  •  ${exam.answers.length} پاسخ',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: exam.isCompleted
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_rounded, size: 17, color: accent),
+                        const SizedBox(width: 6),
+                        Text(
+                          'آزمون پایان یافته',
+                          style: TextStyle(
+                            color: accent,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    )
                   : GlassButton.custom(
                       width: 142,
                       height: 44,
@@ -2113,17 +2134,90 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                    )),
-                ]),
-              ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _myExamsView() {
+    final savedExams = exams.reversed.toList(growable: false);
+    final empty = savedExams.isEmpty;
+    final itemCount = empty ? 7 : savedExams.length + 5;
+
+    return CustomScrollView(
+      key: const PageStorageKey<String>('my-exams-scroll'),
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            8,
+            16,
+            DarsYarTokens.pageBottomClearance,
+          ),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                if (index == 0) {
+                  return const Text(
+                    'پاسخ‌برگ‌های ذخیره‌شده',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                  );
+                }
+                if (index == 1) return const SizedBox(height: 10);
+
+                if (empty) {
+                  switch (index) {
+                    case 2:
+                      return emptyState(
+                        Icons.assignment_outlined,
+                        'هنوز آزمونی نساخته‌ای',
+                        'از بخش ساخت آزمون جدید، اولین پاسخ‌برگت را ایجاد کن.',
+                      );
+                    case 3:
+                      return const SizedBox(height: 14);
+                    case 4:
+                      return const Text(
+                        'نتایج آزمون‌ها',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      );
+                    case 5:
+                      return const SizedBox(height: 8);
+                    case 6:
+                      return resultsHistory();
+                  }
+                } else {
+                  final examIndex = index - 2;
+                  if (examIndex < savedExams.length) {
+                    return _savedExamCard(savedExams[examIndex]);
+                  }
+                  switch (examIndex - savedExams.length) {
+                    case 0:
+                      return const SizedBox(height: 14);
+                    case 1:
+                      return const Text(
+                        'نتایج آزمون‌ها',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      );
+                    case 2:
+                      return const SizedBox(height: 8);
+                    case 3:
+                      return resultsHistory();
+                  }
+                }
+                return const SizedBox.shrink();
+              },
+              childCount: itemCount,
+              addAutomaticKeepAlives: false,
+              addRepaintBoundaries: true,
             ),
           ),
-      SizedBox(height: 14),
-      Text('نتایج آزمون‌ها', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-      SizedBox(height: 8),
-      resultsHistory(),
-    ],
-  );
+        ),
+      ],
+    );
+  }
 
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
