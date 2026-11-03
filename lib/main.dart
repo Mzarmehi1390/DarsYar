@@ -412,10 +412,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GlassScaffold(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(
+        // Keep the decorative radial-gradient backdrop in its own
+        // paint layer. Frequent page-state updates (including exam timer
+        // ticks) should repaint the active content without repainting these
+        // static glass-atmosphere layers.
+        background: RepaintBoundary(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topRight,
@@ -496,8 +501,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   ),
                 ),
               ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         body: SafeArea(
           bottom: false,
