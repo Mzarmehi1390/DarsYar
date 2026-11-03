@@ -742,9 +742,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         maxWidth: 360,
         quality: GlassQuality.standard,
         barrierColor: Colors.black.withValues(alpha: 0.30),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        content: DarsYarModalContent(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             GlassFormField(
               label: 'عنوان وظیفه',
               child: GlassTextField(
@@ -767,7 +768,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 textInputAction: TextInputAction.done,
               ),
             ),
-          ],
+            ],
+          ),
         ),
         actions: [
           GlassDialogAction(
