@@ -941,11 +941,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         ? Duration.zero
                         : const Duration(milliseconds: 260),
                     curve: Curves.easeOutCubic,
-                    builder: (context, progress, _) => LinearProgressIndicator(
-                      minHeight: 8,
+                    builder: (context, progress, _) => GlassProgressIndicator.linear(
+                      height: 8,
+                      minWidth: 0,
                       value: progress,
                       backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.09),
-                      color: Theme.of(context).colorScheme.primary,
+                      color: accent,
+                      quality: GlassQuality.standard,
+                      semanticLabel: 'پیشرفت وظایف',
                     ),
                   ),
                 ),
@@ -1301,11 +1304,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                minHeight: 7,
+              child: GlassProgressIndicator.linear(
+                height: 7,
+                minWidth: 0,
                 value: completion,
                 backgroundColor:
                     Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: accent,
+                quality: GlassQuality.standard,
+                semanticLabel: 'پیشرفت هفتگی مطالعه',
               ),
             ),
             const SizedBox(height: 8),
@@ -1453,11 +1460,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     ? Duration.zero
                     : const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
-                builder: (context, progress, _) => LinearProgressIndicator(
-                  minHeight: 5,
+                builder: (context, progress, _) => GlassProgressIndicator.linear(
+                  height: 5,
+                  minWidth: 0,
                   value: progress,
                   backgroundColor:
                       Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: accent,
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'پیشرفت روز ${weekDays[day]}',
                 ),
               ),
             ),
@@ -1863,11 +1874,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
+                  child: GlassProgressIndicator.linear(
                     value: exam.questionCount == 0
                         ? 0
                         : answered / exam.questionCount,
-                    minHeight: 7,
+                    height: 7,
+                    minWidth: 0,
+                    color: accent,
+                    backgroundColor:
+                        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                    quality: GlassQuality.standard,
+                    semanticLabel: 'پیشرفت آزمون',
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -2290,10 +2307,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))),
                         Expanded(child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            minHeight: 12,
+                          child: GlassProgressIndicator.linear(
+                            height: 12,
+                            minWidth: 0,
                             value: ((chartResults[i].percentage ?? 0) / 100).clamp(0.0, 1.0).toDouble(),
+                            color: accent,
                             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            quality: GlassQuality.standard,
+                            semanticLabel: 'درصد نتیجه آزمون',
                           ),
                         )),
                         SizedBox(width: 10),
@@ -3265,12 +3286,16 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
       const SizedBox(height: 12),
       ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: LinearProgressIndicator(
-          minHeight: 5,
+        child: GlassProgressIndicator.linear(
+          height: 5,
+          minWidth: 0,
           value: widget.questionCount == 0
               ? 0
-              : (_draft.length / widget.questionCount).clamp(0.0, 1.0),
+              : (_draft.length / widget.questionCount).clamp(0.0, 1.0).toDouble(),
+          color: accent,
           backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+          quality: GlassQuality.standard,
+          semanticLabel: 'پیشرفت ورود کلید پاسخ',
         ),
       ),
       const SizedBox(height: 12),
