@@ -996,26 +996,59 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       SizedBox(height: 16),
       weeklyReportCard(),
       SizedBox(height: 20),
-      Row(children: [
-        Expanded(child: Text(weekDays[selectedStudyDay], style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-        OutlinedButton.icon(onPressed: addStudySession, icon: Icon(Icons.add_rounded), label: Text('جلسه جدید')),
-        SizedBox(width: 6),
-        PopupMenuButton<int>(
-          tooltip: 'کپی برنامه این روز',
-          icon: Icon(Icons.copy_all_rounded),
-          onSelected: copySelectedDayTo,
-          itemBuilder: (context) => List.generate(7, (day) => PopupMenuItem<int>(
-            value: day,
-            enabled: day != selectedStudyDay,
-            child: Text('کپی برنامه به ${weekDays[day]}'),
-          )),
-        ),
-      ]),
+      Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 8,
+        children: [
+          Text(
+            weekDays[selectedStudyDay],
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+          ),
+          OutlinedButton.icon(
+            onPressed: addStudySession,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('جلسه جدید'),
+          ),
+          PopupMenuButton<int>(
+            tooltip: 'کپی برنامه این روز',
+            icon: const Icon(Icons.copy_all_rounded),
+            onSelected: copySelectedDayTo,
+            itemBuilder: (context) => List.generate(
+              7,
+              (day) => PopupMenuItem<int>(
+                value: day,
+                enabled: day != selectedStudyDay,
+                child: Text('کپی برنامه به ${weekDays[day]}'),
+              ),
+            ),
+          ),
+        ],
+      ),
       if (daySessions.isEmpty)
         emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
       else ...daySessions.map(studySessionTile),
       SizedBox(height: 22),
-      Row(children: [Expanded(child: Text('فهرست وظایف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))), FilledButton.tonalIcon(onPressed: addTask, icon: Icon(Icons.add_rounded), label: Text('ثبت وظیفه'))]),
+      Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runSpacing: 8,
+        children: [
+          Text(
+            'فهرست وظایف',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: addTask,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('ثبت وظیفه'),
+          ),
+        ],
+      ),
       SizedBox(height: 10),
       if (tasks.isEmpty)
         emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، دکمه «افزودن وظیفه» را بزن.')
