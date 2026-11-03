@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
 
@@ -27,6 +28,16 @@ void main() {
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('جلسه جدید'), 250, scrollable: find.byType(Scrollable).first);
     expect(find.text('جلسه جدید'), findsOneWidget);
+  });
+
+  testWidgets('app shell uses iOS 27 shader glass navigation and focal surfaces', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GlassScaffold), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
+    expect(find.byType(GlassContainer), findsWidgets);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('primary destinations use the shared Persian page header', (WidgetTester tester) async {
