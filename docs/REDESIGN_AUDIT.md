@@ -201,3 +201,10 @@ The redesign must not alter:
 
 
 - Stabilized the compact planner card fixture by placing its sample session on the runtime's initially selected weekday. This keeps the test focused on compact card layout and completion persistence instead of relying on horizontal weekday-chip interaction.
+
+
+## Specular reflection pass
+
+- Added a broad, low-contrast radial highlight and a fine lower-edge reflection to the shared floating page header.
+- Kept both reflections behind the title and icon, clipped to the shader-backed surface, and tuned opacity separately for light and dark themes.
+- The existing shared-header widget test continues to exercise all four primary destinations; physical-device review is still required to judge the shader/reflection balance on real displays.
