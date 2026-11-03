@@ -1002,4 +1002,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('planner summary metrics and weekly overview render without layout errors', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('جلسه‌ها'), findsOneWidget);
+    expect(find.text('انجام‌شده'), findsOneWidget);
+    expect(find.text('دقیقه امروز'), findsOneWidget);
+    expect(find.text('نمای کلی هفته'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('planner-week-selected-indicator')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
