@@ -11,6 +11,7 @@ import 'backup_codec.dart';
 import 'darsyar_storage.dart';
 import 'design_system/darsyar_theme.dart';
 import 'design_system/glass_surface.dart';
+import 'design_system/page_header.dart';
 import 'exam_result.dart';
 import 'exam_sheet.dart';
 import 'study_session.dart';
@@ -706,14 +707,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
-    Row(children: [
-      CircleAvatar(backgroundColor: Color(0xFFDDF3E6), child: Icon(Icons.auto_stories_rounded, color: accent)),
-      SizedBox(width: 12),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('درس‌یار', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
-        Text('برنامه‌ریزی هوشمند برای یادگیری بهتر', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      ]),
-    ]),
+    const DarsYarPageHeader(
+      title: 'درس‌یار',
+      subtitle: 'برنامه‌ریزی هوشمند برای یادگیری بهتر',
+      icon: Icons.auto_stories_rounded,
+    ),
     SizedBox(height: 24),
     ClipRRect(
       borderRadius: BorderRadius.circular(30),
@@ -915,9 +913,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final completedSessions = studySessions.where((session) => session.completed).length;
     final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
     return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, 124), children: [
-      Text('برنامه‌ریزی درسی', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
-      SizedBox(height: 6),
-      Text('برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      const DarsYarPageHeader(
+        title: 'برنامه‌ریزی درسی',
+        subtitle: 'برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.',
+        icon: Icons.calendar_month_rounded,
+      ),
       SizedBox(height: 18),
       Row(children: [
         Expanded(child: summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded)),
@@ -1301,8 +1301,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       Padding(
         padding: const EdgeInsets.all(18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('پاسخ‌برگ آزمون', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800)),
-          SizedBox(height: 12),
+          const DarsYarPageHeader(
+            title: 'پاسخ‌برگ آزمون',
+            subtitle: 'آزمون بساز، پاسخ‌ها را ثبت کن و نتیجه‌ها را بررسی کن.',
+            icon: Icons.fact_check_rounded,
+          ),
+          SizedBox(height: 14),
           SegmentedButton<int>(
             segments: const [
               ButtonSegment(value: 0, label: Text('ساخت آزمون جدید')),
@@ -2229,8 +2233,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
-    Text('تنظیمات', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface)),
-    SizedBox(height: 6), Text('ظاهر برنامه را مطابق سلیقه‌ات تنظیم کن.', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    const DarsYarPageHeader(
+      title: 'تنظیمات',
+      subtitle: 'ظاهر و نگهداری اطلاعات برنامه را مدیریت کن.',
+      icon: Icons.tune_rounded,
+    ),
     SizedBox(height: 18),
     _glassSurface(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
