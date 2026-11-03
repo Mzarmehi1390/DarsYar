@@ -135,6 +135,76 @@ abstract final class DarsYarTheme {
         shape: shape,
         margin: EdgeInsets.zero,
       ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface.withValues(alpha: isDark ? 0.97 : 0.96),
+        surfaceTintColor: Colors.transparent,
+        elevation: 20,
+        shadowColor: Colors.black.withValues(alpha: isDark ? 0.34 : 0.16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DarsYarTokens.radiusExtraLarge),
+          side: BorderSide(color: cardBorder.withValues(alpha: 0.9)),
+        ),
+        titleTextStyle: TextStyle(
+          color: scheme.onSurface,
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: TextStyle(
+          color: scheme.onSurfaceVariant,
+          fontSize: 14,
+          height: 1.55,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: scheme.surface.withValues(alpha: isDark ? 0.98 : 0.97),
+        surfaceTintColor: Colors.transparent,
+        elevation: 16,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DarsYarTokens.radiusMedium),
+          side: BorderSide(color: cardBorder.withValues(alpha: 0.9)),
+        ),
+        textStyle: TextStyle(color: scheme.onSurface, fontSize: 13),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface,
+        modalBackgroundColor: scheme.surface.withValues(alpha: 0.98),
+        surfaceTintColor: Colors.transparent,
+        elevation: 12,
+        modalElevation: 18,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(DarsYarTokens.radiusExtraLarge),
+          ),
+        ),
+        showDragHandle: true,
+        dragHandleColor: scheme.outlineVariant,
+      ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: scheme.surface,
+        hourMinuteShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DarsYarTokens.radiusMedium),
+        ),
+        hourMinuteColor: scheme.surfaceContainerHighest,
+        hourMinuteTextColor: scheme.onSurface,
+        dialBackgroundColor: scheme.surfaceContainerHighest,
+        dialHandColor: scheme.primary,
+        dialTextColor: scheme.onSurface,
+        entryModeIconColor: scheme.primary,
+      ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: isDark
+            ? DarsYarTokens.darkSurfaceRaised
+            : DarsYarTokens.lightSurfaceRaised,
+        headerForegroundColor: scheme.onSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DarsYarTokens.radiusExtraLarge),
+          side: BorderSide(color: cardBorder.withValues(alpha: 0.9)),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: inputFill.withValues(alpha: isDark ? 0.58 : 0.62),
