@@ -1081,4 +1081,46 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('exam result history cards remain readable on compact screens', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'darsyar.results': jsonEncode([
+        {
+          'id': 'compact-result',
+          'examId': 'compact-exam',
+          'examName': 'آزمون جامع پایان فصل زیست‌شناسی',
+          'completedAt': '2026-10-30T10:00:00.000Z',
+          'questionCount': 30,
+          'correct': 24,
+          'wrong': 3,
+          'unanswered': 3,
+          'keyedQuestions': 30,
+          'percentage': 80.0,
+          'negativeMarking': false,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final resultTitle = find.text('آزمون جامع پایان فصل زیست‌شناسی');
+    await tester.ensureVisible(resultTitle);
+    expect(resultTitle, findsOneWidget);
+    expect(find.text('۸۰٪'), findsOneWidget);
+    expect(find.text('۳۰ سؤال'), findsOneWidget);
+    expect(find.text('درست: 24'), findsOneWidget);
+    expect(find.text('غلط: 3'), findsOneWidget);
+    expect(find.text('بی‌پاسخ: 3'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
