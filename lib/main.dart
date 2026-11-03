@@ -1561,15 +1561,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Text(
               '${sessions.length} جلسه • $minutes دقیقه',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: TweenAnimationBuilder<double>(
@@ -1593,13 +1593,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               sessions.isEmpty
                   ? 'بدون برنامه'
                   : '$done از ${sessions.length} انجام‌شده',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
