@@ -616,6 +616,107 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return result == true;
   }
 
+  Future<String?> _requestExamName({
+    String initialName = '',
+    bool isRename = false,
+  }) async {
+    final controller = TextEditingController(text: initialName);
+    try {
+      return await GlassDialog.show<String>(
+        context: context,
+        title: isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید',
+        maxWidth: 360,
+        quality: GlassQuality.standard,
+        content: GlassFormField(
+          label: 'نام آزمون',
+          child: GlassTextField(
+            controller: controller,
+            placeholder: isRename ? 'نام جدید آزمون' : 'مثلاً آزمون ریاضی فصل اول',
+            maxLength: 60,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+          ),
+        ),
+        actions: [
+          GlassDialogAction(
+            label: 'انصراف',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          GlassDialogAction(
+            label: isRename ? 'ذخیره' : 'ساختن',
+            isPrimary: true,
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty) Navigator.of(context).pop(value);
+            },
+          ),
+        ],
+      );
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  Future<(String, String)?> _requestTaskDetails([StudyTask? existing]) async {
+    final titleController = TextEditingController(text: existing?.title ?? '');
+    final subjectController = TextEditingController(text: existing?.subject ?? '');
+    try {
+      return await GlassDialog.show<(String, String)>(
+        context: context,
+        title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
+        maxWidth: 360,
+        quality: GlassQuality.standard,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GlassFormField(
+              label: 'عنوان وظیفه',
+              child: GlassTextField(
+                controller: titleController,
+                placeholder: 'مثلاً مرور فصل دوم',
+                maxLength: 100,
+                autofocus: true,
+                textInputAction: TextInputAction.next,
+              ),
+            ),
+            const SizedBox(height: 14),
+            GlassFormField(
+              label: 'درس',
+              child: GlassTextField(
+                controller: subjectController,
+                placeholder: 'مثلاً ریاضی',
+                maxLength: 50,
+                textInputAction: TextInputAction.done,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          GlassDialogAction(
+            label: 'انصراف',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          GlassDialogAction(
+            label: existing == null ? 'افزودن' : 'ذخیره',
+            isPrimary: true,
+            onPressed: () {
+              final title = titleController.text.trim();
+              if (title.isNotEmpty) {
+                Navigator.of(context).pop((
+                  title,
+                  subjectController.text.trim(),
+                ));
+              }
+            },
+          ),
+        ],
+      );
+    } finally {
+      titleController.dispose();
+      subjectController.dispose();
+    }
+  }
+
   Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
@@ -2271,10 +2372,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   );
 
   Future<void> addExam() async {
-    final name = await showDialog<String>(
-      context: context,
-      builder: (_) => const _ExamNameDialog(),
-    );
+    final name = await _requestExamName();
     if (name == null || name.trim().isEmpty || !mounted) return;
     final exam = ExamSheet(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -2289,9 +2387,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> renameExam() async {
-    final name = await showDialog<String>(
-      context: context,
-      builder: (_) => _ExamNameDialog(initialName: activeExam.name, isRename: true),
+    final name = await _requestExamName(
+      initialName: activeExam.name,
+      isRename: true,
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
     final oldName = activeExam.name;
@@ -2664,10 +2762,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> addTask([StudyTask? existing]) async {
-    final result = await showDialog<(String, String)>(
-      context: context,
-      builder: (_) => _TaskEditorDialog(existing: existing),
-    );
+    final result = await _requestTaskDetails(existing);
     if (result == null || !mounted) return;
     setState(() {
       final subject = result.$2.isEmpty ? 'عمومی' : result.$2;
@@ -3061,70 +3156,6 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
   );
 }
 
-class _TaskEditorDialog extends StatefulWidget {
-  const _TaskEditorDialog({this.existing});
-
-  final StudyTask? existing;
-
-  @override
-  State<_TaskEditorDialog> createState() => _TaskEditorDialogState();
-}
-
-class _TaskEditorDialogState extends State<_TaskEditorDialog> {
-  late final TextEditingController _titleController;
-  late final TextEditingController _subjectController;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.existing?.title ?? '');
-    _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _subjectController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    scrollable: true,
-    title: Text(widget.existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
-    content: Column(mainAxisSize: MainAxisSize.min, children: [
-      TextField(
-        controller: _titleController,
-        autofocus: true,
-        maxLength: 100,
-        decoration: InputDecoration(labelText: 'عنوان وظیفه'),
-      ),
-      SizedBox(height: 10),
-      TextField(
-        controller: _subjectController,
-        maxLength: 50,
-        decoration: InputDecoration(labelText: 'درس'),
-      ),
-    ]),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text('انصراف'),
-      ),
-      FilledButton(
-        onPressed: () {
-          final title = _titleController.text.trim();
-          if (title.isNotEmpty) {
-            Navigator.pop(context, (title, _subjectController.text.trim()));
-          }
-        },
-        child: Text(widget.existing == null ? 'افزودن' : 'ذخیره'),
-      ),
-    ],
-  );
-}
-
-
 class _BackupImportDialog extends StatefulWidget {
   const _BackupImportDialog();
 
@@ -3180,62 +3211,6 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
       ),
     ],
   );
-}
-
-class _ExamNameDialog extends StatefulWidget {
-  const _ExamNameDialog({this.initialName = '', this.isRename = false});
-
-  final String initialName;
-  final bool isRename;
-
-  @override
-  State<_ExamNameDialog> createState() => _ExamNameDialogState();
-}
-
-class _ExamNameDialogState extends State<_ExamNameDialog> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialName);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید'),
-    content: TextField(
-      controller: _controller,
-      autofocus: true,
-      maxLength: 60,
-      decoration: InputDecoration(
-        labelText: 'نام آزمون',
-        hintText: widget.isRename ? null : 'مثلاً آزمون ریاضی فصل اول',
-      ),
-      onSubmitted: (_) => _submit(),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text('انصراف'),
-      ),
-      FilledButton(
-        onPressed: _submit,
-        child: Text(widget.isRename ? 'ذخیره' : 'ساختن'),
-      ),
-    ],
-  );
-
-  void _submit() {
-    final value = _controller.text.trim();
-    if (value.isNotEmpty) Navigator.pop(context, value);
-  }
 }
 
 class _StudySessionEditorDialog extends StatefulWidget {
