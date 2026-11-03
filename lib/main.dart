@@ -1426,19 +1426,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Text('${session.subject} • ${_formatStudyTime(session.startMinutes)} • ${session.durationMinutes} دقیقه',
           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
-      IconButton(tooltip: 'ویرایش جلسه', onPressed: () => editStudySession(session),
-        icon: Icon(Icons.edit_outlined, color: accent)),
-      IconButton(tooltip: 'حذف جلسه', onPressed: () async {
-        final confirmed = await _confirmGlass(
-          title: 'حذف جلسه مطالعه',
-          message: 'جلسه «${session.title}» حذف شود؟',
-          confirmLabel: 'حذف',
-          destructive: true,
-        );
-        if (!confirmed || !mounted) return;
-        setState(() => studySessions.removeWhere((item) => item.id == session.id));
-        await save(sections: {'studySessions'});
-      }, icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      GlassIconButton(
+        icon: Icon(Icons.edit_outlined, color: accent),
+        onPressed: () => editStudySession(session),
+        size: 40,
+        shape: GlassIconButtonShape.roundedSquare,
+        quality: GlassQuality.standard,
+        semanticLabel: 'ویرایش جلسه',
+      ),
+      GlassIconButton(
+        icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        onPressed: () async {
+          final confirmed = await _confirmGlass(
+            title: 'حذف جلسه مطالعه',
+            message: 'جلسه «${session.title}» حذف شود؟',
+            confirmLabel: 'حذف',
+            destructive: true,
+          );
+          if (!confirmed || !mounted) return;
+          setState(() => studySessions.removeWhere((item) => item.id == session.id));
+          await save(sections: {'studySessions'});
+        },
+        size: 40,
+        shape: GlassIconButtonShape.roundedSquare,
+        quality: GlassQuality.standard,
+        semanticLabel: 'حذف جلسه',
+      ),
         ]),
       ),
     ),
@@ -1473,20 +1486,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
         SizedBox(height: 4), Text(task.subject, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ])),
-      IconButton(tooltip: 'ویرایش وظیفه', onPressed: () => addTask(task),
-        icon: Icon(Icons.edit_outlined, color: accent)),
-      IconButton(tooltip: 'حذف', onPressed: () async {
-        final confirmed = await _confirmGlass(
-          title: 'حذف وظیفه',
-          message: 'وظیفه «${task.title}» حذف شود؟',
-          confirmLabel: 'حذف',
-          destructive: true,
-        );
-        if (!confirmed || !mounted) return;
-        setState(() => tasks.removeWhere((e) => e.id == task.id));
-        await save(sections: {'tasks'});
-      },
-        icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      GlassIconButton(
+        icon: Icon(Icons.edit_outlined, color: accent),
+        onPressed: () => addTask(task),
+        size: 40,
+        shape: GlassIconButtonShape.roundedSquare,
+        quality: GlassQuality.standard,
+        semanticLabel: 'ویرایش وظیفه',
+      ),
+      GlassIconButton(
+        icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        onPressed: () async {
+          final confirmed = await _confirmGlass(
+            title: 'حذف وظیفه',
+            message: 'وظیفه «${task.title}» حذف شود؟',
+            confirmLabel: 'حذف',
+            destructive: true,
+          );
+          if (!confirmed || !mounted) return;
+          setState(() => tasks.removeWhere((e) => e.id == task.id));
+          await save(sections: {'tasks'});
+        },
+        size: 40,
+        shape: GlassIconButtonShape.roundedSquare,
+        quality: GlassQuality.standard,
+        semanticLabel: 'حذف وظیفه',
+      ),
         ]),
       ),
     ),
@@ -1666,10 +1691,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      tooltip: 'بازگشت به پاسخ‌برگ',
-                      onPressed: () => setState(() => isTakingExam = false),
+                    GlassIconButton(
                       icon: const Icon(Icons.arrow_forward),
+                      onPressed: () => setState(() => isTakingExam = false),
+                      size: 40,
+                      shape: GlassIconButtonShape.roundedSquare,
+                      quality: GlassQuality.standard,
+                      semanticLabel: 'بازگشت به پاسخ‌برگ',
                     ),
                     Expanded(
                       child: Text(
@@ -1717,28 +1745,34 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'فهرست سؤال‌ها',
-                      onPressed: () => setState(
-                        () => _showQuestionNavigator = !_showQuestionNavigator,
-                      ),
+                    GlassIconButton(
                       icon: Icon(
                         Icons.format_list_numbered_rounded,
                         color: _showQuestionNavigator
                             ? Theme.of(context).colorScheme.primary
                             : null,
                       ),
+                      onPressed: () => setState(
+                        () => _showQuestionNavigator = !_showQuestionNavigator,
+                      ),
+                      size: 40,
+                      shape: GlassIconButtonShape.roundedSquare,
+                      quality: GlassQuality.standard,
+                      semanticLabel: 'فهرست سؤال‌ها',
                     ),
-                    IconButton(
-                      tooltip: _examTimerRunning
-                          ? 'توقف زمان‌سنج'
-                          : 'ادامه زمان‌سنج',
-                      onPressed: _toggleExamTimer,
+                    GlassIconButton(
                       icon: Icon(
                         _examTimerRunning
                             ? Icons.pause
                             : Icons.play_arrow,
                       ),
+                      onPressed: _toggleExamTimer,
+                      size: 40,
+                      shape: GlassIconButtonShape.roundedSquare,
+                      quality: GlassQuality.standard,
+                      semanticLabel: _examTimerRunning
+                          ? 'توقف زمان‌سنج'
+                          : 'ادامه زمان‌سنج',
                     ),
                   ],
                 ),
