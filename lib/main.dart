@@ -1389,18 +1389,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final minutes = sessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
     final done = sessions.where((session) => session.completed).length;
     final selected = day == selectedStudyDay;
-    return _glassSurface(
-      radius: 18,
-      tint: selected ? accent.withValues(alpha: 0.12) : null,
-      child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(weekDays[day], style: TextStyle(
-                  fontWeight: FontWeight.w800, color: selected ? accent : null))),
+    final cardContent = InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () {
+        setState(() => selectedStudyDay = day);
+        _revealSelectedDay();
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    weekDays[day],
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: selected ? accent : null,
+                    ),
+                  ),
+                ),
                 if (selected)
                   Semantics(
                     label: 'روز انتخاب‌شده',
@@ -1421,32 +1431,61 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       ),
                     ),
                   ),
-              ]),
-              SizedBox(height: 8),
-              Text('${sessions.length} جلسه • $minutes دقیقه', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: sessions.isEmpty ? 0 : done / sessions.length),
-                  duration: MediaQuery.of(context).disableAnimations
-                      ? Duration.zero
-                      : const Duration(milliseconds: 180),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, progress, _) => LinearProgressIndicator(
-                    minHeight: 5,
-                    value: progress,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${sessions.length} جلسه • $minutes دقیقه',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(
+                  begin: 0,
+                  end: sessions.isEmpty ? 0 : done / sessions.length,
+                ),
+                duration: MediaQuery.of(context).disableAnimations
+                    ? Duration.zero
+                    : const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                builder: (context, progress, _) => LinearProgressIndicator(
+                  minHeight: 5,
+                  value: progress,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
               ),
-              SizedBox(height: 4),
-              Text(sessions.isEmpty ? 'بدون برنامه' : '$done از ${sessions.length} انجام‌شده',
-                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            ]),
-          ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              sessions.isEmpty
+                  ? 'بدون برنامه'
+                  : '$done از ${sessions.length} انجام‌شده',
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+
+    if (selected) {
+      return GlassContainer.card(
+        padding: EdgeInsets.zero,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 18),
+        quality: GlassQuality.standard,
+        useOwnLayer: false,
+        child: cardContent,
       );
+    }
+    return _glassSurface(radius: 18, child: cardContent);
   }
 
   Widget studySessionTile(StudySession session) => Padding(
