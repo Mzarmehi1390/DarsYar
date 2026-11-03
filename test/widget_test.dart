@@ -981,4 +981,25 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('dashboard quick actions adapt to compact widths without overflow', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('برنامه‌ریزی درسی'), findsOneWidget);
+    expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('برنامه‌ریزی درسی'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب روز'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
