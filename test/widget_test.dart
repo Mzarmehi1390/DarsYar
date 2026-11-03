@@ -183,7 +183,7 @@ void main() {
     expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
     expect(find.text('90 دقیقه'), findsOneWidget);
 
-    await tester.enterText(find.byType(GlassTextField).at(1), '45');
+    await tester.enterText(find.byType(GlassTextField).at(3), '45');
     await tester.tap(find.text('ذخیره زمان'));
     await tester.pumpAndSettle();
 
@@ -853,15 +853,7 @@ void main() {
 
     await tester.enterText(find.byType(GlassTextField).last, backup);
     final reviewButton = find.text('بررسی نسخه');
-    final reviewScrollable = find.ancestor(
-      of: reviewButton,
-      matching: find.byType(Scrollable),
-    ).first;
-    await tester.scrollUntilVisible(
-      reviewButton,
-      100,
-      scrollable: reviewScrollable,
-    );
+    await tester.ensureVisible(reviewButton);
     await tester.pumpAndSettle();
     await tester.tap(reviewButton);
     await tester.pumpAndSettle();
