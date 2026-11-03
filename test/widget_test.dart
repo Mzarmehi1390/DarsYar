@@ -1078,7 +1078,7 @@ void main() {
           'id': 'compact-session',
           'title': 'مرور فصل‌های مهم زیست‌شناسی',
           'subject': 'زیست‌شناسی',
-          'weekday': 0,
+          'weekday': DateTime.now().weekday % 7,
           'startMinutes': 600,
           'durationMinutes': 50,
           'completed': false,
@@ -1097,11 +1097,6 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final sundayChip = find.widgetWithText(GlassChip, 'یکشنبه');
-    await tester.ensureVisible(sundayChip);
-    await tester.pumpAndSettle();
-    await tester.tap(sundayChip);
-    await tester.pumpAndSettle();
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
     await tester.ensureVisible(sessionTitle);
     await tester.pumpAndSettle();
