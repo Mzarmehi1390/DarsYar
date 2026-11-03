@@ -1105,7 +1105,7 @@ void main() {
     final plannerScrollable = find.descendant(
       of: find.byKey(const PageStorageKey<String>('planner-scroll')),
       matching: find.byType(Scrollable),
-    );
+    ).first;
     // The planner is a lazy ListView: scroll its parent until the session
     // card is built before asking the tester to reveal the card itself.
     await tester.scrollUntilVisible(
