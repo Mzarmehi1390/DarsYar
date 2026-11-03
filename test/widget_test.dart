@@ -1052,7 +1052,10 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(GlassChip, 'یکشنبه'));
+    final sundayChip = find.widgetWithText(GlassChip, 'یکشنبه');
+    await tester.ensureVisible(sundayChip);
+    await tester.pumpAndSettle();
+    await tester.tap(sundayChip);
     await tester.pumpAndSettle();
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
     await tester.ensureVisible(sessionTitle);
@@ -1115,8 +1118,8 @@ void main() {
     final resultTitle = find.text('آزمون جامع پایان فصل زیست‌شناسی');
     await tester.ensureVisible(resultTitle);
     expect(resultTitle, findsOneWidget);
-    expect(find.text('۸۰٪'), findsOneWidget);
-    expect(find.text('۳۰ سؤال'), findsOneWidget);
+    expect(find.text('80%'), findsOneWidget);
+    expect(find.text('30 سؤال'), findsOneWidget);
     expect(find.text('درست: 24'), findsOneWidget);
     expect(find.text('غلط: 3'), findsOneWidget);
     expect(find.text('بی‌پاسخ: 3'), findsOneWidget);
