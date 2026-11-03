@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import 'design_system/darsyar_theme.dart';
+import 'design_system/glass_surface.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'answer_scoring.dart';
@@ -16,10 +18,7 @@ Future<void> main() async {
   runApp(const DarsYarApp());
 }
 
-const accent = Color(0xFF16A36A);
-const ink = Color(0xFF14231D);
-const muted = Color(0xFF8A9B92);
-const canvas = Color(0xFFF0F5F2);
+const accent = DarsYarTokens.accent;
 
 class StudyTask {
   StudyTask(this.id, this.title, this.subject, {this.done = false});
@@ -90,53 +89,8 @@ class _DarsYarAppState extends State<DarsYarApp> {
       debugShowCheckedModeBanner: false,
       title: 'درس‌یار',
       themeMode: mode,
-      theme: ThemeData(
-        useMaterial3: true,
-        splashFactory: NoSplash.splashFactory,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        colorScheme: lightScheme,
-        scaffoldBackgroundColor: const Color(0xFFEAF2EE),
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, foregroundColor: ink),
-        navigationBarTheme: const NavigationBarThemeData(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          indicatorColor: Colors.transparent,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          color: const Color(0xF2FFFFFF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-            side: const BorderSide(color: Color(0xBFFFFFFF), width: 1.1),
-          ),
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        splashFactory: NoSplash.splashFactory,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.dark),
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF08130F),
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, foregroundColor: Colors.white),
-        navigationBarTheme: const NavigationBarThemeData(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          indicatorColor: Colors.transparent,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          color: const Color(0xE61A2B23),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
-            side: BorderSide(color: const Color(0xFFB5F5D2).withValues(alpha: 0.16), width: 1.1),
-          ),
-        ),
-      ),
+      theme: DarsYarTheme.light,
+      darkTheme: DarsYarTheme.dark,
       builder: (context, child) => Directionality(textDirection: TextDirection.rtl, child: child ?? SizedBox()),
       home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
     );
@@ -510,7 +464,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned.fill(
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: navHeight,
               child: ClipPath(
                 clipBehavior: Clip.antiAlias,
                 clipper: _NotchedNavBarClipper(
@@ -1066,89 +1024,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     required Widget child,
     double radius = 20,
     Color? tint,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final base = tint ?? (isDark ? const Color(0xFF18372B) : const Color(0xFFF8FFFB));
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.24 : 0.10),
-            blurRadius: 30,
-            spreadRadius: -5,
-            offset: const Offset(0, 13),
-          ),
-          BoxShadow(
-            color: (isDark ? const Color(0xFF75D9A5) : Colors.white)
-                .withValues(alpha: isDark ? 0.09 : 0.78),
-            blurRadius: 18,
-            spreadRadius: -8,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.24 : 0.86),
-                width: 1,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            base.withValues(alpha: isDark ? 0.48 : 0.42),
-                            (isDark ? const Color(0xFF0B1B14) : const Color(0xFFE5F4EC))
-                                .withValues(alpha: isDark ? 0.62 : 0.34),
-                            (isDark ? const Color(0xFF6ABF91) : const Color(0xFFFFFFFF))
-                                .withValues(alpha: isDark ? 0.08 : 0.20),
-                          ],
-                          stops: const [0, 0.58, 1],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: radius * 0.8,
-                  right: radius * 0.8,
-                  child: IgnorePointer(
-                    child: Container(
-                      height: 1.2,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0),
-                            Colors.white.withValues(alpha: isDark ? 0.62 : 0.96),
-                            Colors.white.withValues(alpha: 0),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                child,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  }) =>
+      DarsYarGlassSurface(
+        child: child,
+        radius: radius,
+        tint: tint,
+      );
 
   Widget _weeklyMetric(String label, int value, String unit) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2447,56 +2328,12 @@ class _LiquidGlassPanel extends StatelessWidget {
   const _LiquidGlassPanel({required this.child});
 
   final Widget child;
-  static const double _radius = 22;
-  static const EdgeInsetsGeometry _padding = EdgeInsets.zero;
 
   @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(_radius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.08),
-            blurRadius: 28,
-            offset: const Offset(0, 12),
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.62),
-            blurRadius: 14,
-            spreadRadius: -8,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_radius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_radius),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: isDark ? 0.42 : 0.58),
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.surface.withValues(alpha: isDark ? 0.78 : 0.72),
-                  colors.surfaceContainerHighest.withValues(alpha: isDark ? 0.52 : 0.48),
-                  colors.surface.withValues(alpha: isDark ? 0.66 : 0.62),
-                ],
-              ),
-            ),
-            child: Padding(padding: _padding, child: child),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => DarsYarGlassSurface(
+        child: child,
+        radius: DarsYarTokens.radiusLarge,
+      );
 }
 
 class _ExamSetupPanel extends StatefulWidget {
