@@ -56,6 +56,19 @@ void main() {
     }
   });
 
+  test('both themes provide consistent Liquid Glass modal surfaces', () {
+    for (final theme in [DarsYarTheme.light, DarsYarTheme.dark]) {
+      expect(theme.dialogTheme.backgroundColor, isNotNull);
+      expect(theme.dialogTheme.surfaceTintColor, Colors.transparent);
+      expect(theme.dialogTheme.elevation, greaterThan(0));
+      expect(theme.dialogTheme.shape, isA<RoundedRectangleBorder>());
+      expect(theme.popupMenuTheme.shape, isA<RoundedRectangleBorder>());
+      expect(theme.bottomSheetTheme.showDragHandle, isTrue);
+      expect(theme.timePickerTheme.dialHandColor, theme.colorScheme.primary);
+      expect(theme.datePickerTheme.surfaceTintColor, Colors.transparent);
+    }
+  });
+
   testWidgets('bottom navigation exposes selected destination semantics', (WidgetTester tester) async {
     final semantics = tester.ensureSemantics();
 
