@@ -99,7 +99,9 @@ The redesign must not alter:
 - Added a subtle page transition with a reduced-motion fallback.
 - Added design-system documentation and a widget test for primary page headers.
 - Centralized theme-aware styling for dialogs, popup menus, bottom sheets, time pickers
-  and date pickers; feature-specific dialog content and actions remain unchanged.
+  and date pickers; all 15 dialog instances now consume the shared modal theme.
+- Made the exam-setup answer-key editor wrap option controls on narrow screens and
+  added a compact-viewport widget test for that interaction.
 
 ## Remaining validation
 
@@ -108,5 +110,6 @@ The redesign must not alter:
 - Verify compact viewport and text scaling, long Persian labels and RTL overflow.
 - Profile scroll performance on lists with many sessions/tasks/results.
 - Continue the secondary dialog/sheet and detailed exam-flow visual audit.
-- Verify modal layouts with compact screens, keyboard visibility and large text scaling.
+- Verify all modal layouts with compact screens, keyboard visibility and large text scaling;
+  the exam-setup answer-key editor has a dedicated 320 dp regression test.
 - Do not merge to `main` until the full screen inventory and QA criteria are satisfied.
