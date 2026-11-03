@@ -32,9 +32,8 @@ class DarsYarContentSurface extends StatelessWidget {
             tint!.withValues(alpha: isDark ? 0.16 : 0.12),
             scheme.surface,
           );
-    return RepaintBoundary(
-      child: Container(
-        decoration: BoxDecoration(
+    return Container(
+      decoration: BoxDecoration(
           // Keep dense study content opaque enough for contrast, while a very
           // soft directional tint gives every shared panel the same material
           // depth in both themes.
@@ -68,10 +67,9 @@ class DarsYarContentSurface extends StatelessWidget {
               ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(radius),
-          child: Padding(padding: padding, child: child),
-        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
