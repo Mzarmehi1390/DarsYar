@@ -87,7 +87,6 @@ class _DarsYarAppState extends State<DarsYarApp> {
 
   @override
   Widget build(BuildContext context) {
-    final lightScheme = ColorScheme.fromSeed(seedColor: accent);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'درس‌یار',
@@ -1061,9 +1060,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Color? tint,
   }) =>
       DarsYarGlassSurface(
-        child: child,
         radius: radius,
         tint: tint,
+        child: child,
       );
 
   Widget _weeklyMetric(String label, int value, String unit) => Column(
@@ -2373,8 +2372,8 @@ class _LiquidGlassPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => DarsYarGlassSurface(
-        child: child,
         radius: DarsYarTokens.radiusLarge,
+        child: child,
       );
 }
 
