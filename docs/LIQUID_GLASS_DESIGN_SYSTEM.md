@@ -37,14 +37,14 @@ the component geometry requires it.
 
 ## Material roles
 
-- **Focal glass:** the dashboard hero, rendered with the package's premium shader material.
+- **Focal glass:** the dashboard hero, rendered with the iOS 27 shader material at standard quality because it scrolls with the page; premium is reserved for static, non-scrolling surfaces.
 - **Navigation glass:** the floating iOS-style tab capsule and its liquid selection lens.
 - **Control glass:** planner weekday chips, segmented selectors, switches, pull-down menus and action buttons.
 - **Icon glass:** compact page-header icon wells, using standard quality.
 - **Content surfaces:** task rows, study-session rows, result cards, summaries, settings groups and exam setup panels use solid `DarsYarContentSurface` fills. This keeps long Persian copy and numeric data readable.
 - **Modal glass:** use `GlassDialog` for short confirmations and `GlassModalSheet` for multi-field editors, answer-key lists and pickers. Use a Cupertino wheel picker inside a glass sheet for time selection.
 
-The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. Planner weekday chips use `GlassChip`, the exam-mode and theme selectors use `GlassSegmentedControl`, and the study-session weekday selector uses its scrollable variant. Primary actions use `GlassButton`, compact edit/delete actions use `GlassIconButton`, overflow actions use `GlassPullDownButton`, progress uses `GlassProgressIndicator`, and transient feedback uses a floating glass-backed banner. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
+The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, explicit per-surface quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. Planner weekday chips use `GlassChip`, the exam-mode and theme selectors use `GlassSegmentedControl`, and the study-session weekday selector uses its scrollable variant. Primary actions use `GlassButton`, compact edit/delete actions use `GlassIconButton`, overflow actions use `GlassPullDownButton`, progress uses `GlassProgressIndicator`, and transient feedback uses a floating glass-backed banner. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material at standard quality for scroll safety; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
 
 ## Typography
 
@@ -88,9 +88,9 @@ The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule w
 
 ## Performance rules
 
-- Prefer the package's shader-backed glass for floating controls, page-header icon wells, the dashboard focal hero and navigation.
+- Prefer the package's shader-backed glass for floating controls, page-header icon wells, the dashboard focal hero and navigation, while keeping premium rendering out of scrolling lists.
 - Keep dense study content on solid grouped surfaces.
-- Use adaptive quality and retain a standard/minimal fallback on slower devices.
+- Use explicit quality tiers: standard for scrollable surfaces and controls, premium only for static non-scrolling focal surfaces, and minimal for device-specific fallbacks when profiling justifies it. Avoid experimental automatic quality switching until device QA validates it.
 - Blur only bounded surfaces.
 - Prefer the package's shared glass layer over nested independent glass renderers.
 - Do not use manual `BackdropFilter` surfaces as a substitute for the iOS 27 shader material.
