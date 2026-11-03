@@ -1057,18 +1057,30 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ],
             ),
             const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _weeklyMetric('برنامه‌ریزی‌شده', plannedMinutes, 'دقیقه'),
-                ),
-                Expanded(
-                  child: _weeklyMetric('مطالعه تکمیل‌شده', completedMinutes, 'دقیقه'),
-                ),
-                Expanded(
-                  child: _weeklyMetric('پیشرفت', (completion * 100).round(), '٪'),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final metrics = [
+                  _weeklyMetric('برنامه‌ریزی‌شده', plannedMinutes, 'دقیقه'),
+                  _weeklyMetric('مطالعه تکمیل‌شده', completedMinutes, 'دقیقه'),
+                  _weeklyMetric('پیشرفت', (completion * 100).round(), '٪'),
+                ];
+                if (constraints.maxWidth < 340) {
+                  final itemWidth = (constraints.maxWidth - 12) / 2;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (final metric in metrics)
+                        SizedBox(width: itemWidth, child: metric),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    for (final metric in metrics) Expanded(child: metric),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 12),
             ClipRRect(
