@@ -132,7 +132,6 @@ class _DarsYarAppState extends State<DarsYarApp> {
   Widget build(BuildContext context) {
     return LiquidGlassWidgets.wrap(
       theme: const GlassThemeData.ios27(),
-      adaptiveQuality: true,
       brightnessResolver: Theme.maybeBrightnessOf,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -792,7 +791,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       padding: EdgeInsets.zero,
       shape: const LiquidRoundedSuperellipse(borderRadius: 30),
       useOwnLayer: true,
-      quality: GlassQuality.premium,
+      quality: GlassQuality.standard,
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
@@ -940,14 +939,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         ? Duration.zero
                         : const Duration(milliseconds: 260),
                     curve: Curves.easeOutCubic,
-                    builder: (context, progress, _) => GlassProgressIndicator.linear(
-                      height: 8,
-                      minWidth: 0,
+                    builder: (context, progress, _) => LinearProgressIndicator(
+                      minHeight: 8,
                       value: progress,
                       backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.09),
                       color: accent,
-                      quality: GlassQuality.standard,
-                      semanticLabel: 'پیشرفت وظایف',
                     ),
                   ),
                 ),
