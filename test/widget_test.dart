@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
+import 'package:dars_yar/design_system/glass_surface.dart';
 
 import 'package:dars_yar/main.dart';
 
@@ -54,6 +55,43 @@ void main() {
 
     expect(find.text('برنامه‌ریزی'), findsOneWidget);
     expect(find.text('پاسخ‌برگ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('planner keeps its final controls clear of the floating glass dock', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final planner = tester.widget<ListView>(
+      find.byKey(const PageStorageKey<String>('planner-scroll')),
+    );
+    expect(
+      planner.padding,
+      EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance),
+    );
+    expect(DarsYarTokens.pageBottomClearance, 152);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shared content surfaces use a unified layered fill', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarContentSurface(child: Text('خوانایی محتوا')),
+        ),
+      ),
+    );
+
+    final surface = tester.widget<Container>(
+      find.descendant(
+        of: find.byType(DarsYarContentSurface),
+        matching: find.byType(Container),
+      ).first,
+    );
+    expect(surface.decoration, isA<BoxDecoration>());
+    expect((surface.decoration! as BoxDecoration).gradient, isA<LinearGradient>());
+    expect(find.text('خوانایی محتوا'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
