@@ -928,7 +928,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
-      TextButton(onPressed: _openPlanner, child: Text('مشاهده همه'))]),
+      GlassButton.custom(
+        height: 36,
+        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+        quality: GlassQuality.standard,
+        style: GlassButtonStyle.transparent,
+        onTap: _openPlanner,
+        child: const Text('مشاهده همه'),
+      )]),
     if (tasks.where((e) => !e.done).isEmpty)
       emptyState(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
     else ...tasks.where((e) => !e.done).take(3).map(taskTile),
@@ -2039,8 +2046,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       ],
                     ),
                     Center(
-                      child: TextButton(
-                        onPressed: _finishExam,
+                      child: GlassButton.custom(
+                        height: 42,
+                        shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                        quality: GlassQuality.standard,
+                        style: GlassButtonStyle.transparent,
+                        onTap: _finishExam,
                         child: const Text('ثبت پایان آزمون'),
                       ),
                     ),
@@ -2250,7 +2261,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       Text('درست: ${result.correct}  •  غلط: ${result.wrong}  •  بی‌پاسخ: ${result.unanswered}',
                         style: TextStyle(fontSize: 12)),
                       if (result.percentage == null)
-                        TextButton.icon(onPressed: () => editResultAnswerKey(result), icon: Icon(Icons.key_rounded), label: Text('ثبت کلید و محاسبه درصد')),
+                        GlassButton.custom(
+                          height: 40,
+                          shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                          quality: GlassQuality.standard,
+                          style: GlassButtonStyle.transparent,
+                          onTap: () => editResultAnswerKey(result),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.key_rounded, size: 17),
+                              SizedBox(width: 7),
+                              Text('ثبت کلید و محاسبه درصد'),
+                            ],
+                          ),
+                        ),
                     ],
                   )),
                   Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
