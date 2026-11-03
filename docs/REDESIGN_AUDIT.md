@@ -137,3 +137,10 @@ The redesign must not alter:
 - Light-theme glass chrome uses a lower white opacity so its edge reflections and background layers remain visible instead of flattening into white cards.
 - All primary scroll destinations and nested exam question lists use the shared bottom-navigation clearance token (152 dp), so the floating dock does not obscure the final interactive rows.
 - Performance work is additive: preserve shader prewarming, standard glass quality on scrolling surfaces, bounded page construction, serialized storage writes, and all existing page transitions and control animations. Do not remove animation to improve frame time; profile and optimize rebuild, layout, and painting work first.
+
+
+## Exam navigation and floating-dock regression
+
+- The active-exam question navigator now has a stable page-storage key and reserves the shared 152 dp floating-dock clearance, matching the main question content. This keeps the final question shortcuts scrollable above the persistent glass tab bar.
+- The exam-flow widget test opens the question navigator and verifies the bottom clearance token, in addition to continuing to exercise answer selection.
+- Preserve all question navigation, timer, answer selection, marking and completion animations/behavior while iterating on the exam screen.
