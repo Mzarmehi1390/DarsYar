@@ -1237,6 +1237,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           key: _plannerDayKeys[day],
           padding: const EdgeInsets.only(left: 8),
           child: GlassChip(
+            key: ValueKey<String>('planner-day-$day'),
             label: weekDays[day],
             semanticLabel: weekDays[day],
             selected: selectedStudyDay == day,
