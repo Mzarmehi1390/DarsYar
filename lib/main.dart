@@ -2035,7 +2035,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]);
   }
 
-  Widget _savedExamCard(exam) => Card(
+  Widget _savedExamCard(ExamSheet exam) => Card(
     margin: const EdgeInsets.only(bottom: 10),
     color: Colors.transparent,
     elevation: 0,
