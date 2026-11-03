@@ -8,12 +8,24 @@ import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
 
 import 'package:dars_yar/main.dart';
+import 'package:dars_yar/models/study_task.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  test('study task model round-trips without changing persisted fields', () {
+    final task = StudyTask('task-1', 'مرور فصل دوم', 'ریاضی', done: true);
+    final restored = StudyTask.fromJson(task.toJson());
+
+    expect(restored.id, 'task-1');
+    expect(restored.title, 'مرور فصل دوم');
+    expect(restored.subject, 'ریاضی');
+    expect(restored.done, isTrue);
+    expect(task.toJson().keys, containsAll(['id', 'title', 'subject', 'done']));
   });
 
   testWidgets('DarsYar dashboard opens', (WidgetTester tester) async {
