@@ -2800,7 +2800,50 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
       ),
     ),
       title: Text('کلید پاسخ آزمون'),
-      content: SizedBox(width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(), height: (MediaQuery.sizeOf(context).height * 0.50).clamp(180.0, 420.0).toDouble(), child: ListView.builder(itemCount: count, itemBuilder: (context, index) { final q = index + 1; return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [SizedBox(width: 65, child: Text('سؤال $q')), for (var option = 0; option < 4; option++) Expanded(child: ChoiceChip(label: Text(['الف', 'ب', 'ج', 'د'][option]), selected: draft[q] == option, onSelected: (_) => dialogSet(() { if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; } }))) ])); })),
+      content: SizedBox(
+        width: (MediaQuery.sizeOf(context).width - 128)
+            .clamp(160.0, 520.0)
+            .toDouble(),
+        height: (MediaQuery.sizeOf(context).height * 0.50)
+            .clamp(180.0, 420.0)
+            .toDouble(),
+        child: ListView.builder(
+          itemCount: count,
+          itemBuilder: (context, index) {
+            final question = index + 1;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Wrap(
+                spacing: 5,
+                runSpacing: 3,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 62,
+                    child: Text(
+                      'سؤال $question',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  for (var option = 0; option < 4; option++)
+                    ChoiceChip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text(['الف', 'ب', 'ج', 'د'][option]),
+                      selected: draft[question] == option,
+                      onSelected: (_) => dialogSet(() {
+                        if (draft[question] == option) {
+                          draft.remove(question);
+                        } else {
+                          draft[question] = option;
+                        }
+                      }),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
       actions: [TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')), TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')), FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('ذخیره کلید'))],
     )));
     if (updated != null && mounted) setState(() { _answerKey..clear()..addAll(updated); });
