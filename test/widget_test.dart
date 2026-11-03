@@ -1184,6 +1184,7 @@ void main() {
 
 
   testWidgets('saved exam history uses a lazy sliver list and keeps empty state', (tester) async {
+    SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();
     await tester.tap(find.text('آزمون‌های من'));
