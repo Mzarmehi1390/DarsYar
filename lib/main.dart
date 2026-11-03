@@ -667,6 +667,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         content: GlassFormField(
           label: 'نام آزمون',
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
             placeholder: isRename ? 'نام جدید آزمون' : 'مثلاً آزمون ریاضی فصل اول',
             maxLength: 60,
@@ -710,6 +711,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             GlassFormField(
               label: 'عنوان وظیفه',
               child: GlassTextField(
+                surfaceStyle: GlassSurfaceStyle.solid,
                 controller: titleController,
                 placeholder: 'مثلاً مرور فصل دوم',
                 maxLength: 100,
@@ -721,6 +723,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             GlassFormField(
               label: 'درس',
               child: GlassTextField(
+                surfaceStyle: GlassSurfaceStyle.solid,
                 controller: subjectController,
                 placeholder: 'مثلاً ریاضی',
                 maxLength: 50,
@@ -3438,6 +3441,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           GlassFormField(
             label: 'نام آزمون',
             child: GlassTextField(
+              surfaceStyle: GlassSurfaceStyle.solid,
               controller: _name,
               maxLength: 60,
               placeholder: 'مثلاً آزمون فصل اول ریاضی',
@@ -3449,6 +3453,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           GlassFormField(
             label: 'تعداد سؤال (۱ تا ۲۰۰)',
             child: GlassTextField(
+              surfaceStyle: GlassSurfaceStyle.solid,
               controller: _count,
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -3670,6 +3675,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         child: GlassFormField(
           label: label,
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
             keyboardType: TextInputType.number,
             inputFormatters: [
@@ -3710,6 +3716,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               GlassFormField(
                 label: 'ساعت',
                 child: GlassTextField(
+                  surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _hours,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -3725,6 +3732,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               GlassFormField(
                 label: 'دقیقه',
                 child: GlassTextField(
+                  surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _minutes,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -3740,6 +3748,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               GlassFormField(
                 label: 'ثانیه',
                 child: GlassTextField(
+                  surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _seconds,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -3869,6 +3878,7 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
         GlassFormField(
           label: 'محتوای نسخه پشتیبان',
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: _controller,
             minLines: 6,
             maxLines: 12,
@@ -3975,6 +3985,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
         GlassFormField(
           label: 'عنوان جلسه',
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: _titleController,
             autofocus: widget.existing == null,
             placeholder: 'مثلاً حل تمرین فصل اول',
@@ -3986,6 +3997,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
         GlassFormField(
           label: 'درس',
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: _subjectController,
             placeholder: 'مثلاً ریاضی',
             quality: GlassQuality.standard,
@@ -4073,6 +4085,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           label: 'مدت جلسه (دقیقه)',
           helperText: 'مدت دلخواهت را از ۱ تا ۱۴۴۰ دقیقه وارد کن.',
           child: GlassTextField(
+            surfaceStyle: GlassSurfaceStyle.solid,
             controller: _durationController,
             keyboardType: TextInputType.number,
             inputFormatters: [
