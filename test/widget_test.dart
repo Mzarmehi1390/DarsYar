@@ -6,6 +6,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
+import 'package:dars_yar/design_system/modal_content.dart';
 
 import 'package:dars_yar/main.dart';
 import 'package:dars_yar/models/study_task.dart';
@@ -15,6 +16,38 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  test('glass overlay themes leave the native glass surface unobstructed', () {
+    for (final theme in [DarsYarTheme.light, DarsYarTheme.dark]) {
+      expect(theme.dialogTheme.backgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.backgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.modalBackgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.surfaceTintColor, Colors.transparent);
+    }
+  });
+
+  testWidgets('modal content restores Persian RTL and removes inherited underline decoration', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const DarsYarModalContent(
+          child: Text('جلسه مطالعه'),
+        ),
+      ),
+    );
+
+    final directionality = tester.widget<Directionality>(
+      find.descendant(
+        of: find.byType(DarsYarModalContent),
+        matching: find.byType(Directionality),
+      ),
+    );
+    final textStyle = DefaultTextStyle.of(tester.element(find.text('جلسه مطالعه'))).style;
+
+    expect(directionality.textDirection, TextDirection.rtl);
+    expect(textStyle.decoration, TextDecoration.none);
+    expect(tester.takeException(), isNull);
   });
 
   test('study task model round-trips without changing persisted fields', () {
