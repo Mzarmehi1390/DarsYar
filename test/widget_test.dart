@@ -559,10 +559,10 @@ void main() {
 
     const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     final today = DateTime.now().weekday % 7;
-    final todayChip = find.widgetWithText(ChoiceChip, weekDays[today]);
+    final todayChip = find.widgetWithText(GlassChip, weekDays[today]);
 
     expect(todayChip, findsOneWidget);
-    expect(tester.widget<ChoiceChip>(todayChip).selected, isTrue);
+    expect(tester.widget<GlassChip>(todayChip).selected, isTrue);
     expect(find.text(weekDays[today]), findsWidgets);
   });
 
