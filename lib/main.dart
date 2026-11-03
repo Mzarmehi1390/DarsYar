@@ -795,6 +795,59 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
+          // A restrained specular rim makes the shader material read as glass
+          // without washing out the Persian copy inside the hero.
+          Positioned(
+            top: 0,
+            left: 24,
+            right: 24,
+            child: IgnorePointer(
+              child: Container(
+                height: 1.2,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0),
+                      Colors.white.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.34
+                            : 0.72,
+                      ),
+                      Colors.white.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.20
+                            : 0.48,
+                      ),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 1,
+            left: 22,
+            child: IgnorePointer(
+              child: Container(
+                width: 112,
+                height: 34,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.10
+                            : 0.20,
+                      ),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           Positioned(
             top: -66,
             left: -42,
