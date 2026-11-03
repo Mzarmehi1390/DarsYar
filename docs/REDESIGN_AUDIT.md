@@ -129,3 +129,11 @@ The redesign must not alter:
 - Verify all modal layouts with compact screens, keyboard visibility and large text scaling;
   the exam-setup answer-key editor has a dedicated 320 dp regression test.
 - Do not merge to `main` until the full screen inventory and QA criteria are satisfied.
+
+
+## Visual consistency and performance follow-up
+
+- Shared content panels use one restrained directional surface treatment; keep their fill opaque enough for Persian text and numeric data.
+- Light-theme glass chrome uses a lower white opacity so its edge reflections and background layers remain visible instead of flattening into white cards.
+- All primary scroll destinations and nested exam question lists use the shared bottom-navigation clearance token (152 dp), so the floating dock does not obscure the final interactive rows.
+- Performance work is additive: preserve shader prewarming, standard glass quality on scrolling surfaces, bounded page construction, serialized storage writes, and all existing page transitions and control animations. Do not remove animation to improve frame time; profile and optimize rebuild, layout, and painting work first.
