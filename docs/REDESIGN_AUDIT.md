@@ -85,13 +85,19 @@ The redesign must not alter:
 - Keep Flutter and the existing Material 3 application architecture.
 - Add reusable design-system components rather than replacing the application.
 - Keep visual-only changes separate from scoring, persistence and scheduling logic.
-- Keep blur local to bounded surfaces and avoid new dependencies.
+- Keep advanced glass rendering local to bounded surfaces and provide adaptive quality fallbacks.
+- A focused widget package is allowed only when it supplies the shader-backed iOS 27 material that Flutter does not provide natively; do not replace Flutter or introduce a second UI framework.
 - Preserve Persian strings, RTL, semantics and reduced-motion behavior.
 
 ## Current redesign work
 
 - Centralized light/dark theme and visual tokens.
-- Added a reusable bounded Liquid Glass surface.
+- Integrated `liquid_glass_widgets` 1.16.1 using `GlassThemeData.ios27()`, shader prewarming and adaptive quality; Flutter remains the application framework.
+- Replaced the custom bottom dock with `GlassScaffold` and the shader-backed floating `GlassTabBar`.
+- Applied shader-backed `GlassContainer` materials to the dashboard hero and page-header icon wells; dense study content uses high-contrast `DarsYarContentSurface` rather than blur-heavy cards.
+- Converted planner weekday selection to `GlassChip` and exam-mode selection to `GlassSegmentedControl`.
+- Converted exam setup, task, exam-name, duration, backup-import and study-session inputs to `GlassTextField`/`GlassFormField`; duration, backup and study-session editors now use full-height `GlassModalSheet` presentations.
+- Replaced destructive and confirmation alerts with `GlassDialog` and migrated task/exam-name editors to glass dialogs.
 - Reused the shared surface in dashboard quick actions, weekly report, exam toolbar,
   exam setup, planner cards, task/session cards, settings and result panels.
 - Added a shared primary-destination page header.
@@ -112,10 +118,11 @@ The redesign must not alter:
 
 ## Remaining validation
 
-- Complete the current GitHub Actions run on the redesign branch.
+- Verify the current GitHub Actions run against the latest redesign commit; the draft validation PR is not to be merged.
 - Inspect the updated app on a physical Android device in both themes.
 - Verify compact viewport and text scaling, long Persian labels and RTL overflow.
 - Profile scroll performance on lists with many sessions/tasks/results.
+- Migrate the remaining answer/question and answer-key editors from Material `AlertDialog` to appropriate glass dialogs or sheets.
 - Continue the secondary dialog/sheet and detailed exam-flow visual audit.
 - Verify all modal layouts with compact screens, keyboard visibility and large text scaling;
   the exam-setup answer-key editor has a dedicated 320 dp regression test.
