@@ -1129,7 +1129,11 @@ void main() {
     expect(savedSessions.single['completed'], isTrue);
 
     final taskTitle = find.text('حل تمرین‌های تکمیلی ریاضی');
-    await tester.ensureVisible(taskTitle);
+    await tester.scrollUntilVisible(
+      taskTitle,
+      240,
+      scrollable: plannerScrollable,
+    );
     await tester.pumpAndSettle();
     expect(taskTitle, findsOneWidget);
     expect(find.text('ریاضی'), findsWidgets);
