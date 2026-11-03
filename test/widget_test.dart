@@ -34,15 +34,15 @@ void main() {
 
     expect(find.text('درس‌یار'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey<String>('bottom-nav-item-1')));
+    await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
     expect(find.text('برنامه‌ریزی درسی'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey<String>('bottom-nav-item-2')));
+    await tester.tap(find.text('پاسخ‌برگ').last);
     await tester.pumpAndSettle();
     expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey<String>('bottom-nav-item-3')));
+    await tester.tap(find.text('تنظیمات').last);
     await tester.pumpAndSettle();
     expect(find.text('تنظیمات'), findsOneWidget);
     expect(tester.takeException(), isNull);
