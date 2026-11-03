@@ -418,11 +418,19 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   : AnimatedSwitcher(
                       duration: MediaQuery.of(context).disableAnimations
                           ? Duration.zero
-                          : const Duration(milliseconds: 140),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(opacity: animation, child: child),
+                          : const Duration(milliseconds: 190),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.018),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
                       child: KeyedSubtree(
                         key: ValueKey<int>(tab),
                         child: page,
