@@ -2898,8 +2898,44 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
     ]))),
     SizedBox(height: 12),
-    _glassSurface(child: ListTile(leading: Icon(Icons.phone_android_rounded, color: accent), title: Text('ذخیره‌سازی محلی'),
-      subtitle: Text('وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.'))),
+    _glassSurface(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(Icons.phone_android_rounded, color: accent, size: 21),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ذخیره‌سازی محلی',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'وظایف و پاسخ‌ها روی همین دستگاه ذخیره می‌شوند.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
     SizedBox(height: 12),
     _glassSurface(child: Padding(
       padding: const EdgeInsets.all(14),
