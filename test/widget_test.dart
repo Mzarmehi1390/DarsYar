@@ -140,6 +140,46 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('animation preference disables motion and persists across launches', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.animationsEnabled': false,
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 3));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انیمیشن‌های برنامه'), findsOneWidget);
+    expect(
+      MediaQuery.of(tester.element(find.byType(DarsYarHome))).disableAnimations,
+      isTrue,
+    );
+    expect(tester.widget<GlassSwitch>(find.byType(GlassSwitch).first).value, isFalse);
+
+    await tester.tap(find.byType(GlassSwitch).first);
+    await tester.pumpAndSettle();
+
+    expect(
+      MediaQuery.of(tester.element(find.byType(DarsYarHome))).disableAnimations,
+      isFalse,
+    );
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getBool('darsyar.animationsEnabled'), isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('application shell expands to the available display width', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(DarsYarHome)), const Size(360, 780));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('primary destinations use the shared Persian page header', (WidgetTester tester) async {
     for (final destination in const [
       (tab: 0, title: 'درس‌یار'),
