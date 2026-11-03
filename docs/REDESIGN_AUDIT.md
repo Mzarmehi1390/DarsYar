@@ -99,7 +99,7 @@ The redesign must not alter:
 - Converted every remaining form input to `GlassTextField`/`GlassFormField`; duration, backup-import, study-session, and all answer-key editors now use `GlassModalSheet` presentations.
 - Replaced all Material `AlertDialog`/`showDialog` flows with `GlassDialog` or `GlassModalSheet`; task/exam-name editors use glass dialogs, and question editing uses glass chips plus `GlassSwitch`.
 - Replaced planner/exam overflow menus with `GlassPullDownButton`/`GlassMenuItem`; theme selection and exam modes use `GlassSegmentedControl`; negative marking uses `GlassSwitch`.
-- Converted primary and secondary actions to `GlassButton`/`GlassIconButton`, answer choices to `GlassChip`, and overflow actions to `GlassPullDownButton`; study-session time selection now uses a Cupertino wheel picker inside a glass sheet.
+- Converted primary and secondary actions to `GlassButton`/`GlassIconButton`, answer choices to `GlassChip`, overflow actions to `GlassPullDownButton`, and transient feedback to floating glass-backed banners; study-session time selection now uses a Cupertino wheel picker inside a glass sheet.
 - Reused the shared surface in dashboard quick actions, weekly report, exam toolbar,
   exam setup, planner cards, task/session cards, settings and result panels.
 - Added a shared primary-destination page header.
