@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -2115,9 +2114,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                             shape: const LiquidRoundedSuperellipse(borderRadius: 15),
                             quality: GlassQuality.standard,
                             style: GlassButtonStyle.filled,
-                            onTap: q > 1
-                                ? () => setState(() => currentQuestionNumber--)
-                                : null,
+                            onTap: () {
+                              if (q > 1) {
+                                setState(() => currentQuestionNumber--);
+                              }
+                            },
                             child: const Text('قبلی'),
                           ),
                         ),
