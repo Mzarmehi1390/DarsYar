@@ -144,3 +144,11 @@ The redesign must not alter:
 - The active-exam question navigator now has a stable page-storage key and reserves the shared 152 dp floating-dock clearance, matching the main question content. This keeps the final question shortcuts scrollable above the persistent glass tab bar.
 - The exam-flow widget test opens the question navigator and verifies the bottom clearance token, in addition to continuing to exercise answer selection.
 - Preserve all question navigation, timer, answer selection, marking and completion animations/behavior while iterating on the exam screen.
+
+
+## Incremental codebase modularization
+
+- Extracted the `StudyTask` persistence model from the application entrypoint into `lib/models/study_task.dart`.
+- Kept the existing JSON field names and defaults unchanged (`id`, `title`, `subject`, `done`) to preserve compatibility with locally stored data and backups.
+- Added a model round-trip test for the serialized representation.
+- Continue extracting feature boundaries in small, behavior-preserving steps; avoid moving timer, scoring, or persistence orchestration until dedicated regression coverage exists.
