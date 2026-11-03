@@ -265,7 +265,7 @@ void main() {
     await tester.tap(find.byTooltip('ویرایش وظیفه').first);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'تمرین ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'تمرین ریاضی');
     await tester.tap(find.text('ذخیره').last);
     await tester.pumpAndSettle();
 
@@ -295,7 +295,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('وظیفه جدید'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'عنوان وظیفه'), findsOneWidget);
+    expect(find.byType(GlassTextField).at(0), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -329,8 +329,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'ذخیره مستقل');
-    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'ذخیره مستقل');
+    await tester.enterText(find.byType(GlassTextField).at(1), 'علوم');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
@@ -835,7 +835,7 @@ void main() {
     await tester.tap(restoreButton);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).last, backup);
+    await tester.enterText(find.byType(GlassTextField).last, backup);
     await tester.tap(find.text('بررسی نسخه'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('بازیابی').last);
