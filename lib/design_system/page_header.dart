@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'darsyar_theme.dart';
-import 'glass_surface.dart';
 
 /// A consistent RTL-friendly heading used by the primary DarsYar destinations.
 class DarsYarPageHeader extends StatelessWidget {
@@ -25,13 +25,12 @@ class DarsYarPageHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        DarsYarGlassSurface(
-          radius: 19,
-          elevation: 0.55,
+        GlassContainer.card(
           padding: const EdgeInsets.all(11),
-          tint: isDark
-              ? const Color(0xFF244C4A)
-              : const Color(0xFFD8F0E8),
+          shape: const LiquidRoundedSuperellipse(borderRadius: 19),
+          useOwnLayer: true,
+          quality: GlassQuality.standard,
+          clipBehavior: Clip.antiAlias,
           child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
