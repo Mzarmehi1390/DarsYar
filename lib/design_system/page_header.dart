@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import 'darsyar_theme.dart';
-
 /// A consistent RTL-friendly heading used by the primary DarsYar destinations.
 class DarsYarPageHeader extends StatelessWidget {
   const DarsYarPageHeader({
@@ -21,7 +19,6 @@ class DarsYarPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
