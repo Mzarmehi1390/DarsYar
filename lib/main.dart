@@ -1120,18 +1120,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             icon: const Icon(Icons.add_rounded),
             label: const Text('جلسه جدید'),
           ),
-          PopupMenuButton<int>(
-            tooltip: 'کپی برنامه این روز',
+          GlassPullDownButton(
             icon: const Icon(Icons.copy_all_rounded),
-            onSelected: copySelectedDayTo,
-            itemBuilder: (context) => List.generate(
-              7,
-              (day) => PopupMenuItem<int>(
-                value: day,
-                enabled: day != selectedStudyDay,
-                child: Text('کپی برنامه به ${weekDays[day]}'),
-              ),
-            ),
+            semanticLabel: 'کپی برنامه این روز',
+            quality: GlassQuality.standard,
+            menuWidth: 230,
+            items: [
+              for (var day = 0; day < 7; day++)
+                GlassMenuItem(
+                  title: 'کپی برنامه به ${weekDays[day]}',
+                  icon: const Icon(Icons.calendar_today_rounded),
+                  enabled: day != selectedStudyDay,
+                  onTap: () => copySelectedDayTo(day),
+                ),
+            ],
           ),
         ],
       ),
@@ -1539,18 +1541,37 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                   Expanded(child: Text(exam.name, maxLines: 2, overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
-                  PopupMenuButton<String>(
-                    tooltip: 'مدیریت آزمون',
-                    onSelected: (action) {
-                      setState(() => activeExamId = exam.id);
-                      if (action == 'rename') renameExam();
-                      if (action == 'delete') deleteExam();
-                      if (action == 'key') editAnswerKey();
-                    },
-                    itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'rename', child: Text('تغییر نام')),
-                      PopupMenuItem(value: 'key', child: Text('ویرایش کلید پاسخ')),
-                      PopupMenuItem(value: 'delete', child: Text('حذف آزمون')),
+                  GlassPullDownButton(
+                    icon: const Icon(Icons.more_horiz_rounded),
+                    semanticLabel: 'مدیریت آزمون ${exam.name}',
+                    quality: GlassQuality.standard,
+                    menuWidth: 220,
+                    items: [
+                      GlassMenuItem(
+                        title: 'تغییر نام',
+                        icon: const Icon(Icons.edit_rounded),
+                        onTap: () {
+                          setState(() => activeExamId = exam.id);
+                          renameExam();
+                        },
+                      ),
+                      GlassMenuItem(
+                        title: 'ویرایش کلید پاسخ',
+                        icon: const Icon(Icons.key_rounded),
+                        onTap: () {
+                          setState(() => activeExamId = exam.id);
+                          editAnswerKey();
+                        },
+                      ),
+                      GlassMenuItem(
+                        title: 'حذف آزمون',
+                        icon: const Icon(Icons.delete_outline_rounded),
+                        isDestructive: true,
+                        onTap: () {
+                          setState(() => activeExamId = exam.id);
+                          deleteExam();
+                        },
+                      ),
                     ],
                   ),
                 ]),
@@ -2700,16 +2721,33 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     SizedBox(height: 18),
     _glassSurface(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
-      RadioGroup<ThemeMode>(
-        groupValue: widget.mode,
-        onChanged: (value) {
-          if (value != null) widget.onModeChanged(value);
-        },
-        child: Column(children: [
-          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.system, title: Text('مطابق دستگاه')),
-          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.light, title: Text('روشن')),
-          RadioListTile<ThemeMode>(contentPadding: EdgeInsets.zero, value: ThemeMode.dark, title: Text('تیره')),
-        ]),
+      GlassSegmentedControl(
+        segments: const [
+          GlassSegment(label: 'سیستم', semanticLabel: 'مطابق دستگاه'),
+          GlassSegment(label: 'روشن', semanticLabel: 'پوسته روشن'),
+          GlassSegment(label: 'تیره', semanticLabel: 'پوسته تیره'),
+        ],
+        selectedIndex: widget.mode == ThemeMode.system
+            ? 0
+            : widget.mode == ThemeMode.light
+                ? 1
+                : 2,
+        onSegmentSelected: (index) => widget.onModeChanged(
+          [ThemeMode.system, ThemeMode.light, ThemeMode.dark][index],
+        ),
+        height: 46,
+        quality: GlassQuality.standard,
+        useOwnLayer: true,
+        selectedTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
+        unselectedTextStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     ]))),
     SizedBox(height: 12),
@@ -2728,18 +2766,49 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         Text('از وظایف، برنامه مطالعه، پاسخ‌برگ‌ها و نتایج آزمون نسخه پشتیبان بساز یا آن‌ها را بازیابی کن.',
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5)),
         SizedBox(height: 12),
-        SizedBox(width: double.infinity, child: FilledButton.icon(
-          onPressed: exportBackup,
-          icon: Icon(Icons.copy_all_rounded),
-          label: Text('ساخت فایل پشتیبان'),
-        )),
-        SizedBox(height: 8),
-        SizedBox(width: double.infinity, child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error, side: BorderSide(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.7))),
-          onPressed: importBackup,
-          icon: Icon(Icons.warning_amber_rounded),
-          label: Text('بازیابی فایل پشتیبان'),
-        )),
+        SizedBox(
+          width: double.infinity,
+          child: GlassButton.custom(
+            height: 48,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.prominent,
+            onTap: exportBackup,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.copy_all_rounded, size: 19),
+                SizedBox(width: 9),
+                Text('ساخت فایل پشتیبان', style: TextStyle(fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: GlassButton.custom(
+            height: 48,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
+            onTap: importBackup,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.restore_rounded, size: 19, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 9),
+                Text(
+                  'بازیابی فایل پشتیبان',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ]),
     )),
   ]);
