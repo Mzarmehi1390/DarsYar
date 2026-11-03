@@ -21,8 +21,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('درس‌یار'), findsOneWidget);
-    expect(find.text('برنامه‌ریزی'), findsOneWidget);
-    expect(find.text('پاسخ‌برگ'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'برنامه‌ریزی'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'پاسخ‌برگ'), findsOneWidget);
 
     await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
