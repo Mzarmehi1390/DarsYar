@@ -41,6 +41,11 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.format_list_numbered_rounded));
       await tester.pumpAndSettle();
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'The split exam layout must not overflow when the navigator opens.',
+      );
 
       final navigatorFinder = find.byKey(
         const PageStorageKey<String>('exam-question-navigator'),
@@ -71,6 +76,11 @@ void main() {
       final lastQuestionRect = tester.getRect(lastQuestionFinder);
       final navigatorRect = tester.getRect(navigatorFinder);
       expect(lastQuestionRect.bottom, lessThanOrEqualTo(navigatorRect.bottom));
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'The final question must remain reachable without layout overflow.',
+      );
     },
   );
 }
