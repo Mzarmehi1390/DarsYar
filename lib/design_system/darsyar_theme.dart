@@ -9,13 +9,13 @@ abstract final class DarsYarTokens {
   static const accentLight = Color(0xFF75D9A5);
   static const secondary = Color(0xFF5B83B6);
 
-  static const lightBackground = Color(0xFFE9F0F8);
-  static const lightCanvas = Color(0xFFF3F7FC);
-  static const lightSurface = Color(0xFFF8FBFF);
-  static const lightSurfaceRaised = Color(0xFFE3EDF7);
-  static const lightOutline = Color(0xFFC6D6E5);
+  static const lightBackground = Color(0xFFE5EDF6);
+  static const lightCanvas = Color(0xFFEDF3F9);
+  static const lightSurface = Color(0xFFF0F5FA);
+  static const lightSurfaceRaised = Color(0xFFDCE7F1);
+  static const lightOutline = Color(0xFFB8CADA);
   static const lightText = Color(0xFF172536);
-  static const lightMuted = Color(0xFF687B90);
+  static const lightMuted = Color(0xFF5D7186);
 
   static const darkBackground = Color(0xFF0B1422);
   static const darkCanvas = Color(0xFF101D2D);
@@ -31,7 +31,7 @@ abstract final class DarsYarTokens {
   static const radiusExtraLarge = 28.0;
 
   static const pageHorizontalPadding = 20.0;
-  static const pageBottomClearance = 124.0;
+  static const pageBottomClearance = 152.0;
   static const glassBlur = 15.0;
 }
 
@@ -56,8 +56,8 @@ abstract final class DarsYarTheme {
       brightness: Brightness.light,
       background: DarsYarTokens.lightBackground,
       inputFill: const Color(0xFFE5EEF8),
-      cardFill: const Color(0xEFFFFFFF),
-      cardBorder: const Color(0xDFFFFFFF),
+      cardFill: const Color(0xC8FFFFFF),
+      cardBorder: const Color(0xD9FFFFFF),
       mutedText: DarsYarTokens.lightMuted,
     );
   }
