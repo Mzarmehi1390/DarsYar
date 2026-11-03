@@ -3315,9 +3315,11 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
       return;
     }
     _lastError = message; _lastErrorAt = now;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+    showDarsYarGlassSnackBar(
+      context,
+      SnackBar(content: Text(message)),
+      duration: const Duration(seconds: 2),
+    );
   }
 
   @override
@@ -3608,22 +3610,20 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
         minutes < 0 || minutes > 59 ||
         seconds < 0 || seconds > 59 ||
         (hours == 24 && (minutes != 0 || seconds != 0))) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
+      showDarsYarGlassSnackBar(
+        context,
+        const SnackBar(
           content: Text('ساعت باید حداکثر ۲۴ و دقیقه و ثانیه کمتر از ۶۰ باشند.'),
-          behavior: SnackBarBehavior.floating,
-        ));
+        ),
+      );
       return;
     }
     final duration = Duration(hours: hours, minutes: minutes, seconds: seconds);
     if (duration.inSeconds < 1) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-          content: Text('زمان آزمون باید حداقل یک ثانیه باشد.'),
-          behavior: SnackBarBehavior.floating,
-        ));
+      showDarsYarGlassSnackBar(
+        context,
+        const SnackBar(content: Text('زمان آزمون باید حداقل یک ثانیه باشد.')),
+      );
       return;
     }
     Navigator.of(context).pop(duration);
