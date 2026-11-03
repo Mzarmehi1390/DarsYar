@@ -213,11 +213,11 @@ void main() {
     expect(find.text('آزمون آزمایشی'), findsOneWidget);
     expect(find.text('سؤال 1 از 3'), findsOneWidget);
     expect(
-      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.arrow_forward)).tooltip,
+      tester.widget<GlassIconButton>(find.widgetWithIcon(GlassIconButton, Icons.arrow_forward)).semanticLabel,
       'بازگشت به پاسخ‌برگ',
     );
     expect(
-      tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.pause)).tooltip,
+      tester.widget<GlassIconButton>(find.widgetWithIcon(GlassIconButton, Icons.pause)).semanticLabel,
       'توقف زمان‌سنج',
     );
     await tester.tap(find.text('گزینه 2'));
@@ -262,7 +262,7 @@ void main() {
     final createdTask = find.text('مرور ریاضی');
     await revealByScrolling(createdTask);
     expect(createdTask, findsOneWidget);
-    await tester.tap(find.byTooltip('ویرایش وظیفه').first);
+    await tester.tap(find.bySemanticsLabel('ویرایش وظیفه').first);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(GlassTextField).at(0), 'تمرین ریاضی');
@@ -295,7 +295,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('وظیفه جدید'), findsOneWidget);
-    expect(find.byType(GlassTextField).at(0), findsOneWidget);
+    expect(find.byType(GlassTextField), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });
 
@@ -725,7 +725,7 @@ void main() {
 
     await tester.tap(find.text('گزینه 1'));
     await tester.pumpAndSettle();
-    final finishButton = find.widgetWithText(FilledButton, 'پایان آزمون');
+    final finishButton = find.text('پایان آزمون').last;
     await tester.ensureVisible(finishButton);
     await tester.pumpAndSettle();
     await tester.tap(finishButton);
