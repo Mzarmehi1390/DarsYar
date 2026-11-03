@@ -217,3 +217,43 @@ The redesign must not alter:
 - Applied the shared RTL/text-style modal scope to task, exam-name and question editors as well as the existing session, answer-key and backup sheets.
 - Removed the blanket RepaintBoundary from every solid content card. The app retains a repaint boundary around its static atmospheric background; individual cards no longer create a separate layer by default.
 - Added widget coverage for the persisted animation preference and full-width app shell. This is a targeted render-layer reduction, not a substitute for profiling on representative low-end devices.
+
+
+## Architecture audit — modularization baseline (2026-11-03)
+
+### Current verified structure
+
+- lib/main.dart is still the application composition root and feature implementation hotspot (approximately 4,900 lines). It owns the root app, navigation shell, persistence orchestration, planner, dashboard, exam flow, settings and many modal editors. This is the largest architectural risk and is not considered adequately modular yet.
+- Domain/persistence code already separated into focused files: answer_scoring.dart, backup_codec.dart, darsyar_storage.dart, exam_result.dart, exam_sheet.dart, study_session.dart, and models/study_task.dart.
+- Design-system widgets are separated under design_system/.
+- Application preference persistence has now been extracted to app/app_preferences.dart, with dedicated tests for default values, valid and invalid theme values, and reduced-motion persistence.
+
+### Target module boundaries
+
+The next safe extraction sequence is:
+
+1. app/: app bootstrap, preference service, root theme/state composition.
+2. features/dashboard/: dashboard presentation and view-specific widgets.
+3. features/planner/: planner screen, session/task presentation and interaction coordinators; scheduling rules remain in testable domain services.
+4. features/exams/: setup, active exam, question navigator, result history and modal editors; scoring and exam models remain independent of Flutter widgets.
+5. features/settings/: theme, motion, backup and restore presentation.
+6. design_system/: tokens, themes, shared glass controls, surfaces and modal primitives.
+7. core/: storage, backup contracts, shared feedback and cross-feature utilities.
+
+### Extraction rules
+
+- Move one cohesive boundary at a time; do not perform a blind mega-refactor.
+- Preserve public storage keys, JSON schema, backup compatibility, timer semantics, scoring formulas, scheduling validation and user-visible Persian copy.
+- Keep feature widgets dependent on domain interfaces/services, not on private members of the root state class.
+- Inject persistence and clocks where deterministic tests require them.
+- Use lazy slivers for unbounded session/task/result collections; keep bounded seven-day selectors eagerly addressable for their selected-day reveal behavior.
+- Add focused unit/widget regression tests before deleting the old implementation.
+- Run analyze, all tests, Android APK and App Bundle builds after each coherent extraction. Review screenshots on emulator/device before declaring visual QA done.
+
+### Known gaps; not yet signed off
+
+- No full emulator screenshot/test matrix is currently configured in GitHub Actions.
+- main.dart remains a monolithic feature host; only the preference persistence service has been extracted in this phase.
+- Planner's session/task collections still need lazy rendering.
+- Device-level frame timing, shader warm-up, keyboard insets, large text scaling, screen-reader traversal and both-theme visual review remain unverified.
+- Do not treat a passing unit/widget test or APK build as proof of complete UX QA.
