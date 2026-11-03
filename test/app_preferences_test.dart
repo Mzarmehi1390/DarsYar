@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../lib/app/app_preferences.dart';
+import 'package:dars_yar/app/app_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
