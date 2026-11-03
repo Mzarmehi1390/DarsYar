@@ -106,17 +106,17 @@ The redesign must not alter:
 - Refined the navigation dock so the glass layer does not cover the bottom safe inset.
 - Added a subtle page transition with a reduced-motion fallback.
 - Added design-system documentation and a widget test for primary page headers.
-- Centralized theme-aware styling for dialogs, popup menus, bottom sheets, time pickers
-  and date pickers; all 15 dialog instances now consume the shared modal theme.
+- Replaced the remaining Material dialog, form and menu controls with package-native glass dialogs, sheets, inputs, switches, chips, buttons and pull-down menus.
 - Made the exam-setup answer-key editor wrap option controls on narrow screens and
   added a compact-viewport widget test for that interaction.
 - Refined planner weekday chips with a clearer selected treatment; replaced the
   week-card checkmark with a restrained, screen-reader-labelled selection dot.
 - Made the task editor's title and fields scroll together on compact viewports and
   added a 320 × 640 dp widget regression test.
-- Eagerly build the seven weekday chips and seven weekly cards inside bounded
+- Eagerly build the seven weekday controls and seven weekly cards inside bounded
   horizontal scrollers so the selected day is always addressable by its reveal logic,
   including on narrow phones.
+- Added reusable full-height answer-key sheets shared by exam setup, active exams and result history.
 
 ## Remaining validation
 
