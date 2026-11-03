@@ -1102,7 +1102,17 @@ void main() {
     // Select the fixture's fixed weekday through its stable chip identity.
     await tester.tap(find.byKey(const ValueKey<String>('planner-day-3')));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(sessionTitle);
+    final plannerScrollable = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    );
+    // The planner is a lazy ListView: scroll its parent until the session
+    // card is built before asking the tester to reveal the card itself.
+    await tester.scrollUntilVisible(
+      sessionTitle,
+      240,
+      scrollable: plannerScrollable,
+    );
     await tester.pumpAndSettle();
     expect(sessionTitle, findsOneWidget);
     expect(find.text('زیست‌شناسی'), findsWidgets);
