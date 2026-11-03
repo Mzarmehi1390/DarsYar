@@ -272,12 +272,11 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final plannerList = find.byType(ListView).first;
     final addTask = find.text('ثبت وظیفه');
     await tester.scrollUntilVisible(
       addTask,
       220,
-      scrollable: plannerList,
+      scrollable: find.byType(Scrollable).first,
     );
     await tester.pumpAndSettle();
     await tester.tap(addTask);
