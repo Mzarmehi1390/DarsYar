@@ -601,6 +601,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       maxWidth: 340,
       quality: GlassQuality.standard,
       barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.30),
       actions: [
         GlassDialogAction(
           label: cancelLabel,
@@ -628,6 +629,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید',
         maxWidth: 360,
         quality: GlassQuality.standard,
+        barrierColor: Colors.black.withValues(alpha: 0.30),
         content: GlassFormField(
           label: 'نام آزمون',
           child: GlassTextField(
@@ -667,6 +669,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
         maxWidth: 360,
         quality: GlassQuality.standard,
+        barrierColor: Colors.black.withValues(alpha: 0.30),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2508,6 +2511,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       title: 'سؤال $number',
       maxWidth: 360,
       quality: GlassQuality.standard,
+      barrierColor: Colors.black.withValues(alpha: 0.30),
       content: StatefulBuilder(
         builder: (dialogContext, dialogSet) => Column(
           mainAxisSize: MainAxisSize.min,
@@ -2552,6 +2556,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
                 GlassSwitch(
                   value: flag,
+                  activeColor: accent,
                   semanticLabel: 'علامت‌گذاری سؤال برای مرور',
                   quality: GlassQuality.standard,
                   onChanged: (value) => dialogSet(() => flag = value),
@@ -3091,7 +3096,7 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
           minHeight: 5,
           value: widget.questionCount == 0
               ? 0
-              : _draft.length / widget.questionCount,
+              : (_draft.length / widget.questionCount).clamp(0.0, 1.0),
           backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
         ),
       ),
@@ -3425,6 +3430,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               ),
               GlassSwitch(
                 value: _negativeMarking,
+                activeColor: accent,
                 semanticLabel: 'محاسبه با نمره منفی',
                 quality: GlassQuality.standard,
                 onChanged: (value) => setState(() => _negativeMarking = value),
@@ -3543,6 +3549,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
             ],
             maxLength: 2,
             quality: GlassQuality.standard,
+            onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.next,
           ),
         ),
@@ -3582,6 +3589,7 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                   ],
                   maxLength: 2,
                   quality: GlassQuality.standard,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
               const SizedBox(height: 12),
