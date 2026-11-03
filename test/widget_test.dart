@@ -480,13 +480,14 @@ void main() {
   });
 
 
-  testWidgets('planner day chips do not display a selection checkmark', (WidgetTester tester) async {
+  testWidgets('planner day glass chips expose one selected day', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final chips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
-    expect(chips, isNotEmpty);
-    expect(chips.every((chip) => chip.showCheckmark == false), isTrue);
+    final chips = tester.widgetList<GlassChip>(find.byType(GlassChip)).toList();
+    expect(chips, hasLength(7));
+    expect(chips.where((chip) => chip.selected), hasLength(1));
+    expect(chips.every((chip) => chip.onTap != null), isTrue);
   });
 
   testWidgets('my exams results are laid out in the same scrollable page', (WidgetTester tester) async {
