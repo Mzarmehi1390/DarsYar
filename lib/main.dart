@@ -2664,52 +2664,132 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           )),
           SizedBox(height: 10),
           for (final result in sorted)
-            Padding(padding: const EdgeInsets.only(bottom: 10), child: _glassSurface(child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Container(
-                    width: 44, height: 44,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(Icons.assignment_turned_in_outlined, color: accent),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _glassSurface(
+                radius: 21,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(result.examName, style: TextStyle(fontWeight: FontWeight.w800)),
-                      SizedBox(height: 4),
-                      Text(
-                        '${result.dateTime.day.toString().padLeft(2, '0')}/${result.dateTime.month.toString().padLeft(2, '0')}/${result.dateTime.year}',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: accent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: accent.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.assignment_turned_in_outlined,
+                              color: accent,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              result.examName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                height: 1.35,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            constraints: const BoxConstraints(minWidth: 64),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: result.percentage == null
+                                  ? Theme.of(context).colorScheme.surfaceContainerHighest
+                                  : accent.withValues(alpha: 0.13),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: result.percentage == null
+                                    ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.45)
+                                    : accent.withValues(alpha: 0.18),
+                              ),
+                            ),
+                            child: Text(
+                              result.percentage == null
+                                  ? 'بدون کلید'
+                                  : '${result.percentage!.round()}٪',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: result.percentage == null
+                                    ? Theme.of(context).colorScheme.onSurfaceVariant
+                                    : accent,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 6),
-                      Text('درست: ${result.correct}  •  غلط: ${result.wrong}  •  بی‌پاسخ: ${result.unanswered}',
-                        style: TextStyle(fontSize: 12)),
-                      if (result.percentage == null)
-                        GlassButton.custom(
-                          height: 40,
-                          shape: const LiquidRoundedSuperellipse(borderRadius: 13),
-                          quality: GlassQuality.standard,
-                          style: GlassButtonStyle.transparent,
-                          onTap: () => editResultAnswerKey(result),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.key_rounded, size: 17),
-                              SizedBox(width: 7),
-                              Text('ثبت کلید و محاسبه درصد'),
-                            ],
+                      const SizedBox(height: 11),
+                      Wrap(
+                        spacing: 7,
+                        runSpacing: 7,
+                        children: [
+                          _plannerMetaPill(
+                            Icons.calendar_today_rounded,
+                            '${result.dateTime.day.toString().padLeft(2, '0')}/${result.dateTime.month.toString().padLeft(2, '0')}/${result.dateTime.year}',
+                          ),
+                          _plannerMetaPill(
+                            Icons.quiz_outlined,
+                            '${result.questionCount} سؤال',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 7,
+                        runSpacing: 7,
+                        children: [
+                          _plannerMetaPill(Icons.check_circle_outline_rounded, 'درست: ${result.correct}'),
+                          _plannerMetaPill(Icons.close_rounded, 'غلط: ${result.wrong}'),
+                          _plannerMetaPill(Icons.remove_circle_outline_rounded, 'بی‌پاسخ: ${result.unanswered}'),
+                        ],
+                      ),
+                      if (result.percentage == null) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: GlassButton.custom(
+                            height: 40,
+                            shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                            quality: GlassQuality.standard,
+                            style: GlassButtonStyle.transparent,
+                            onTap: () => editResultAnswerKey(result),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.key_rounded, size: 17),
+                                SizedBox(width: 7),
+                                Text('ثبت کلید و محاسبه درصد'),
+                              ],
+                            ),
                           ),
                         ),
+                      ],
                     ],
-                  )),
-                  Text(result.percentage == null ? 'بدون کلید' : '${result.percentage!.round()}%',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: accent)),
-                ]),
-              ))),
+                  ),
+                ),
+              ),
+            ),
         ],
       ],
     );
