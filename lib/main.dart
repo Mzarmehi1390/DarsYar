@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'app/app_preferences.dart';
 import 'answer_scoring.dart';
 import 'backup_codec.dart';
 import 'darsyar_storage.dart';
@@ -76,6 +77,7 @@ class DarsYarApp extends StatefulWidget {
 }
 
 class _DarsYarAppState extends State<DarsYarApp> {
+  final AppPreferences _preferences = AppPreferences();
   ThemeMode mode = ThemeMode.system;
   bool animationsEnabled = true;
 
@@ -88,11 +90,8 @@ class _DarsYarAppState extends State<DarsYarApp> {
 
   Future<void> _loadAnimationPreference() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      if (mounted) {
-        setState(() => animationsEnabled =
-            prefs.getBool('darsyar.animationsEnabled') ?? true);
-      }
+      final restored = await _preferences.loadAnimationsEnabled();
+      if (mounted) setState(() => animationsEnabled = restored);
     } catch (_) {
       // Keep animations enabled when preferences cannot be read.
     }
@@ -101,8 +100,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
   Future<void> _setAnimationsEnabled(bool value) async {
     setState(() => animationsEnabled = value);
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('darsyar.animationsEnabled', value);
+      await _preferences.saveAnimationsEnabled(value);
     } catch (_) {
       // The current session still uses the selected performance mode.
     }
@@ -110,17 +108,8 @@ class _DarsYarAppState extends State<DarsYarApp> {
 
   Future<void> _loadThemeMode() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final stored = prefs.getString('darsyar.themeMode');
-      final restored = switch (stored) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        'system' => ThemeMode.system,
-        _ => null,
-      };
-      if (restored != null && mounted) {
-        setState(() => mode = restored);
-      }
+      final restored = await _preferences.loadThemeMode();
+      if (mounted) setState(() => mode = restored);
     } catch (_) {
       // Theme preferences are optional; keep the system default if unavailable.
     }
@@ -129,13 +118,7 @@ class _DarsYarAppState extends State<DarsYarApp> {
   Future<void> _setThemeMode(ThemeMode value) async {
     setState(() => mode = value);
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final stored = switch (value) {
-        ThemeMode.light => 'light',
-        ThemeMode.dark => 'dark',
-        ThemeMode.system => 'system',
-      };
-      await prefs.setString('darsyar.themeMode', stored);
+      await _preferences.saveThemeMode(value);
     } catch (_) {
       // The selected theme remains active for this run even if persistence fails.
     }
