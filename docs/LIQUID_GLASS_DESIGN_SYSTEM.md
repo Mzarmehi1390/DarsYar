@@ -59,7 +59,7 @@ remain distinct through size and weight rather than color alone.
 - The dashboard hero is a shader-backed, elevated focal glass surface, not an opaque gradient banner.
 - Planner weekday selectors use `GlassChip`; the exam destination selector uses `GlassSegmentedControl` with a fluid glass indicator.
 - Do not place refractive controls inside refractive cards. A solid content surface may contain a glass control; a glass hero may contain ordinary text and non-glass icon treatments. Use a simple, high-contrast progress track inside the dashboard hero rather than nesting a second glass renderer.
-- Page-header icon wells use small independent shader-glass surfaces; they do not contain nested glass controls.
+- Primary page headers use one bounded shader-glass panel with a restrained specular top rim; the icon well is a tinted solid treatment to avoid nested glass renderers.
 - Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
 - Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
 
