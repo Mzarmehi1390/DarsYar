@@ -56,7 +56,7 @@ class DarsYarPageHeader extends StatelessWidget {
                 title,
                 style: TextStyle(
                   color: colors.onSurface,
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: FontWeight.w800,
                   height: 1.18,
                   letterSpacing: -0.35,
