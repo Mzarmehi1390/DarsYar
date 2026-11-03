@@ -760,7 +760,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }) {
     return GlassModalSheet.show<Map<int, int>>(
       context: context,
-      builder: (sheetContext) => DarsYarModalContent(
+      builder: (_) => DarsYarModalContent(
         child: _AnswerKeyEditorSheet(
           title: title,
           questionCount: questionCount,
@@ -2898,7 +2898,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> importBackup() async {
     final raw = await GlassModalSheet.show<String>(
       context: context,
-      builder: (sheetContext) => const DarsYarModalContent(
+      builder: (_) => const DarsYarModalContent(
         child: _BackupImportDialog(),
       ),
       initialState: GlassSheetState.full,
@@ -3178,7 +3178,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editStudySession([StudySession? existing]) async {
     final result = await GlassModalSheet.show<StudySession>(
       context: context,
-      builder: (sheetContext) => DarsYarModalContent(
+      builder: (_) => DarsYarModalContent(
         child: _StudySessionEditorDialog(
           existing: existing,
           initialWeekday: selectedStudyDay,
@@ -3562,7 +3562,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   Future<void> _editDuration() async {
     final updated = await GlassModalSheet.show<Duration>(
       context: context,
-      builder: (sheetContext) => DarsYarModalContent(
+      builder: (_) => DarsYarModalContent(
         child: _ExamDurationDialog(initialDuration: _duration),
       ),
       initialState: GlassSheetState.full,
@@ -3578,7 +3578,7 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
     final updated = await GlassModalSheet.show<Map<int, int>>(
       context: context,
-      builder: (sheetContext) => DarsYarModalContent(
+      builder: (_) => DarsYarModalContent(
         child: _AnswerKeyEditorSheet(
           title: 'کلید پاسخ آزمون',
           questionCount: count,
@@ -4222,7 +4222,7 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           onTap: () async {
             final picked = await GlassModalSheet.show<TimeOfDay>(
               context: context,
-              builder: (sheetContext) => DarsYarModalContent(
+              builder: (_) => DarsYarModalContent(
                 child: _TimePickerSheet(
                   initialTime: TimeOfDay(
                     hour: _startMinutes ~/ 60,
