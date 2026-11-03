@@ -365,8 +365,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
                 colors: isDark
-                    ? const [Color(0xFF0B1D15), Color(0xFF07100D), Color(0xFF101A24)]
-                    : const [Color(0xFFF4FAF7), Color(0xFFE8F1EC), Color(0xFFE8EDF5)],
+                    ? const [Color(0xFF101D30), Color(0xFF0A1321), Color(0xFF1A2034)]
+                    : const [Color(0xFFF5F8FD), Color(0xFFE8F0F8), Color(0xFFF0ECF8)],
               ),
             ),
           ),
@@ -400,8 +400,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      (isDark ? const Color(0xFF4B83A5) : const Color(0xFF8BB9D5))
+                      (isDark ? const Color(0xFF4F8EB8) : const Color(0xFF8EBBE8))
                           .withValues(alpha: isDark ? 0.16 : 0.20),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 250,
+            left: -150,
+            child: IgnorePointer(
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      (isDark ? const Color(0xFF6673C8) : const Color(0xFFB8A8EE))
+                          .withValues(alpha: isDark ? 0.13 : 0.19),
                       Colors.transparent,
                     ],
                   ),
@@ -487,7 +507,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
                 child: ClipRect(
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -495,12 +515,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           end: Alignment.bottomCenter,
                           colors: isDark
                               ? [
-                                  const Color(0xC92A4437),
-                                  const Color(0xE60D1B14),
+                                  const Color(0xB92B4560),
+                                  const Color(0xD90D1929),
                                 ]
                               : [
-                                  Colors.white.withValues(alpha: 0.76),
-                                  const Color(0xDDF4FAF6),
+                                  Colors.white.withValues(alpha: 0.72),
+                                  const Color(0xD9EAF2FA),
                                 ],
                         ),
                       ),
@@ -712,108 +732,168 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       icon: Icons.auto_stories_rounded,
     ),
     SizedBox(height: 24),
-    ClipRRect(
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1A9B6B), Color(0xFF126448), Color(0xFF0B3D30)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.42), width: 1.2),
-          boxShadow: [
-            BoxShadow(color: accent.withValues(alpha: 0.24), blurRadius: 28, offset: const Offset(0, 14)),
-            BoxShadow(color: Colors.white.withValues(alpha: 0.18), blurRadius: 1, offset: const Offset(0, 1)),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -58,
-              left: -28,
-              child: IgnorePointer(
-                child: Container(
-                  width: 190,
-                  height: 190,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [Colors.white.withValues(alpha: 0.30), Colors.white.withValues(alpha: 0)],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -74,
-              right: -36,
-              child: IgnorePointer(
-                child: Container(
-                  width: 210,
-                  height: 210,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [const Color(0xFF72E8BB).withValues(alpha: 0.24), Colors.transparent],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text('هر روز، یک قدم به هدفت نزدیک‌تر',
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+    DarsYarGlassSurface(
+      radius: 30,
+      elevation: 1.35,
+      blurSigma: 20,
+      tint: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF285B59)
+          : const Color(0xFFD8F2E9),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -66,
+            left: -42,
+            child: IgnorePointer(
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF72C9E9).withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark ? 0.19 : 0.25,
                       ),
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.32)),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 12, offset: const Offset(0, 5))],
-                        ),
-                        child: Icon(Icons.auto_awesome_rounded, color: Colors.white.withValues(alpha: 0.95)),
-                      ),
+                      Colors.transparent,
                     ],
                   ),
-                  SizedBox(height: 8),
-                  Text('برنامه‌ات را ساده نگه دار و با استمرار پیش برو.',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.82))),
-                  SizedBox(height: 22),
-                  Text(tasks.isEmpty ? 'هنوز وظیفه‌ای ثبت نشده است' : 'وظایف انجام‌شده: $completed از ${tasks.length}',
-                    style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
-                      duration: MediaQuery.of(context).disableAnimations
-                           ? Duration.zero
-                           : const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, progress, _) => LinearProgressIndicator(
-                        minHeight: 8,
-                        value: progress,
-                        backgroundColor: Colors.white.withValues(alpha: 0.24),
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            right: -58,
+            bottom: -100,
+            child: IgnorePointer(
+              child: Container(
+                width: 230,
+                height: 230,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF55C8A5).withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark ? 0.20 : 0.28,
+                      ),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
+                              ),
+                            ),
+                            child: Text(
+                              'تمرکز امروز',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 13),
+                          Text(
+                            'هر روز، یک قدم به هدفت نزدیک‌تر',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 20,
+                              height: 1.35,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    DarsYarGlassSurface(
+                      radius: 20,
+                      elevation: 0,
+                      padding: const EdgeInsets.all(13),
+                      tint: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF356C69)
+                          : const Color(0xFFE8FAF3),
+                      child: Icon(
+                        Icons.auto_awesome_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 25,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                Text(
+                  'برنامه‌ات را ساده نگه دار و با استمرار پیش برو.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        tasks.isEmpty
+                            ? 'هنوز وظیفه‌ای ثبت نشده است'
+                            : 'وظایف انجام‌شده: $completed از ${tasks.length}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      tasks.isEmpty ? '۰٪' : '${(completed / tasks.length * 100).round()}٪',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
+                    duration: MediaQuery.of(context).disableAnimations
+                        ? Duration.zero
+                        : const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, progress, _) => LinearProgressIndicator(
+                      minHeight: 8,
+                      value: progress,
+                      backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.09),
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     ),
     SizedBox(height: 24),
@@ -918,13 +998,35 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         icon: Icons.calendar_month_rounded,
       ),
       SizedBox(height: 18),
-      Row(children: [
-        Expanded(child: summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded)),
-        SizedBox(width: 8),
-        Expanded(child: summary('انجام‌شده', completedSessions, Icons.check_circle_outline)),
-        SizedBox(width: 8),
-        Expanded(child: summary('دقیقه امروز', totalMinutes, Icons.timer_outlined)),
-      ]),
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 390;
+          final width = compact ? (constraints.maxWidth - 10) / 2 : null;
+          final cards = [
+            summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded),
+            summary('انجام‌شده', completedSessions, Icons.check_circle_outline),
+            summary('دقیقه امروز', totalMinutes, Icons.timer_outlined),
+          ];
+          if (compact) {
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final card in cards)
+                  SizedBox(width: width, child: card),
+              ],
+            );
+          }
+          return Row(
+            children: [
+              for (var i = 0; i < cards.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(child: cards[i]),
+              ],
+            ],
+          );
+        },
+      ),
       SizedBox(height: 20),
       Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
       SizedBox(height: 10),
