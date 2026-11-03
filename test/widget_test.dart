@@ -1021,4 +1021,63 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('planner session and task cards keep clear hierarchy on compact screens', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final today = DateTime.now().weekday % 7;
+    SharedPreferences.setMockInitialValues({
+      'darsyar.studySessions': jsonEncode([
+        {
+          'id': 'compact-session',
+          'title': 'مرور فصل‌های مهم زیست‌شناسی',
+          'subject': 'زیست‌شناسی',
+          'weekday': today,
+          'startMinutes': 600,
+          'durationMinutes': 50,
+          'completed': false,
+        },
+      ]),
+      'darsyar.tasks': jsonEncode([
+        {
+          'id': 'compact-task',
+          'title': 'حل تمرین‌های تکمیلی ریاضی',
+          'subject': 'ریاضی',
+          'done': false,
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
+    await tester.ensureVisible(sessionTitle);
+    await tester.pumpAndSettle();
+    expect(sessionTitle, findsOneWidget);
+    expect(find.text('زیست‌شناسی'), findsWidgets);
+    expect(find.text('۱۰:۰۰'), findsOneWidget);
+    expect(find.text('۵۰ دقیقه'), findsOneWidget);
+
+    final completeSession = find.bySemanticsLabel('علامت‌گذاری جلسه به‌عنوان انجام‌شده');
+    expect(completeSession, findsOneWidget);
+    await tester.tap(completeSession);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedSessions = jsonDecode(prefs.getString('darsyar.studySessions')!) as List;
+    expect(savedSessions.single['completed'], isTrue);
+
+    final taskTitle = find.text('حل تمرین‌های تکمیلی ریاضی');
+    await tester.ensureVisible(taskTitle);
+    await tester.pumpAndSettle();
+    expect(taskTitle, findsOneWidget);
+    expect(find.text('ریاضی'), findsWidgets);
+    expect(find.bySemanticsLabel('ویرایش وظیفه'), findsOneWidget);
+    expect(find.bySemanticsLabel('حذف وظیفه'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
