@@ -7,23 +7,23 @@ import 'package:flutter/material.dart';
 abstract final class DarsYarTokens {
   static const accent = Color(0xFF16A36A);
   static const accentLight = Color(0xFF75D9A5);
-  static const secondary = Color(0xFF4B849C);
+  static const secondary = Color(0xFF5B83B6);
 
-  static const lightBackground = Color(0xFFEAF2EE);
-  static const lightCanvas = Color(0xFFF3F8F5);
-  static const lightSurface = Color(0xFFF9FCFA);
-  static const lightSurfaceRaised = Color(0xFFE5F0E9);
-  static const lightOutline = Color(0xFFC8D9CF);
-  static const lightText = Color(0xFF14231D);
-  static const lightMuted = Color(0xFF71847A);
+  static const lightBackground = Color(0xFFE9F0F8);
+  static const lightCanvas = Color(0xFFF3F7FC);
+  static const lightSurface = Color(0xFFF8FBFF);
+  static const lightSurfaceRaised = Color(0xFFE3EDF7);
+  static const lightOutline = Color(0xFFC6D6E5);
+  static const lightText = Color(0xFF172536);
+  static const lightMuted = Color(0xFF687B90);
 
-  static const darkBackground = Color(0xFF08130F);
-  static const darkCanvas = Color(0xFF0D1A14);
-  static const darkSurface = Color(0xFF14251D);
-  static const darkSurfaceRaised = Color(0xFF20372B);
-  static const darkOutline = Color(0xFF3B5748);
-  static const darkText = Color(0xFFEAF5EE);
-  static const darkMuted = Color(0xFFA5B9AD);
+  static const darkBackground = Color(0xFF0B1422);
+  static const darkCanvas = Color(0xFF101D2D);
+  static const darkSurface = Color(0xFF192A3D);
+  static const darkSurfaceRaised = Color(0xFF263D54);
+  static const darkOutline = Color(0xFF405A72);
+  static const darkText = Color(0xFFEAF3FC);
+  static const darkMuted = Color(0xFFA8B9CC);
 
   static const radiusSmall = 12.0;
   static const radiusMedium = 18.0;
@@ -32,7 +32,7 @@ abstract final class DarsYarTokens {
 
   static const pageHorizontalPadding = 20.0;
   static const pageBottomClearance = 124.0;
-  static const glassBlur = 8.0;
+  static const glassBlur = 15.0;
 }
 
 abstract final class DarsYarTheme {
@@ -55,8 +55,8 @@ abstract final class DarsYarTheme {
       scheme: scheme,
       brightness: Brightness.light,
       background: DarsYarTokens.lightBackground,
-      inputFill: const Color(0xFFE7F0EA),
-      cardFill: const Color(0xF7FFFFFF),
+      inputFill: const Color(0xFFE5EEF8),
+      cardFill: const Color(0xEFFFFFFF),
       cardBorder: const Color(0xDFFFFFFF),
       mutedText: DarsYarTokens.lightMuted,
     );
@@ -69,7 +69,7 @@ abstract final class DarsYarTheme {
     ).copyWith(
       primary: DarsYarTokens.accentLight,
       onPrimary: const Color(0xFF092016),
-      secondary: const Color(0xFF8DBBD0),
+      secondary: const Color(0xFF9BC4E8),
       surface: DarsYarTokens.darkSurface,
       onSurface: DarsYarTokens.darkText,
       surfaceContainerHighest: DarsYarTokens.darkSurfaceRaised,
@@ -81,9 +81,9 @@ abstract final class DarsYarTheme {
       scheme: scheme,
       brightness: Brightness.dark,
       background: DarsYarTokens.darkBackground,
-      inputFill: const Color(0xFF1B3025),
-      cardFill: const Color(0xE61A2B23),
-      cardBorder: const Color(0x35B5F5D2),
+      inputFill: const Color(0xFF22364B),
+      cardFill: const Color(0xE61A2B40),
+      cardBorder: const Color(0x3AAED8FF),
       mutedText: DarsYarTokens.darkMuted,
     );
   }
