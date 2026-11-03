@@ -18,6 +18,7 @@ import 'exam_result.dart';
 import 'exam_sheet.dart';
 import 'study_session.dart';
 import 'models/study_task.dart';
+import 'planner_summary.dart';
 
 void showDarsYarGlassSnackBar(
   BuildContext context,
@@ -1215,10 +1216,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget planner() {
-    final daySessions = studySessions.where((session) => session.weekday == selectedStudyDay).toList()
-      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
-    final completedSessions = studySessions.where((session) => session.completed).length;
-    final totalMinutes = daySessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
+    final summary = PlannerSummary.fromSessions(studySessions);
+    final daySessions = summary.sessionsForDay(selectedStudyDay);
+    final completedSessions = summary.completedSessionCount;
+    final totalMinutes = summary.minutesForDay(selectedStudyDay);
     return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance), children: [
       const DarsYarPageHeader(
         title: 'برنامه‌ریزی درسی',
@@ -1393,16 +1394,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget weeklyReportCard() {
-    final plannedMinutes = studySessions.fold<int>(
-      0,
-      (sum, session) => sum + session.durationMinutes,
-    );
-    final completedMinutes = studySessions
-        .where((session) => session.completed)
-        .fold<int>(0, (sum, session) => sum + session.durationMinutes);
-    final completion = plannedMinutes == 0
-        ? 0.0
-        : completedMinutes / plannedMinutes;
+    final summary = PlannerSummary.fromSessions(studySessions);
+    final plannedMinutes = summary.plannedMinutes;
+    final completedMinutes = summary.completedMinutes;
+    final completion = summary.completion;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return _glassSurface(
