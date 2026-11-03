@@ -263,6 +263,26 @@ void main() {
     final savedTasksAfterEdit = jsonDecode(prefsAfterEdit.getString('darsyar.tasks')!) as List;
     expect(savedTasksAfterEdit.single['title'], 'تمرین ریاضی');
   });
+  testWidgets('task editor remains usable on a compact phone viewport', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final addTask = find.text('ثبت وظیفه');
+    await tester.ensureVisible(addTask);
+    await tester.pumpAndSettle();
+    await tester.tap(addTask);
+    await tester.pumpAndSettle();
+
+    expect(find.text('وظیفه جدید'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'عنوان وظیفه'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('saving a task leaves unrelated exam storage untouched', (WidgetTester tester) async {
     final storedExam = jsonEncode([
       {
