@@ -96,8 +96,10 @@ The redesign must not alter:
 - Replaced the custom bottom dock with `GlassScaffold` and the shader-backed floating `GlassTabBar`.
 - Applied shader-backed `GlassContainer` materials to the dashboard hero and page-header icon wells; dense study content uses high-contrast `DarsYarContentSurface` rather than blur-heavy cards.
 - Converted planner weekday selection to `GlassChip` and exam-mode selection to `GlassSegmentedControl`.
-- Converted exam setup, task, exam-name, duration, backup-import and study-session inputs to `GlassTextField`/`GlassFormField`; duration, backup and study-session editors now use full-height `GlassModalSheet` presentations.
-- Replaced destructive and confirmation alerts with `GlassDialog` and migrated task/exam-name editors to glass dialogs.
+- Converted every remaining form input to `GlassTextField`/`GlassFormField`; duration, backup-import, study-session, and all answer-key editors now use `GlassModalSheet` presentations.
+- Replaced all Material `AlertDialog`/`showDialog` flows with `GlassDialog` or `GlassModalSheet`; task/exam-name editors use glass dialogs, and question editing uses glass chips plus `GlassSwitch`.
+- Replaced planner/exam overflow menus with `GlassPullDownButton`/`GlassMenuItem`; theme selection and exam modes use `GlassSegmentedControl`; negative marking uses `GlassSwitch`.
+- Converted primary planner/exam actions, timer controls, answer choices and navigation buttons to `GlassButton`/`GlassChip`; study-session time selection now uses a Cupertino wheel picker inside a glass sheet.
 - Reused the shared surface in dashboard quick actions, weekly report, exam toolbar,
   exam setup, planner cards, task/session cards, settings and result panels.
 - Added a shared primary-destination page header.
@@ -122,8 +124,8 @@ The redesign must not alter:
 - Inspect the updated app on a physical Android device in both themes.
 - Verify compact viewport and text scaling, long Persian labels and RTL overflow.
 - Profile scroll performance on lists with many sessions/tasks/results.
-- Migrate the remaining answer/question and answer-key editors from Material `AlertDialog` to appropriate glass dialogs or sheets.
-- Continue the secondary dialog/sheet and detailed exam-flow visual audit.
+- Continue the screen-by-screen visual audit for spacing, typography, card hierarchy, results history and settings details.
+- Verify all sheet keyboard-inset behavior, accessibility labels and compact layouts.
 - Verify all modal layouts with compact screens, keyboard visibility and large text scaling;
   the exam-setup answer-key editor has a dedicated 320 dp regression test.
 - Do not merge to `main` until the full screen inventory and QA criteria are satisfied.
