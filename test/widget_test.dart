@@ -1098,6 +1098,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
+    final selectedWeekday = DateTime.now().weekday % 7;
+    const weekdayLabels = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+    await tester.tap(find.text(weekdayLabels[selectedWeekday]).first);
+    await tester.pumpAndSettle();
     await tester.ensureVisible(sessionTitle);
     await tester.pumpAndSettle();
     expect(sessionTitle, findsOneWidget);
