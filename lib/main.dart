@@ -2094,8 +2094,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     return Column(
       children: [
-        _glassSurface(
-          radius: 18,
+        GlassContainer.card(
+          shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+          useOwnLayer: true,
+          quality: GlassQuality.standard,
+          clipBehavior: Clip.antiAlias,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
             child: Column(
