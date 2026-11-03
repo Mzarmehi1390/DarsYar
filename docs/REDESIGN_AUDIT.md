@@ -154,6 +154,13 @@ The redesign must not alter:
 - Continue extracting feature boundaries in small, behavior-preserving steps; avoid moving timer, scoring, or persistence orchestration until dedicated regression coverage exists.
 
 
+## Floating glass destination headers
+
+- Reworked the four primary destination headers into a single bounded shader-backed glass panel with a restrained specular top rim.
+- Kept the icon well as a tinted solid inset rather than nesting a second glass renderer, preserving a clear material hierarchy and reducing redundant shader work.
+- Tightened title typography and capped supporting copy to two lines so long Persian labels remain controlled on compact widths.
+- Updated the shared design-system contract; existing destination-header widget coverage continues to verify all four primary screens render without layout exceptions.
+
 ## Shared modal typography and liquid-glass surface fix
 
 - Added `DarsYarModalContent` as a shared overlay scope. It explicitly restores RTL directionality and a high-contrast inherited text style with no underline decoration inside modal routes.
