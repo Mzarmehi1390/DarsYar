@@ -32,6 +32,48 @@ class DarsYarPageHeader extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
+          // A broad, soft specular reflection gives the surface a visible
+          // curved-glass highlight while staying behind the title and icon.
+          Positioned(
+            top: -30,
+            left: -22,
+            child: IgnorePointer(
+              child: Container(
+                width: 178,
+                height: 92,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(100),
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: isDark ? 0.13 : 0.48),
+                      Colors.white.withValues(alpha: isDark ? 0.045 : 0.16),
+                      Colors.transparent,
+                    ],
+                    stops: const [0, 0.48, 1],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 26,
+            right: 26,
+            child: IgnorePointer(
+              child: Container(
+                height: 0.7,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Colors.white.withValues(alpha: isDark ? 0.16 : 0.42),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           Positioned(
             top: 0,
             left: 18,
