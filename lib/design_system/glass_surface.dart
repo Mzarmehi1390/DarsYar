@@ -47,9 +47,9 @@ class DarsYarGlassSurface extends StatelessWidget {
                 color: Colors.black.withValues(
                   alpha: (isDark ? 0.22 : 0.075) * elevation,
                 ),
-                blurRadius: 24 * elevation,
+                blurRadius: 24.0 * elevation,
                 spreadRadius: -5,
-                offset: Offset(0, 9 * elevation),
+                offset: Offset(0, 9.0 * elevation),
               ),
             BoxShadow(
               color: (isDark ? DarsYarTokens.accentLight : Colors.white)
