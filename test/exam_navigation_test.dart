@@ -25,7 +25,7 @@ void main() {
       'darsyar.activeExamId': 'long-exam',
     });
 
-    await tester.view.physicalSize = const Size(390, 780);
+    tester.view.physicalSize = const Size(390, 780);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -37,7 +37,7 @@ void main() {
     await tester.tap(find.text('شروع آزمون'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('فهرست سؤال‌ها'));
+    await tester.tap(find.byIcon(Icons.format_list_numbered_rounded));
     await tester.pumpAndSettle();
 
     final navigatorFinder = find.byKey(
