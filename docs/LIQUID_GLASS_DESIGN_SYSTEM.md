@@ -46,7 +46,7 @@ the component geometry requires it.
   high-contrast text. These defaults are centralized in `DarsYarTheme` so
   transient UI does not drift between features.
 
-The shared `DarsYarGlassSurface` now uses a bounded 15 dp blur by default, a translucent three-stop material gradient, a bright upper specular line, a faint lower rim, a small reflected bloom and a soft contact shadow. Elevated focal surfaces may opt into a stronger local blur (for example, the dashboard hero at 20 dp). Keep all blur clipped to the material bounds; never blur the full scrolling page. Do not nest glass surfaces unless the inner surface is a genuinely separate control or floating object.
+The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. This provides the library's iOS 27 paraxial-lens material on supported Impeller devices and a quality-adapted fallback elsewhere. Keep refractive glass for floating navigation, controls and selected focal surfaces; dense study lists and grouped content should remain high-contrast solid surfaces. The legacy bounded `DarsYarGlassSurface` remains during the screen migration and must not become the default wrapper for every row.
 
 ## Typography
 
@@ -58,7 +58,7 @@ remain distinct through size and weight rather than color alone.
 ## Atmospheric background and focal surfaces
 
 - Use a cool, softly layered blue/green/violet ambient background so glass can pick up visible color variation.
-- The dashboard hero is a translucent elevated glass surface, not an opaque gradient banner.
+- The dashboard hero is a translucent elevated focal surface, not an opaque gradient banner.
 - Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
 - Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
 
@@ -73,10 +73,7 @@ remain distinct through size and weight rather than color alone.
 
 ## Navigation and safe areas
 
-The bottom dock remains predictable, keeps its selected destination exposed to
-semantics, and must not cover the final content row. The glass material ends
-before the device's bottom safe-area inset so that the gesture/navigation inset
-does not become an opaque blurred strip.
+The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule with a liquid selected indicator, Persian TalkBack labels and adaptive rendering quality. `GlassScaffold` owns bar z-ordering and bottom edge fading; page scroll padding remains sufficient to prevent the final content row from being obscured.
 
 ## Accessibility and localization
 
@@ -90,6 +87,8 @@ does not become an opaque blurred strip.
 
 ## Performance rules
 
+- Prefer the package's shader-backed glass for floating controls and navigation.
+- Use adaptive quality and retain a standard/minimal fallback on slower devices.
 - Blur only bounded surfaces.
 - Prefer the shared material over nested BackdropFilters.
 - Keep expensive effects out of large scrolling regions.
