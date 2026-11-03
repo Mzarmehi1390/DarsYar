@@ -198,3 +198,6 @@ The redesign must not alter:
 
 - Added a compact-width widget test that selects an answer, verifies the persisted zero-based option value, navigates back, and confirms the selected option is still visibly selected.
 - Keep the timer, answer autosave, question progression, review marking and navigator interactions intact while refining the active-exam glass chrome.
+
+
+- Stabilized the compact planner card fixture by placing its sample session on the runtime's initially selected weekday. This keeps the test focused on compact card layout and completion persistence instead of relying on horizontal weekday-chip interaction.
