@@ -6,21 +6,19 @@ consume these tokens instead of introducing unrelated material values.
 
 ## Product direction
 
-DarsYar should feel calm, focused and precise. Liquid Glass is used to establish
-depth and hierarchy, not as decoration on every pixel. Content, controls and
-study information remain the visual priority.
+DarsYar should feel like a calm, native-feeling iOS environment while retaining its own study-focused identity. Use Apple's Liquid Glass language as the visual reference: optical translucency, local background refraction, dimensional edge highlights, soft specular reflections, layered color and fluid state changes. This is an iOS-inspired implementation on Flutter/Android, not a claim to reproduce Apple's private rendering stack. Content, controls and study information remain the visual priority.
 
 ## Color foundations
 
 | Role | Light | Dark |
 | --- | --- | --- |
 | Accent | `#16A36A` | `#75D9A5` |
-| Secondary | `#4B849C` | `#8DBBD0` |
-| App background | `#EAF2EE` | `#08130F` |
-| Canvas | `#F3F8F5` | `#0D1A14` |
-| Surface | `#F9FCFA` | `#14251D` |
-| Raised surface | `#E5F0E9` | `#20372B` |
-| Primary text | `#14231D` | `#EAF5EE` |
+| Secondary | `#5B83B6` | `#9BC4E8` |
+| App background | `#E9F0F8` | `#0B1422` |
+| Canvas | `#F3F7FC` | `#101D2D` |
+| Surface | `#F8FBFF` | `#192A3D` |
+| Raised surface | `#E3EDF7` | `#263D54` |
+| Primary text | `#172536` | `#EAF3FC` |
 
 Semantic colors must continue to communicate success, warning and error
 independently of the accent color. Text contrast takes priority over translucency.
@@ -48,17 +46,21 @@ the component geometry requires it.
   high-contrast text. These defaults are centralized in `DarsYarTheme` so
   transient UI does not drift between features.
 
-The shared `DarsYarGlassSurface` uses a bounded blur (8 dp by default), a subtle
-edge highlight, a restrained gradient and a soft shadow. Do not put a full-screen
-blur behind scrolling content. Avoid stacking multiple blur layers around one
-component.
+The shared `DarsYarGlassSurface` now uses a bounded 15 dp blur by default, a translucent three-stop material gradient, a bright upper specular line, a faint lower rim, a small reflected bloom and a soft contact shadow. Elevated focal surfaces may opt into a stronger local blur (for example, the dashboard hero at 20 dp). Keep all blur clipped to the material bounds; never blur the full scrolling page. Do not nest glass surfaces unless the inner surface is a genuinely separate control or floating object.
 
 ## Typography
 
 Use the platform's readable Persian-capable sans-serif fallback. Do not force a
-Latin-only font. The shared page header uses a 23 sp title and 12 sp supporting
-text. Screen titles, section titles, body text, labels and numeric metrics should
+Latin-only font. The shared page header uses a 24 sp title and 12.5 sp supporting
+text, with a glass icon well. Screen titles, section titles, body text, labels and numeric metrics should
 remain distinct through size and weight rather than color alone.
+
+## Atmospheric background and focal surfaces
+
+- Use a cool, softly layered blue/green/violet ambient background so glass can pick up visible color variation.
+- The dashboard hero is a translucent elevated glass surface, not an opaque gradient banner.
+- Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
+- Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
 
 ## Motion
 
