@@ -3980,8 +3980,8 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
           child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _controller,
-            minLines: 6,
-            maxLines: 12,
+            minLines: 4,
+            maxLines: 4,
             keyboardType: TextInputType.multiline,
             placeholder: 'محتوای نسخه پشتیبان…',
             quality: GlassQuality.standard,
