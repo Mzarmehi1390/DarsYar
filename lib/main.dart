@@ -2145,7 +2145,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Widget _myExamsView() {
     final savedExams = exams.reversed.toList(growable: false);
     final empty = savedExams.isEmpty;
-    final itemCount = empty ? 7 : savedExams.length + 5;
+    final itemCount = empty ? 7 : savedExams.length + 6;
 
     return CustomScrollView(
       key: const PageStorageKey<String>('my-exams-scroll'),
