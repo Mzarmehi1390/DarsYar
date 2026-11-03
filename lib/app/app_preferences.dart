@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Keeping preference keys and serialization in one place prevents widgets
 /// from becoming coupled to SharedPreferences and makes settings testable.
 class AppPreferences {
-  AppPreferences({SharedPreferences? this._preferences});
+  AppPreferences({this._preferences});
 
   static const themeModeKey = 'darsyar.themeMode';
   static const animationsEnabledKey = 'darsyar.animationsEnabled';
