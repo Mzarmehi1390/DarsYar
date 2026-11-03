@@ -2244,8 +2244,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
                     Text(
                       'پاسخ داده‌شده: $answered از ${exam.questionCount}',
