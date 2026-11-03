@@ -1306,14 +1306,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             icon: Icons.fact_check_rounded,
           ),
           SizedBox(height: 14),
-          SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: 0, label: Text('ساخت آزمون جدید')),
-              ButtonSegment(value: 1, label: Text('آزمون‌های من')),
-            ],
-            selected: {examSection},
-            showSelectedIcon: false,
-            onSelectionChanged: (value) => setState(() => examSection = value.first),
+          _glassSurface(
+            radius: 18,
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 0, label: Text('ساخت آزمون جدید')),
+                  ButtonSegment(value: 1, label: Text('آزمون‌های من')),
+                ],
+                selected: {examSection},
+                showSelectedIcon: false,
+                onSelectionChanged: (value) =>
+                    setState(() => examSection = value.first),
+              ),
+            ),
           ),
         ]),
       ),
@@ -1389,33 +1396,369 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
-    final ExamSheet exam = activeExam;
-    final int q = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
-    final remaining = _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
+    final exam = activeExam;
+    final q = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
+    final remaining =
+        _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
     final answered = exam.answers.length;
-    return Column(children: [
-      _glassSurface(radius: 18, child: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-        Row(children: [IconButton(tooltip: 'بازگشت به پاسخ‌برگ', onPressed: () => setState(() => isTakingExam = false), icon: Icon(Icons.arrow_forward)), Expanded(child: Text(exam.name, style: TextStyle(fontWeight: FontWeight.w800))), ValueListenableBuilder<int>(valueListenable: _timerDisplaySeconds, builder: (context, seconds, _) => Text(_formatDuration(_timerExamId == activeExamId ? seconds : remaining), style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: accent))), IconButton(tooltip: 'فهرست سؤال‌ها', onPressed: () => setState(() => _showQuestionNavigator = !_showQuestionNavigator), icon: Icon(Icons.format_list_numbered_rounded)), IconButton(tooltip: _examTimerRunning ? 'توقف زمان‌سنج' : 'ادامه زمان‌سنج', onPressed: _toggleExamTimer, icon: Icon(_examTimerRunning ? Icons.pause : Icons.play_arrow))]),
-        LinearProgressIndicator(value: exam.questionCount == 0 ? 0 : answered / exam.questionCount, minHeight: 7),
-        SizedBox(height: 6),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('پیشرفت پاسخ‌ها: $answered از ${exam.questionCount}'), Text('سؤال $q از ${exam.questionCount}')]),
-      ]))),
-      Expanded(child: Row(children: [
-        if (_showQuestionNavigator) Container(width: (MediaQuery.of(context).size.width * 0.34).clamp(112.0, 190.0).toDouble(), color: Theme.of(context).colorScheme.surfaceContainer, child: ListView.builder(padding: const EdgeInsets.all(8), itemCount: exam.questionCount, itemBuilder: (context, index) {
-          final number = index + 1; final current = number == q; final markedQuestion = exam.marked.contains(number); final hasAnswer = exam.answers.containsKey(number);
-          return Padding(padding: const EdgeInsets.only(bottom: 6), child: Material(color: markedQuestion ? const Color(0xFFB8EBD2) : current ? accent.withValues(alpha: 0.18) : hasAnswer ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(10), child: InkWell(borderRadius: BorderRadius.circular(10), onTap: () => setState(() => currentQuestionNumber = number), child: Padding(padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 8), child: Row(children: [Expanded(child: Text('سؤال $number', style: TextStyle(fontSize: 12, fontWeight: current || markedQuestion ? FontWeight.w800 : FontWeight.w500, color: markedQuestion ? const Color(0xFF155C3D) : null))), if (markedQuestion) Icon(Icons.flag_rounded, size: 15, color: const Color(0xFF155C3D)) else if (hasAnswer) Icon(Icons.check_circle, size: 14, color: const Color(0xFF159A68))])))));
-        })),
-        Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
-          _glassSurface(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-            Text('سؤال $q', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)), SizedBox(height: 16),
-            for (var option = 0; option < 4; option++) Padding(padding: const EdgeInsets.only(bottom: 8), child: SizedBox(width: double.infinity, child: FilledButton.tonal(style: FilledButton.styleFrom(backgroundColor: exam.answers[q] == option ? const Color(0xFFB8EBD2) : Theme.of(context).colorScheme.secondaryContainer, foregroundColor: exam.answers[q] == option ? const Color(0xFF155C3D) : null), onPressed: () => _answerQuestion(option), child: Text('گزینه ${option + 1}${exam.answers[q] == option ? ' ✓' : ''}')))),
-            TextButton.icon(onPressed: () => _toggleQuestionMarked(q), icon: Icon(Icons.flag_outlined), label: Text(exam.marked.contains(q) ? 'حذف علامت مرور' : 'علامت برای مرور')),
-          ]))),
-          Row(children: [Expanded(child: OutlinedButton(onPressed: q > 1 ? () => setState(() => currentQuestionNumber--) : null, child: Text('قبلی'))), SizedBox(width: 8), Expanded(child: FilledButton(onPressed: q < exam.questionCount ? () => setState(() => currentQuestionNumber++) : _finishExam, child: Text(q == exam.questionCount ? 'پایان آزمون' : 'بعدی')))]),
-          TextButton(onPressed: _finishExam, child: Text('ثبت پایان آزمون')),
-        ])),
-      ])),
-    ]);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final markerBackground = isDark
+        ? const Color(0xFF244D39)
+        : const Color(0xFFB8EBD2);
+    final markerForeground = isDark
+        ? DarsYarTokens.accentLight
+        : const Color(0xFF155C3D);
+    final selectedAnswerBackground = markerBackground;
+
+    return Column(
+      children: [
+        _glassSurface(
+          radius: 18,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'بازگشت به پاسخ‌برگ',
+                      onPressed: () => setState(() => isTakingExam = false),
+                      icon: const Icon(Icons.arrow_forward),
+                    ),
+                    Expanded(
+                      child: Text(
+                        exam.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.72),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 17,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 5),
+                          ValueListenableBuilder<int>(
+                            valueListenable: _timerDisplaySeconds,
+                            builder: (context, seconds, _) => Text(
+                              _formatDuration(
+                                _timerExamId == activeExamId ? seconds : remaining,
+                              ),
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Theme.of(context).colorScheme.primary,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'فهرست سؤال‌ها',
+                      onPressed: () => setState(
+                        () => _showQuestionNavigator = !_showQuestionNavigator,
+                      ),
+                      icon: Icon(
+                        Icons.format_list_numbered_rounded,
+                        color: _showQuestionNavigator
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: _examTimerRunning
+                          ? 'توقف زمان‌سنج'
+                          : 'ادامه زمان‌سنج',
+                      onPressed: _toggleExamTimer,
+                      icon: Icon(
+                        _examTimerRunning
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: exam.questionCount == 0
+                        ? 0
+                        : answered / exam.questionCount,
+                    minHeight: 7,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'پاسخ داده‌شده: $answered از ${exam.questionCount}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      'سؤال $q از ${exam.questionCount}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_showQuestionNavigator)
+                SizedBox(
+                  width: (MediaQuery.of(context).size.width * 0.34)
+                      .clamp(112.0, 190.0)
+                      .toDouble(),
+                  child: _glassSurface(
+                    radius: 18,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: exam.questionCount,
+                      itemBuilder: (context, index) {
+                        final number = index + 1;
+                        final current = number == q;
+                        final markedQuestion = exam.marked.contains(number);
+                        final hasAnswer = exam.answers.containsKey(number);
+                        final itemColor = markedQuestion
+                            ? markerBackground
+                            : current
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: isDark ? 0.22 : 0.13)
+                                : hasAnswer
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest
+                                    : Theme.of(context).colorScheme.surface;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Material(
+                            color: itemColor,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => setState(
+                                () => currentQuestionNumber = number,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 11,
+                                  horizontal: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'سؤال $number',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: current || markedQuestion
+                                              ? FontWeight.w800
+                                              : FontWeight.w500,
+                                          color: markedQuestion
+                                              ? markerForeground
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                    if (markedQuestion)
+                                      Icon(
+                                        Icons.flag_rounded,
+                                        size: 15,
+                                        color: markerForeground,
+                                      )
+                                    else if (hasAnswer)
+                                      Icon(
+                                        Icons.check_circle_rounded,
+                                        size: 14,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(14, 18, 14, 124),
+                  children: [
+                    _glassSurface(
+                      radius: 24,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                  child: Icon(
+                                    Icons.quiz_outlined,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'سؤال $q',
+                                    style: const TextStyle(
+                                      fontSize: 21,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                                if (exam.marked.contains(q))
+                                  Icon(
+                                    Icons.flag_rounded,
+                                    color: markerForeground,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'گزینه پاسخ را انتخاب کن',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            for (var option = 0; option < 4; option++)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton.tonal(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: exam.answers[q] == option
+                                          ? selectedAnswerBackground
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .secondaryContainer,
+                                      foregroundColor: exam.answers[q] == option
+                                          ? markerForeground
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .onSecondaryContainer,
+                                      alignment: Alignment.centerRight,
+                                    ),
+                                    onPressed: () => _answerQuestion(option),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text('گزینه ${option + 1}'),
+                                        ),
+                                        if (exam.answers[q] == option)
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            size: 18,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            TextButton.icon(
+                              onPressed: () => _toggleQuestionMarked(q),
+                              icon: Icon(
+                                exam.marked.contains(q)
+                                    ? Icons.flag_rounded
+                                    : Icons.flag_outlined,
+                              ),
+                              label: Text(
+                                exam.marked.contains(q)
+                                    ? 'حذف علامت مرور'
+                                    : 'علامت برای مرور',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: q > 1
+                                ? () => setState(() => currentQuestionNumber--)
+                                : null,
+                            child: const Text('قبلی'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: q < exam.questionCount
+                                ? () => setState(() => currentQuestionNumber++)
+                                : _finishExam,
+                            child: Text(
+                              q == exam.questionCount ? 'پایان آزمون' : 'بعدی',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Center(
+                      child: TextButton(
+                        onPressed: _finishExam,
+                        child: const Text('ثبت پایان آزمون'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _answerQuestion(int option) async {
