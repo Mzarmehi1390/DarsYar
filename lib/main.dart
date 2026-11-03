@@ -1115,10 +1115,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             weekDays[selectedStudyDay],
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
           ),
-          OutlinedButton.icon(
-            onPressed: addStudySession,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('جلسه جدید'),
+          GlassButton.custom(
+            width: 132,
+            height: 44,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
+            onTap: addStudySession,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_rounded, size: 18),
+                SizedBox(width: 6),
+                Text('جلسه جدید', style: TextStyle(fontWeight: FontWeight.w700)),
+              ],
+            ),
           ),
           GlassPullDownButton(
             icon: const Icon(Icons.copy_all_rounded),
@@ -1154,10 +1165,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          FilledButton.tonalIcon(
-            onPressed: addTask,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('ثبت وظیفه'),
+          GlassButton.custom(
+            width: 126,
+            height: 44,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
+            onTap: addTask,
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_rounded, size: 18),
+                SizedBox(width: 6),
+                Text('ثبت وظیفه', style: TextStyle(fontWeight: FontWeight.w700)),
+              ],
+            ),
           ),
         ],
       ),
@@ -1585,10 +1607,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       SizedBox(width: 6),
                       Text('آزمون پایان یافته', style: TextStyle(color: accent, fontWeight: FontWeight.w700, fontSize: 12)),
                     ])
-                  : FilledButton.tonalIcon(
-                      onPressed: () => _beginExam(exam),
-                      icon: Icon(Icons.play_arrow_rounded),
-                      label: Text(exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون'),
+                  : GlassButton.custom(
+                      width: 142,
+                      height: 44,
+                      shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                      quality: GlassQuality.standard,
+                      style: GlassButtonStyle.filled,
+                      onTap: () => _beginExam(exam),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.play_arrow_rounded, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
                     )),
                 ]),
               ),
@@ -3306,9 +3342,14 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
                   ],
                 );
-                final editButton = OutlinedButton(
-                  onPressed: _editDuration,
-                  child: Text('تغییر زمان'),
+                final editButton = GlassButton.custom(
+                  width: 112,
+                  height: 42,
+                  shape: const LiquidRoundedSuperellipse(borderRadius: 14),
+                  quality: GlassQuality.standard,
+                  style: GlassButtonStyle.filled,
+                  onTap: _editDuration,
+                  child: const Text('تغییر زمان'),
                 );
                 if (compact) {
                   return Column(
@@ -3335,20 +3376,52 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           ),
           SizedBox(height: 12),
           Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), OutlinedButton.icon(onPressed: _editSetupAnswerKey, icon: Icon(Icons.key_rounded), label: Text('ورود کلید'))]),
-          SizedBox(height: 8),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            value: _negativeMarking,
-            onChanged: (value) => setState(() => _negativeMarking = value),
-            title: Text('محاسبه با نمره منفی'),
-            subtitle: Text('هر سه پاسخ غلط، معادل یک پاسخ درست کسر می‌شود.'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('محاسبه با نمره منفی', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 3),
+                    Text(
+                      'هر سه پاسخ غلط، معادل یک پاسخ درست کسر می‌شود.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GlassSwitch(
+                value: _negativeMarking,
+                semanticLabel: 'محاسبه با نمره منفی',
+                quality: GlassQuality.standard,
+                onChanged: (value) => setState(() => _negativeMarking = value),
+              ),
+            ],
           ),
-          SizedBox(height: 8),
-          SizedBox(width: double.infinity, child: FilledButton.icon(
-            onPressed: _submit,
-            icon: Icon(Icons.play_arrow_rounded),
-            label: Text('ساخت پاسخ‌برگ و شروع آزمون'),
-          )),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: GlassButton.custom(
+              height: 52,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 17),
+              quality: GlassQuality.standard,
+              style: GlassButtonStyle.prominent,
+              onTap: _submit,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.play_arrow_rounded, size: 21),
+                  SizedBox(width: 8),
+                  Text('ساخت پاسخ‌برگ و شروع آزمون', style: TextStyle(fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
+          ),
           SizedBox(height: 4),
           Text('ثبت کلید پاسخ اختیاری است و می‌توانی بعد از آزمون آن را وارد کنی.',
             style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
