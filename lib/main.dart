@@ -1496,12 +1496,31 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(children: [
-      Checkbox(value: session.completed, activeColor: accent, onChanged: (value) async {
-        final index = studySessions.indexWhere((item) => item.id == session.id);
-        if (index < 0) return;
-        setState(() => studySessions[index] = session.copyWith(completed: value ?? false));
-        await save(sections: {'studySessions'});
-      }),
+      GlassIconButton(
+        icon: Icon(
+          session.completed
+              ? Icons.check_circle_rounded
+              : Icons.radio_button_unchecked_rounded,
+          color: session.completed
+              ? accent
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        onPressed: () async {
+          final index = studySessions.indexWhere((item) => item.id == session.id);
+          if (index < 0) return;
+          setState(
+            () => studySessions[index] =
+                session.copyWith(completed: !session.completed),
+          );
+          await save(sections: {'studySessions'});
+        },
+        size: 40,
+        shape: GlassIconButtonShape.circle,
+        quality: GlassQuality.standard,
+        semanticLabel: session.completed
+            ? 'علامت‌گذاری جلسه به‌عنوان انجام‌نشده'
+            : 'علامت‌گذاری جلسه به‌عنوان انجام‌شده',
+      ),
       Container(width: 4, height: 42, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(4))),
       SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1566,7 +1585,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(children: [
-      Checkbox(value: task.done, activeColor: accent, onChanged: (value) async { setState(() => task.done = value ?? false); await save(sections: {'tasks'}); }),
+      GlassIconButton(
+        icon: Icon(
+          task.done ? Icons.check_circle_rounded : Icons.circle_outlined,
+          color: task.done
+              ? accent
+              : Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        onPressed: () async {
+          setState(() => task.done = !task.done);
+          await save(sections: {'tasks'});
+        },
+        size: 40,
+        shape: GlassIconButtonShape.circle,
+        quality: GlassQuality.standard,
+        semanticLabel: task.done
+            ? 'علامت‌گذاری وظیفه به‌عنوان انجام‌نشده'
+            : 'علامت‌گذاری وظیفه به‌عنوان انجام‌شده',
+      ),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(task.title, style: TextStyle(fontWeight: FontWeight.w700, decoration: task.done ? TextDecoration.lineThrough : null)),
         SizedBox(height: 4), Text(task.subject, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
