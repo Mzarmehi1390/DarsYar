@@ -184,7 +184,10 @@ void main() {
     expect(find.text('90 دقیقه'), findsOneWidget);
 
     await tester.enterText(find.byType(GlassTextField).at(3), '45');
-    await tester.tap(find.text('ذخیره زمان'));
+    final saveDurationButton = find.text('ذخیره زمان');
+    await tester.ensureVisible(saveDurationButton);
+    await tester.pumpAndSettle();
+    await tester.tap(saveDurationButton);
     await tester.pumpAndSettle();
 
     expect(find.text('00:45:00'), findsOneWidget);
