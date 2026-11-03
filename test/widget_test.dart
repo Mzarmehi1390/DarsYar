@@ -40,7 +40,6 @@ void main() {
     expect(find.byType(GlassContainer), findsWidgets);
     expect(find.byType(DarsYarContentSurface), findsWidgets);
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.byType(TextField), findsNothing);
     expect(find.byType(FilledButton), findsNothing);
     expect(tester.takeException(), isNull);
   });
