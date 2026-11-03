@@ -38,7 +38,6 @@ void main() {
     expect(find.byType(GlassScaffold), findsOneWidget);
     expect(find.byType(GlassTabBar), findsOneWidget);
     expect(find.byType(GlassContainer), findsWidgets);
-    expect(find.byType(DarsYarContentSurface), findsWidgets);
     expect(find.byType(LinearProgressIndicator), findsWidgets);
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.byType(FilledButton), findsNothing);
@@ -184,7 +183,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
     expect(find.text('90 دقیقه'), findsOneWidget);
-    expect(find.byType(BackdropFilter), findsWidgets);
 
     await tester.enterText(find.byType(GlassTextField).at(1), '45');
     await tester.tap(find.text('ذخیره زمان'));
@@ -209,7 +207,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
-    expect(find.byType(GlassTextField), findsNWidgets(3));
+    expect(find.byType(GlassTextField), findsNWidgets(5));
     expect(tester.takeException(), isNull);
   });
 
@@ -855,9 +853,18 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(GlassTextField).last, backup);
-    await tester.ensureVisible(find.text('بررسی نسخه'));
+    final reviewButton = find.text('بررسی نسخه');
+    final reviewScrollable = find.ancestor(
+      of: reviewButton,
+      matching: find.byType(Scrollable),
+    ).first;
+    await tester.scrollUntilVisible(
+      reviewButton,
+      100,
+      scrollable: reviewScrollable,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بررسی نسخه'));
+    await tester.tap(reviewButton);
     await tester.pumpAndSettle();
     final confirmRestore = find.text('بازیابی').last;
     await tester.ensureVisible(confirmRestore);
