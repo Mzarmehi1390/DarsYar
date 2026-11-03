@@ -104,6 +104,8 @@ The redesign must not alter:
   added a compact-viewport widget test for that interaction.
 - Refined planner weekday chips with a clearer selected treatment; replaced the
   week-card checkmark with a restrained, screen-reader-labelled selection dot.
+- Made the task editor's title and fields scroll together on compact viewports and
+  added a 320 × 640 dp widget regression test.
 
 ## Remaining validation
 
