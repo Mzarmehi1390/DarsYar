@@ -57,6 +57,25 @@ void main() {
     }
   });
 
+  testWidgets('exam setup answer-key editor adapts to a compact screen', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    final keyButton = find.text('ورود کلید');
+    await tester.ensureVisible(keyButton);
+    await tester.pumpAndSettle();
+    await tester.tap(keyButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   test('both themes provide consistent Liquid Glass modal surfaces', () {
     for (final theme in [DarsYarTheme.light, DarsYarTheme.dark]) {
       expect(theme.dialogTheme.backgroundColor, isNotNull);
