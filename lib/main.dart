@@ -998,7 +998,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     return GlassButton.custom(
       width: double.infinity,
-      height: 142,
+      height: 168,
       shape: const LiquidRoundedSuperellipse(borderRadius: 23),
       quality: GlassQuality.standard,
       style: GlassButtonStyle.filled,
