@@ -102,6 +102,8 @@ The redesign must not alter:
   and date pickers; all 15 dialog instances now consume the shared modal theme.
 - Made the exam-setup answer-key editor wrap option controls on narrow screens and
   added a compact-viewport widget test for that interaction.
+- Refined planner weekday chips with a clearer selected treatment; replaced the
+  week-card checkmark with a restrained, screen-reader-labelled selection dot.
 
 ## Remaining validation
 
