@@ -717,6 +717,30 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
+  Future<Map<int, int>?> _showAnswerKeyEditor({
+    required String title,
+    required int questionCount,
+    required Map<int, int> initialAnswers,
+    required String clearLabel,
+    required String saveLabel,
+  }) {
+    return GlassModalSheet.show<Map<int, int>>(
+      context: context,
+      builder: (_) => _AnswerKeyEditorSheet(
+        title: title,
+        questionCount: questionCount,
+        initialAnswers: initialAnswers,
+        clearLabel: clearLabel,
+        saveLabel: saveLabel,
+      ),
+      initialState: GlassSheetState.full,
+      fullSize: 0.90,
+      quality: GlassQuality.standard,
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
+      barrierColor: Colors.black.withValues(alpha: 0.32),
+    );
+  }
+
   Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, 124), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
@@ -2285,41 +2309,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> editResultAnswerKey(ExamResult result) async {
-    final draft = Map<int, int>.from(result.answerKey);
-    final updatedKey = await showDialog<Map<int, int>>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: Text('کلید پاسخ: ${result.examName}'),
-        content: SizedBox(
-          width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(),
-          height: (MediaQuery.sizeOf(context).height * 0.50).clamp(180.0, 420.0).toDouble(),
-          child: ListView.builder(
-            itemCount: result.questionCount,
-            itemBuilder: (context, index) {
-              final q = index + 1;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Row(children: [
-                  SizedBox(width: 62, child: Text('سؤال $q')),
-                  for (var option = 0; option < 4; option++)
-                    Expanded(child: ChoiceChip(
-                      label: Text((option + 1).toString()),
-                      selected: draft[q] == option,
-                      onSelected: (_) => dialogSet(() {
-                        if (draft[q] == option) { draft.remove(q); } else { draft[q] = option; }
-                      }),
-                    )),
-                ]),
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')),
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('محاسبه نتیجه')),
-        ],
-      )),
+    final updatedKey = await _showAnswerKeyEditor(
+      title: 'کلید پاسخ: ${result.examName}',
+      questionCount: result.questionCount,
+      initialAnswers: result.answerKey,
+      clearLabel: 'پاک‌کردن',
+      saveLabel: 'محاسبه نتیجه',
     );
     if (updatedKey == null || !mounted) return;
     final index = results.indexWhere((item) => item.id == result.id);
@@ -2437,24 +2432,87 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editAnswer(int number) async {
     int? answer = answers[number];
     bool flag = marked.contains(number);
-    final result = await showDialog<({int? answer, bool marked})>(context: context, builder: (context) =>
-      StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: Text('سؤال $number'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Align(alignment: Alignment.centerRight, child: Text('گزینهٔ پاسخ')),
-          SizedBox(height: 8),
-          Wrap(spacing: 6, children: List.generate(4, (i) => ChoiceChip(
-            label: Text(['الف', 'ب', 'ج', 'د'][i]), selected: answer == i,
-            onSelected: (_) => dialogSet(() => answer = answer == i ? null : i)))),
-          CheckboxListTile(contentPadding: EdgeInsets.zero, value: flag, title: Text('نیاز به مرور دارد'),
-            onChanged: (value) => dialogSet(() => flag = value ?? false)),
-          TextButton(onPressed: () => dialogSet(() => answer = null), child: Text('پاک کردن پاسخ')),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(context, (answer: answer, marked: flag)), child: Text('ذخیره')),
-        ],
-      )));
+    final result = await GlassDialog.show<({int? answer, bool marked})>(
+      context: context,
+      title: 'سؤال $number',
+      maxWidth: 360,
+      quality: GlassQuality.standard,
+      content: StatefulBuilder(
+        builder: (dialogContext, dialogSet) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'گزینهٔ پاسخ',
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (var i = 0; i < 4; i++)
+                  GlassChip(
+                    label: ['الف', 'ب', 'ج', 'د'][i],
+                    semanticLabel: 'سؤال $number، گزینه ${['الف', 'ب', 'ج', 'د'][i]}',
+                    selected: answer == i,
+                    selectedColor: accent.withValues(alpha: 0.18),
+                    quality: GlassQuality.standard,
+                    onTap: () => dialogSet(
+                      () => answer = answer == i ? null : i,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'نیاز به مرور دارد',
+                    style: TextStyle(
+                      color: Theme.of(dialogContext).colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                GlassSwitch(
+                  value: flag,
+                  semanticLabel: 'علامت‌گذاری سؤال برای مرور',
+                  quality: GlassQuality.standard,
+                  onChanged: (value) => dialogSet(() => flag = value),
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: GlassChip(
+                label: 'پاک کردن پاسخ',
+                selected: false,
+                quality: GlassQuality.standard,
+                onTap: () => dialogSet(() => answer = null),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        GlassDialogAction(
+          label: 'انصراف',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        GlassDialogAction(
+          label: 'ذخیره',
+          isPrimary: true,
+          onPressed: () => Navigator.of(context).pop(
+            (answer: answer, marked: flag),
+          ),
+        ),
+      ],
+    );
     if (result == null) return;
     setState(() {
       if (result.answer != null) {
@@ -2480,34 +2538,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
       if (!mounted || !confirmed) return;
     }
-    final result = await showDialog<Map<int, int>>(context: context, builder: (context) {
-      final draft = Map<int, int>.from(answerKey);
-      return StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-        title: Text('کلید پاسخ‌ها'),
-        content: SizedBox(width: (MediaQuery.sizeOf(context).width - 128).clamp(160.0, 520.0).toDouble(), height: (MediaQuery.sizeOf(context).height * 0.50).clamp(180.0, 420.0).toDouble(), child: ListView.builder(
-          itemCount: count,
-          itemBuilder: (context, index) {
-            final n = index + 1;
-            return Padding(padding: const EdgeInsets.symmetric(vertical: 5), child: Row(children: [
-              SizedBox(width: 52, child: Text('سؤال $n', style: TextStyle(fontWeight: FontWeight.w700))),
-              Expanded(child: Wrap(spacing: 4, children: List.generate(4, (i) => ChoiceChip(
-                visualDensity: VisualDensity.compact,
-                label: Text(['الف', 'ب', 'ج', 'د'][i]),
-                selected: draft[n] == i,
-                onSelected: (_) => dialogSet(() {
-                  if (draft[n] == i) { draft.remove(n); } else { draft[n] = i; }
-                }),
-              )))),
-            ]));
-          },
-        )),
-        actions: [
-          TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن کلید')),
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('انصراف')),
-          FilledButton(onPressed: () => Navigator.pop(context, draft), child: Text('ذخیره کلید')),
-        ],
-      ));
-    });
+    final result = await _showAnswerKeyEditor(
+      title: 'کلید پاسخ‌ها',
+      questionCount: count,
+      initialAnswers: answerKey,
+      clearLabel: 'پاک‌کردن کلید',
+      saveLabel: 'ذخیره کلید',
+    );
     if (result == null) return;
     setState(() {
       answerKey
@@ -2517,7 +2554,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     });
     await save(sections: {'exams', 'results', 'activeExam'});
   }
-
 
   Map<String, dynamic> _createBackupPayload() =>
       DarsYarBackupCodec.createPayload(
@@ -2802,6 +2838,163 @@ class _LiquidGlassPanel extends StatelessWidget {
       );
 }
 
+class _AnswerKeyEditorSheet extends StatefulWidget {
+  const _AnswerKeyEditorSheet({
+    required this.title,
+    required this.questionCount,
+    required this.initialAnswers,
+    required this.clearLabel,
+    required this.saveLabel,
+  });
+
+  final String title;
+  final int questionCount;
+  final Map<int, int> initialAnswers;
+  final String clearLabel;
+  final String saveLabel;
+
+  @override
+  State<_AnswerKeyEditorSheet> createState() => _AnswerKeyEditorSheetState();
+}
+
+class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
+  late final Map<int, int> _draft;
+
+  static const _options = ['الف', 'ب', 'ج', 'د'];
+
+  @override
+  void initState() {
+    super.initState();
+    _draft = Map<int, int>.from(widget.initialAnswers);
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        widget.title,
+        style: TextStyle(
+          fontSize: 21,
+          fontWeight: FontWeight.w800,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        '${_draft.length} از ${widget.questionCount} سؤال دارای کلید پاسخ است.',
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+      const SizedBox(height: 12),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: LinearProgressIndicator(
+          minHeight: 5,
+          value: widget.questionCount == 0
+              ? 0
+              : _draft.length / widget.questionCount,
+          backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Expanded(
+        child: ListView.builder(
+          itemCount: widget.questionCount,
+          itemBuilder: (context, index) {
+            final question = index + 1;
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Text(
+                      'سؤال $question',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: [
+                        for (var option = 0; option < _options.length; option++)
+                          GlassChip(
+                            label: _options[option],
+                            semanticLabel: 'سؤال $question، گزینه ${_options[option]}',
+                            selected: _draft[question] == option,
+                            selectedColor: accent.withValues(alpha: 0.18),
+                            labelStyle: TextStyle(
+                              color: _draft[question] == option
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11.5,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                            quality: GlassQuality.standard,
+                            onTap: () => setState(() {
+                              if (_draft[question] == option) {
+                                _draft.remove(question);
+                              } else {
+                                _draft[question] = option;
+                              }
+                            }),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+      const SizedBox(height: 12),
+      Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          GlassButton.custom(
+            width: 96,
+            height: 44,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+            quality: GlassQuality.standard,
+            onTap: () => setState(_draft.clear),
+            child: Text(widget.clearLabel),
+          ),
+          GlassButton.custom(
+            width: 96,
+            height: 44,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+            quality: GlassQuality.standard,
+            onTap: () => Navigator.of(context).pop(),
+            child: const Text('انصراف'),
+          ),
+          GlassButton.custom(
+            width: 122,
+            height: 44,
+            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
+            onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
+            child: Text(
+              widget.saveLabel,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
 class _ExamSetupPanel extends StatefulWidget {
   const _ExamSetupPanel({required this.onCreate});
   final void Function(String, int, int, bool, Map<int, int>) onCreate;
@@ -2874,56 +3067,28 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
 
   Future<void> _editSetupAnswerKey() async {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
-    final draft = Map<int, int>.from(_answerKey);
-    final updated = await showDialog<Map<int, int>>(context: context, builder: (dialogContext) => StatefulBuilder(builder: (context, dialogSet) => AlertDialog(
-      title: Text('کلید پاسخ آزمون'),
-      content: SizedBox(
-        width: (MediaQuery.sizeOf(context).width - 128)
-            .clamp(160.0, 520.0)
-            .toDouble(),
-        height: (MediaQuery.sizeOf(context).height * 0.50)
-            .clamp(180.0, 420.0)
-            .toDouble(),
-        child: ListView.builder(
-          itemCount: count,
-          itemBuilder: (context, index) {
-            final question = index + 1;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Wrap(
-                spacing: 5,
-                runSpacing: 3,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 62,
-                    child: Text(
-                      'سؤال $question',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  for (var option = 0; option < 4; option++)
-                    ChoiceChip(
-                      visualDensity: VisualDensity.compact,
-                      label: Text(['الف', 'ب', 'ج', 'د'][option]),
-                      selected: draft[question] == option,
-                      onSelected: (_) => dialogSet(() {
-                        if (draft[question] == option) {
-                          draft.remove(question);
-                        } else {
-                          draft[question] = option;
-                        }
-                      }),
-                    ),
-                ],
-              ),
-            );
-          },
-        ),
+    final updated = await GlassModalSheet.show<Map<int, int>>(
+      context: context,
+      builder: (_) => _AnswerKeyEditorSheet(
+        title: 'کلید پاسخ آزمون',
+        questionCount: count,
+        initialAnswers: _answerKey,
+        clearLabel: 'پاک‌کردن',
+        saveLabel: 'ذخیره کلید',
       ),
-      actions: [TextButton(onPressed: () => dialogSet(() => draft.clear()), child: Text('پاک‌کردن')), TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text('انصراف')), FilledButton(onPressed: () => Navigator.pop(dialogContext, draft), child: Text('ذخیره کلید'))],
-    )));
-    if (updated != null && mounted) setState(() { _answerKey..clear()..addAll(updated); });
+      initialState: GlassSheetState.full,
+      fullSize: 0.90,
+      quality: GlassQuality.standard,
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
+      barrierColor: Colors.black.withValues(alpha: 0.32),
+    );
+    if (updated != null && mounted) {
+      setState(() {
+        _answerKey
+          ..clear()
+          ..addAll(updated);
+      });
+    }
   }
 
   @override
