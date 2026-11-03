@@ -185,3 +185,10 @@ The redesign must not alter:
 - Kept the score in a restrained tinted badge with tabular numerals; missing-key results remain clearly distinct and retain the existing action to enter a key and calculate the score.
 - Dense result information remains on the high-contrast content surface; no nested glass shaders were introduced.
 - Added a 320 dp widget regression test for long Persian exam names, score visibility, question count, and all three result counts.
+
+
+## Compact planner and results test follow-up
+
+- Tightened the weekly overview card's vertical rhythm and constrained its trailing status label so the seven-day overview remains clean at 320 dp.
+- Made the compact planner regression test reveal the Sunday chip before tapping it, matching the horizontal scrolling behavior of the weekday strip.
+- Corrected the saved-result test's numeric expectations to match the current UI's intentional Latin-digit percentage and question-count formatting.
