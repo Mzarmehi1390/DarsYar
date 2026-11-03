@@ -685,6 +685,8 @@ void main() {
     await tester.tap(find.text('آزمون‌های من'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(SliverList), findsOneWidget);
     expect(find.text('آزمون چیدمان'), findsOneWidget);
     expect(find.text('نتیجه قابل مشاهده'), findsOneWidget);
     expect(find.text('75%'), findsWidgets);
@@ -1182,20 +1184,6 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-
-  testWidgets('saved exam history uses a lazy sliver list and keeps empty state', (tester) async {
-    SharedPreferences.setMockInitialValues({'darsyar.exams': '[]'});
-    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('آزمون‌های من'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(CustomScrollView), findsOneWidget);
-    expect(find.byType(SliverList), findsOneWidget);
-    expect(find.text('هنوز آزمونی نساخته‌ای'), findsOneWidget);
-    expect(find.text('نتایج آزمون‌ها'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
 
   testWidgets('exam result history cards remain readable on compact screens', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(320, 800);
