@@ -14,10 +14,10 @@ DarsYar should feel like a calm, native-feeling iOS environment while retaining 
 | --- | --- | --- |
 | Accent | `#16A36A` | `#75D9A5` |
 | Secondary | `#5B83B6` | `#9BC4E8` |
-| App background | `#E9F0F8` | `#0B1422` |
-| Canvas | `#F3F7FC` | `#101D2D` |
-| Surface | `#F8FBFF` | `#192A3D` |
-| Raised surface | `#E3EDF7` | `#263D54` |
+| App background | `#E5EDF6` | `#0B1422` |
+| Canvas | `#EDF3F9` | `#101D2D` |
+| Surface | `#F0F5FA` | `#192A3D` |
+| Raised surface | `#DCE7F1` | `#263D54` |
 | Primary text | `#172536` | `#EAF3FC` |
 
 Semantic colors must continue to communicate success, warning and error
@@ -30,7 +30,7 @@ independently of the accent color. Text contrast takes priority over translucenc
 - Large radius: 22 dp
 - Extra-large radius: 28 dp
 - Primary page horizontal padding: 20 dp
-- Shared bottom navigation content clearance: 124 dp
+- Shared bottom navigation content clearance: 152 dp
 
 Use the closest token for new controls. A different radius is allowed only when
 the component geometry requires it.
