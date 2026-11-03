@@ -208,3 +208,12 @@ The redesign must not alter:
 - Added a broad, low-contrast radial highlight and a fine lower-edge reflection to the shared floating page header.
 - Kept both reflections behind the title and icon, clipped to the shader-backed surface, and tuned opacity separately for light and dark themes.
 - The existing shared-header widget test continues to exercise all four primary destinations; physical-device review is still required to judge the shader/reflection balance on real displays.
+
+
+## Responsive shell, reduced motion and render-layer optimization
+
+- Made the application content root explicitly expand to the available MediaQuery size so the shell does not inherit an accidental intrinsic or narrow width from its child.
+- Added a persistent animation preference in settings. Disabling it sets Flutter's MediaQuery.disableAnimations, suppresses the page switch transition, and allows motion-aware controls to use their reduced-motion behavior. The operating-system accessibility preference is always respected.
+- Applied the shared RTL/text-style modal scope to task, exam-name and question editors as well as the existing session, answer-key and backup sheets.
+- Removed the blanket RepaintBoundary from every solid content card. The app retains a repaint boundary around its static atmospheric background; individual cards no longer create a separate layer by default.
+- Added widget coverage for the persisted animation preference and full-width app shell. This is a targeted render-layer reduction, not a substitute for profiling on representative low-end devices.
