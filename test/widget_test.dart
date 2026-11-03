@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import '../lib/design_system/glass_surface.dart';
 import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
 
@@ -37,6 +38,10 @@ void main() {
     expect(find.byType(GlassScaffold), findsOneWidget);
     expect(find.byType(GlassTabBar), findsOneWidget);
     expect(find.byType(GlassContainer), findsWidgets);
+    expect(find.byType(DarsYarContentSurface), findsWidgets);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
