@@ -43,7 +43,10 @@ the component geometry requires it.
 - **Secondary glass:** compact summaries and supporting information.
 - **Elevated glass:** important grouped panels such as exam setup and weekly reports.
 - **Navigation glass:** the bottom dock, with its own notch and selected-item treatment.
-- **Modal surfaces:** dialogs and sheets, using the same edge, shape and contrast language.
+- **Modal surfaces:** dialogs, popup menus, bottom sheets, time pickers and date pickers
+  share the same rounded geometry, theme-aware surfaces, restrained elevation and
+  high-contrast text. These defaults are centralized in `DarsYarTheme` so
+  transient UI does not drift between features.
 
 The shared `DarsYarGlassSurface` uses a bounded blur (8 dp by default), a subtle
 edge highlight, a restrained gradient and a soft shadow. Do not put a full-screen
