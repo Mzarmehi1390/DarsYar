@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' show FontFeature;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -2838,6 +2839,87 @@ class _LiquidGlassPanel extends StatelessWidget {
       );
 }
 
+class _TimePickerSheet extends StatefulWidget {
+  const _TimePickerSheet({required this.initialTime});
+
+  final TimeOfDay initialTime;
+
+  @override
+  State<_TimePickerSheet> createState() => _TimePickerSheetState();
+}
+
+class _TimePickerSheetState extends State<_TimePickerSheet> {
+  late DateTime _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = DateTime(
+      2026,
+      1,
+      1,
+      widget.initialTime.hour,
+      widget.initialTime.minute,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        'انتخاب ساعت شروع',
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 10),
+      SizedBox(
+        height: 178,
+        child: CupertinoDatePicker(
+          mode: CupertinoDatePickerMode.time,
+          initialDateTime: _selected,
+          use24hFormat: true,
+          minuteInterval: 5,
+          onDateTimeChanged: (value) => setState(() => _selected = value),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Expanded(
+            child: GlassButton.custom(
+              height: 46,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+              quality: GlassQuality.standard,
+              onTap: () => Navigator.of(context).pop(),
+              child: const Text('انصراف'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: GlassButton.custom(
+              height: 46,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+              quality: GlassQuality.standard,
+              style: GlassButtonStyle.filled,
+              onTap: () => Navigator.of(context).pop(
+                TimeOfDay(hour: _selected.hour, minute: _selected.minute),
+              ),
+              child: const Text(
+                'انتخاب',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
 class _AnswerKeyEditorSheet extends StatefulWidget {
   const _AnswerKeyEditorSheet({
     required this.title,
@@ -3650,12 +3732,20 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           shape: const LiquidRoundedSuperellipse(borderRadius: 16),
           quality: GlassQuality.standard,
           onTap: () async {
-            final picked = await showTimePicker(
+            final picked = await GlassModalSheet.show<TimeOfDay>(
               context: context,
-              initialTime: TimeOfDay(
-                hour: _startMinutes ~/ 60,
-                minute: _startMinutes % 60,
+              builder: (_) => _TimePickerSheet(
+                initialTime: TimeOfDay(
+                  hour: _startMinutes ~/ 60,
+                  minute: _startMinutes % 60,
+                ),
               ),
+              initialState: GlassSheetState.half,
+              halfSize: 0.46,
+              fullSize: 0.56,
+              quality: GlassQuality.standard,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              barrierColor: Colors.black.withValues(alpha: 0.30),
             );
             if (picked != null && mounted) {
               setState(() => _startMinutes = picked.hour * 60 + picked.minute);
