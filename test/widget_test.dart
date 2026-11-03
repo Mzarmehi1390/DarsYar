@@ -1116,7 +1116,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(sessionTitle, findsOneWidget);
     expect(find.text('زیست‌شناسی'), findsWidgets);
-    expect(find.text('۱۰:۰۰'), findsOneWidget);
+    expect(find.text('10:00'), findsOneWidget);
     expect(find.text('۵۰ دقیقه'), findsOneWidget);
 
     final completeSession = find.bySemanticsLabel('علامت‌گذاری جلسه به‌عنوان انجام‌شده');
