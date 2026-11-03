@@ -3070,6 +3070,7 @@ class _TaskEditorDialogState extends State<_TaskEditorDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
+    scrollable: true,
     title: Text(widget.existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه'),
     content: Column(mainAxisSize: MainAxisSize.min, children: [
       TextField(
