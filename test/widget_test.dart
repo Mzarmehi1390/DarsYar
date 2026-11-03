@@ -21,8 +21,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('درس‌یار'), findsOneWidget);
-    expect(find.widgetWithText(GlassButton, 'برنامه‌ریزی'), findsOneWidget);
-    expect(find.widgetWithText(GlassButton, 'پاسخ‌برگ'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'برنامه‌ریزی درسی'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'پاسخ‌برگ آزمون'), findsOneWidget);
 
     await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
@@ -39,7 +39,7 @@ void main() {
     expect(find.byType(GlassTabBar), findsOneWidget);
     expect(find.byType(GlassContainer), findsWidgets);
     expect(find.byType(DarsYarContentSurface), findsWidgets);
-    expect(find.byType(GlassProgressIndicator), findsWidgets);
+    expect(find.byType(LinearProgressIndicator), findsWidgets);
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.byType(FilledButton), findsNothing);
     expect(tester.takeException(), isNull);
@@ -855,9 +855,14 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(GlassTextField).last, backup);
+    await tester.ensureVisible(find.text('بررسی نسخه'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('بررسی نسخه'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بازیابی').last);
+    final confirmRestore = find.text('بازیابی').last;
+    await tester.ensureVisible(confirmRestore);
+    await tester.pumpAndSettle();
+    await tester.tap(confirmRestore);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
