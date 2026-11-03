@@ -1995,7 +1995,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   child: _glassSurface(
                     radius: 18,
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(8),
+                      key: const PageStorageKey<String>('exam-question-navigator'),
+                      // The floating tab bar overlays the lower edge of the
+                      // exam workspace. Reserve the same dock clearance as
+                      // the question body so the final question shortcuts can
+                      // always scroll fully above it.
+                      padding: const EdgeInsets.fromLTRB(
+                        8,
+                        8,
+                        8,
+                        DarsYarTokens.pageBottomClearance,
+                      ),
                       itemCount: exam.questionCount,
                       itemBuilder: (context, index) {
                         final number = index + 1;
