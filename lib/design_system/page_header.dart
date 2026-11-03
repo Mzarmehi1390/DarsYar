@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-/// A consistent RTL-friendly heading used by the primary DarsYar destinations.
+/// A consistent RTL-friendly glass heading used by the primary destinations.
+///
+/// One bounded shader surface wraps the whole heading. The icon is deliberately
+/// a tinted solid well so the header does not stack independent glass layers.
 class DarsYarPageHeader extends StatelessWidget {
   const DarsYarPageHeader({
     required this.title,
@@ -19,66 +22,99 @@ class DarsYarPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        GlassContainer.card(
-          padding: const EdgeInsets.all(11),
-          shape: const LiquidRoundedSuperellipse(borderRadius: 19),
-          useOwnLayer: true,
-          quality: GlassQuality.standard,
-          clipBehavior: Clip.antiAlias,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primary.withValues(alpha: 0.17),
-                  colors.secondary.withValues(alpha: 0.10),
-                ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GlassContainer.card(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+      shape: const LiquidRoundedSuperellipse(borderRadius: 25),
+      useOwnLayer: true,
+      quality: GlassQuality.standard,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 18,
+            right: 18,
+            child: IgnorePointer(
+              child: Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withValues(alpha: 0),
+                      Colors.white.withValues(alpha: isDark ? 0.34 : 0.78),
+                      Colors.white.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
               ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: SizedBox(
-              width: 29,
-              height: 29,
-              child: Icon(icon, color: colors.primary, size: 23),
             ),
           ),
-        ),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: colors.onSurface,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  height: 1.18,
-                  letterSpacing: -0.35,
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colors.primary.withValues(alpha: isDark ? 0.22 : 0.16),
+                      colors.secondary.withValues(alpha: isDark ? 0.16 : 0.10),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colors.onSurface.withValues(alpha: 0.07),
+                  ),
+                ),
+                child: SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: Icon(icon, color: colors.primary, size: 25),
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: colors.onSurfaceVariant,
-                  fontSize: 12.5,
-                  height: 1.45,
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        height: 1.2,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing!,
+              ],
             ],
           ),
-        ),
-        if (trailing != null) ...[
-          const SizedBox(width: 8),
-          trailing!,
         ],
-      ],
+      ),
     );
   }
 }
