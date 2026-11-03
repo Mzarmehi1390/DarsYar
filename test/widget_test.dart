@@ -1183,6 +1183,19 @@ void main() {
   });
 
 
+  testWidgets('saved exam history uses a lazy sliver list and keeps empty state', (tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(SliverList), findsOneWidget);
+    expect(find.text('هنوز آزمونی نساخته‌ای'), findsOneWidget);
+    expect(find.text('نتایج آزمون‌ها'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('exam result history cards remain readable on compact screens', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(320, 800);
     tester.view.devicePixelRatio = 1;
