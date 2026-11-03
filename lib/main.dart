@@ -3386,40 +3386,87 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه'),
-    content: SingleChildScrollView(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TextField(
-          controller: _titleController,
-          autofocus: widget.existing == null,
-          decoration: InputDecoration(
-            labelText: 'عنوان جلسه',
-            hintText: 'مثلاً حل تمرین فصل اول',
+  Widget build(BuildContext context) => SingleChildScrollView(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: 10),
-        TextField(
-          controller: _subjectController,
-          decoration: InputDecoration(labelText: 'درس'),
+        const SizedBox(height: 16),
+        GlassFormField(
+          label: 'عنوان جلسه',
+          child: GlassTextField(
+            controller: _titleController,
+            autofocus: widget.existing == null,
+            placeholder: 'مثلاً حل تمرین فصل اول',
+            quality: GlassQuality.standard,
+            textInputAction: TextInputAction.next,
+          ),
         ),
-        SizedBox(height: 10),
-        DropdownButtonFormField<int>(
-          initialValue: _weekday,
-          decoration: InputDecoration(labelText: 'روز هفته'),
-          items: weekDayOrder.map(
-            (day) => DropdownMenuItem(value: day, child: Text(widget.weekDays[day])),
-          ).toList(),
-          onChanged: (value) {
-            if (value != null) setState(() => _weekday = value);
-          },
+        const SizedBox(height: 14),
+        GlassFormField(
+          label: 'درس',
+          child: GlassTextField(
+            controller: _subjectController,
+            placeholder: 'مثلاً ریاضی',
+            quality: GlassQuality.standard,
+            textInputAction: TextInputAction.next,
+          ),
         ),
-        SizedBox(height: 10),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text('ساعت شروع'),
-          subtitle: Text(_formatTime(_startMinutes)),
-          trailing: Icon(Icons.schedule_rounded),
+        const SizedBox(height: 16),
+        Text(
+          'روز هفته',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GlassSegmentedControl.scrollable(
+          segments: [
+            for (final day in weekDayOrder)
+              GlassSegment(
+                label: widget.weekDays[day],
+                semanticLabel: widget.weekDays[day],
+              ),
+          ],
+          selectedIndex: weekDayOrder.indexOf(_weekday),
+          onSegmentSelected: (index) =>
+              setState(() => _weekday = weekDayOrder[index]),
+          height: 44,
+          quality: GlassQuality.standard,
+          selectedTextStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+            fontSize: 12,
+          ),
+          unselectedTextStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'ساعت شروع',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        GlassButton.custom(
+          width: 250,
+          height: 50,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+          quality: GlassQuality.standard,
           onTap: () async {
             final picked = await showTimePicker(
               context: context,
@@ -3432,26 +3479,62 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               setState(() => _startMinutes = picked.hour * 60 + picked.minute);
             }
           },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.schedule_rounded, size: 19),
+              const SizedBox(width: 10),
+              Text(_formatTime(_startMinutes)),
+            ],
+          ),
         ),
-        TextField(
-          controller: _durationController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-          decoration: InputDecoration(labelText: 'مدت جلسه (دقیقه)', helperText: 'مدت دلخواهت را از ۱ تا ۱۴۴۰ دقیقه وارد کن.'),
-          onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
+        const SizedBox(height: 16),
+        GlassFormField(
+          label: 'مدت جلسه (دقیقه)',
+          helperText: 'مدت دلخواهت را از ۱ تا ۱۴۴۰ دقیقه وارد کن.',
+          child: GlassTextField(
+            controller: _durationController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            maxLength: 4,
+            quality: GlassQuality.standard,
+            onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
+            textInputAction: TextInputAction.done,
+          ),
         ),
-      ]),
+        const SizedBox(height: 22),
+        Row(
+          children: [
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
+                child: const Text('انصراف'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: GlassButton.custom(
+                height: 48,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
+                onTap: _submit,
+                child: Text(
+                  widget.existing == null ? 'افزودن' : 'ذخیره تغییرات',
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: Text('انصراف'),
-      ),
-      FilledButton(
-        onPressed: _submit,
-        child: Text(widget.existing == null ? 'افزودن' : 'ذخیره تغییرات'),
-      ),
-    ],
   );
 
   String _formatTime(int minutes) =>
