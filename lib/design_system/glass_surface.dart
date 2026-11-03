@@ -35,10 +35,28 @@ class DarsYarContentSurface extends StatelessWidget {
     return RepaintBoundary(
       child: Container(
         decoration: BoxDecoration(
-          color: fill,
+          // Keep dense study content opaque enough for contrast, while a very
+          // soft directional tint gives every shared panel the same material
+          // depth in both themes.
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.alphaBlend(
+                Colors.white.withValues(alpha: isDark ? 0.055 : 0.34),
+                fill,
+              ),
+              fill,
+              Color.alphaBlend(
+                Colors.black.withValues(alpha: isDark ? 0.045 : 0.018),
+                fill,
+              ),
+            ],
+            stops: const [0, 0.58, 1],
+          ),
           borderRadius: BorderRadius.circular(radius),
           border: Border.all(
-            color: scheme.outlineVariant.withValues(alpha: isDark ? 0.42 : 0.52),
+            color: scheme.outlineVariant.withValues(alpha: isDark ? 0.48 : 0.62),
           ),
           boxShadow: [
             if (elevation > 0)
