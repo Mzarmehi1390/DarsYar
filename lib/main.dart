@@ -4122,8 +4122,10 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
     }
     _lastError = message;
     _lastErrorAt = now;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
+    showDarsYarGlassSnackBar(
+      context,
+      SnackBar(content: Text(message)),
+      duration: const Duration(seconds: 2),
+    );
   }
 }
