@@ -277,6 +277,22 @@ void main() {
       tester.widget<GlassIconButton>(find.widgetWithIcon(GlassIconButton, Icons.pause)).semanticLabel,
       'توقف زمان‌سنج',
     );
+    final questionNavigatorButton = find.widgetWithIcon(
+      GlassIconButton,
+      Icons.format_list_numbered_rounded,
+    );
+    await tester.tap(questionNavigatorButton);
+    await tester.pumpAndSettle();
+
+    final questionNavigator = tester.widget<ListView>(
+      find.byKey(const PageStorageKey<String>('exam-question-navigator')),
+    );
+    expect(
+      questionNavigator.padding,
+      EdgeInsets.fromLTRB(8, 8, 8, DarsYarTokens.pageBottomClearance),
+    );
+    expect(tester.takeException(), isNull);
+
     await tester.tap(find.text('گزینه 2'));
     await tester.pump();
     expect(find.text('سؤال 2 از 3'), findsOneWidget);
