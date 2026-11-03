@@ -12,6 +12,7 @@ import 'backup_codec.dart';
 import 'darsyar_storage.dart';
 import 'design_system/darsyar_theme.dart';
 import 'design_system/glass_surface.dart';
+import 'design_system/modal_content.dart';
 import 'design_system/page_header.dart';
 import 'exam_result.dart';
 import 'exam_sheet.dart';
@@ -759,12 +760,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }) {
     return GlassModalSheet.show<Map<int, int>>(
       context: context,
-      builder: (_) => _AnswerKeyEditorSheet(
-        title: title,
-        questionCount: questionCount,
-        initialAnswers: initialAnswers,
-        clearLabel: clearLabel,
-        saveLabel: saveLabel,
+      builder: (sheetContext) => DarsYarModalContent(
+        child: _AnswerKeyEditorSheet(
+          title: title,
+          questionCount: questionCount,
+          initialAnswers: initialAnswers,
+          clearLabel: clearLabel,
+          saveLabel: saveLabel,
+        ),
       ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
@@ -2895,7 +2898,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> importBackup() async {
     final raw = await GlassModalSheet.show<String>(
       context: context,
-      builder: (_) => const _BackupImportDialog(),
+      builder: (sheetContext) => const DarsYarModalContent(
+        child: _BackupImportDialog(),
+      ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
       quality: GlassQuality.standard,
@@ -3173,13 +3178,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editStudySession([StudySession? existing]) async {
     final result = await GlassModalSheet.show<StudySession>(
       context: context,
-      builder: (_) => _StudySessionEditorDialog(
-        existing: existing,
-        initialWeekday: selectedStudyDay,
-        weekDays: weekDays,
-        hasOverlap: (candidate) => _hasOverlappingSession(
-          candidate,
-          excludingId: existing?.id,
+      builder: (sheetContext) => DarsYarModalContent(
+        child: _StudySessionEditorDialog(
+          existing: existing,
+          initialWeekday: selectedStudyDay,
+          weekDays: weekDays,
+          hasOverlap: (candidate) => _hasOverlappingSession(
+            candidate,
+            excludingId: existing?.id,
+          ),
         ),
       ),
       initialState: GlassSheetState.full,
@@ -3555,7 +3562,9 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
   Future<void> _editDuration() async {
     final updated = await GlassModalSheet.show<Duration>(
       context: context,
-      builder: (_) => _ExamDurationDialog(initialDuration: _duration),
+      builder: (sheetContext) => DarsYarModalContent(
+        child: _ExamDurationDialog(initialDuration: _duration),
+      ),
       initialState: GlassSheetState.full,
       fullSize: 0.82,
       quality: GlassQuality.standard,
@@ -3569,12 +3578,14 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
     final updated = await GlassModalSheet.show<Map<int, int>>(
       context: context,
-      builder: (_) => _AnswerKeyEditorSheet(
-        title: 'کلید پاسخ آزمون',
-        questionCount: count,
-        initialAnswers: _answerKey,
-        clearLabel: 'پاک‌کردن',
-        saveLabel: 'ذخیره کلید',
+      builder: (sheetContext) => DarsYarModalContent(
+        child: _AnswerKeyEditorSheet(
+          title: 'کلید پاسخ آزمون',
+          questionCount: count,
+          initialAnswers: _answerKey,
+          clearLabel: 'پاک‌کردن',
+          saveLabel: 'ذخیره کلید',
+        ),
       ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
@@ -4211,10 +4222,12 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           onTap: () async {
             final picked = await GlassModalSheet.show<TimeOfDay>(
               context: context,
-              builder: (_) => _TimePickerSheet(
-                initialTime: TimeOfDay(
-                  hour: _startMinutes ~/ 60,
-                  minute: _startMinutes % 60,
+              builder: (sheetContext) => DarsYarModalContent(
+                child: _TimePickerSheet(
+                  initialTime: TimeOfDay(
+                    hour: _startMinutes ~/ 60,
+                    minute: _startMinutes % 60,
+                  ),
                 ),
               ),
               initialState: GlassSheetState.half,
