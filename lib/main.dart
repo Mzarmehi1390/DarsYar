@@ -2171,10 +2171,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                                         : Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 7),
-                                  Text(
-                                    exam.marked.contains(q)
-                                        ? 'حذف علامت مرور'
-                                        : 'علامت برای مرور',
+                                  Flexible(
+                                    child: Text(
+                                      exam.marked.contains(q)
+                                          ? 'حذف علامت مرور'
+                                          : 'علامت برای مرور',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
