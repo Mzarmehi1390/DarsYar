@@ -58,7 +58,7 @@ remain distinct through size and weight rather than color alone.
 - Use a cool, softly layered blue/green/violet ambient background so glass can pick up visible color variation.
 - The dashboard hero is a shader-backed, elevated focal glass surface, not an opaque gradient banner.
 - Planner weekday selectors use `GlassChip`; the exam destination selector uses `GlassSegmentedControl` with a fluid glass indicator.
-- Do not place refractive controls inside refractive cards. A solid content surface may contain a glass control; a glass hero may contain ordinary text and non-glass icon treatments.
+- Do not place refractive controls inside refractive cards. A solid content surface may contain a glass control; a glass hero may contain ordinary text and non-glass icon treatments. Use a simple, high-contrast progress track inside the dashboard hero rather than nesting a second glass renderer.
 - Page-header icon wells use small independent shader-glass surfaces; they do not contain nested glass controls.
 - Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
 - Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
@@ -92,7 +92,7 @@ The bottom navigation is a floating shader-backed `GlassTabBar.bottom` capsule w
 - Keep dense study content on solid grouped surfaces.
 - Use explicit quality tiers: standard for scrollable surfaces and controls, premium only for static non-scrolling focal surfaces, and minimal for device-specific fallbacks when profiling justifies it. Avoid experimental automatic quality switching until device QA validates it.
 - Blur only bounded surfaces.
-- Prefer the package's shared glass layer over nested independent glass renderers.
+- Prefer the package's shared glass layer over nested independent glass renderers. Keep progress controls on solid content surfaces; use a plain progress indicator inside an already refractive hero.
 - Do not use manual `BackdropFilter` surfaces as a substitute for the iOS 27 shader material.
 - Keep expensive effects out of large scrolling regions.
 - Do not add perpetual animation or unnecessary stateful rebuilds.
