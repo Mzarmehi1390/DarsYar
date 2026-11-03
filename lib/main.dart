@@ -2476,41 +2476,58 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GlassButton.custom(
-                            width: double.infinity,
-                            height: 48,
-                            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                            quality: GlassQuality.standard,
-                            style: GlassButtonStyle.filled,
-                            onTap: () {
-                              if (q > 1) {
-                                setState(() => currentQuestionNumber--);
-                              }
-                            },
-                            child: const Text('قبلی'),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final previousButton = GlassButton.custom(
+                          width: double.infinity,
+                          height: 48,
+                          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                          quality: GlassQuality.standard,
+                          style: GlassButtonStyle.filled,
+                          onTap: () {
+                            if (q > 1) {
+                              setState(() => currentQuestionNumber--);
+                            }
+                          },
+                          child: const Text('قبلی'),
+                        );
+                        final nextButton = GlassButton.custom(
+                          width: double.infinity,
+                          height: 48,
+                          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                          quality: GlassQuality.standard,
+                          style: GlassButtonStyle.prominent,
+                          onTap: q < exam.questionCount
+                              ? () => setState(() => currentQuestionNumber++)
+                              : _finishExam,
+                          child: Text(
+                            q == exam.questionCount ? 'پایان آزمون' : 'بعدی',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GlassButton.custom(
-                            width: double.infinity,
-                            height: 48,
-                            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                            quality: GlassQuality.standard,
-                            style: GlassButtonStyle.prominent,
-                            onTap: q < exam.questionCount
-                                ? () => setState(() => currentQuestionNumber++)
-                                : _finishExam,
-                            child: Text(
-                              q == exam.questionCount ? 'پایان آزمون' : 'بعدی',
-                              style: const TextStyle(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                        ),
-                      ],
+                        );
+
+                        // GlassButton has a comfortable intrinsic width. Stack
+                        // the controls when the question pane is narrowed by
+                        // a compact viewport or the open question navigator.
+                        if (constraints.maxWidth < 340) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              previousButton,
+                              const SizedBox(height: 8),
+                              nextButton,
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(child: previousButton),
+                            const SizedBox(width: 8),
+                            Expanded(child: nextButton),
+                          ],
+                        );
+                      },
                     ),
                     Center(
                       child: GlassButton.custom(
