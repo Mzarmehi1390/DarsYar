@@ -135,8 +135,11 @@ abstract final class DarsYarTheme {
         shape: shape,
         margin: EdgeInsets.zero,
       ),
+      // GlassDialog and GlassModalSheet draw their own shader-backed
+      // surfaces. An opaque Material dialog underneath them masks refraction
+      // and turns the overlay into a flat white/solid panel.
       dialogTheme: DialogThemeData(
-        backgroundColor: scheme.surface.withValues(alpha: isDark ? 0.97 : 0.96),
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 20,
         shadowColor: Colors.black.withValues(alpha: isDark ? 0.34 : 0.16),
@@ -168,11 +171,13 @@ abstract final class DarsYarTheme {
         textStyle: TextStyle(color: scheme.onSurface, fontSize: 13),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: scheme.surface,
-        modalBackgroundColor: scheme.surface.withValues(alpha: 0.98),
+        // The liquid-glass sheet owns its material. Keep Flutter's fallback
+        // Material transparent so it cannot paint an opaque layer over glass.
+        backgroundColor: Colors.transparent,
+        modalBackgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        elevation: 12,
-        modalElevation: 18,
+        elevation: 0,
+        modalElevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             top: Radius.circular(DarsYarTokens.radiusExtraLarge),
