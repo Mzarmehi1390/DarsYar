@@ -168,3 +168,12 @@ The redesign must not alter:
 - Made Flutter's fallback dialog and bottom-sheet Material backgrounds transparent. The liquid-glass overlay must own its rendered surface; an opaque Material background beneath it masks refraction and produces a flat light/dark panel.
 - Added widget tests for light/dark overlay transparency and Persian RTL / text-decoration inheritance.
 - Verify on a physical device with the keyboard open, in both themes and with large text scaling. Yellow baseline guides shown only while Flutter debug baseline painting is enabled are diagnostics, not text decoration; release screenshots must be checked separately.
+
+
+## Planner card hierarchy and compact layout
+
+- Reworked study-session and task rows into readable grouped content panels with a clear title/status area, separate action row, and compact metadata pills.
+- Session subject, start time and duration are now independently scannable; task subject uses the same metadata treatment.
+- Kept dense study information on the high-contrast content surface. The small metadata wells are tinted solid insets, not nested refractive glass renderers.
+- Preserved completion, edit and delete callbacks and their existing storage sections.
+- Added a 320 dp compact-width widget regression test that loads real stored session/task fixtures, checks metadata and actions, and verifies session completion persists.
