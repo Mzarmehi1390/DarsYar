@@ -996,7 +996,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     return GlassButton.custom(
       width: double.infinity,
-      height: 168,
+      height: 188,
       shape: const LiquidRoundedSuperellipse(borderRadius: 23),
       quality: GlassQuality.standard,
       style: GlassButtonStyle.filled,
@@ -1169,13 +1169,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             quality: GlassQuality.standard,
             style: GlassButtonStyle.filled,
             onTap: addStudySession,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_rounded, size: 18),
-                SizedBox(width: 6),
-                Text('جلسه جدید', style: TextStyle(fontWeight: FontWeight.w700)),
-              ],
+            child: const Text(
+              'جلسه جدید',
+              style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
           GlassPullDownButton(
@@ -1219,13 +1215,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             quality: GlassQuality.standard,
             style: GlassButtonStyle.filled,
             onTap: addTask,
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_rounded, size: 18),
-                SizedBox(width: 6),
-                Text('ثبت وظیفه', style: TextStyle(fontWeight: FontWeight.w700)),
-              ],
+            child: const Text(
+              'ثبت وظیفه',
+              style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -1264,9 +1256,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               children: [
                 Icon(Icons.insights_rounded, color: accent),
                 const SizedBox(width: 8),
-                const Text(
-                  'گزارش هفتگی مطالعه',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                const Expanded(
+                  child: Text(
+                    'گزارش هفتگی مطالعه',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
                 ),
               ],
             ),
@@ -3263,135 +3257,154 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
     _draft = Map<int, int>.from(widget.initialAnswers);
   }
 
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        widget.title,
-        style: TextStyle(
-          fontSize: 21,
-          fontWeight: FontWeight.w800,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-      const SizedBox(height: 8),
-      Text(
-        '${_draft.length} از ${widget.questionCount} سؤال دارای کلید پاسخ است.',
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
-      const SizedBox(height: 12),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: GlassProgressIndicator.linear(
-          height: 5,
-          minWidth: 0,
-          value: widget.questionCount == 0
-              ? 0
-              : (_draft.length / widget.questionCount).clamp(0.0, 1.0).toDouble(),
-          color: accent,
-          backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-          quality: GlassQuality.standard,
-          semanticLabel: 'پیشرفت ورود کلید پاسخ',
-        ),
-      ),
-      const SizedBox(height: 12),
-      Expanded(
-        child: ListView.builder(
-          itemCount: widget.questionCount,
-          itemBuilder: (context, index) {
-            final question = index + 1;
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 64,
-                    child: Text(
-                      'سؤال $question',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Wrap(
-                      spacing: 5,
-                      runSpacing: 5,
-                      children: [
-                        for (var option = 0; option < _options.length; option++)
-                          GlassChip(
-                            label: _options[option],
-                            semanticLabel: 'سؤال $question، گزینه ${_options[option]}',
-                            selected: _draft[question] == option,
-                            selectedColor: accent.withValues(alpha: 0.18),
-                            labelStyle: TextStyle(
-                              color: _draft[question] == option
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 11.5,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                            quality: GlassQuality.standard,
-                            onTap: () => setState(() {
-                              if (_draft[question] == option) {
-                                _draft.remove(question);
-                              } else {
-                                _draft[question] = option;
-                              }
-                            }),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      const SizedBox(height: 12),
-      Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 8,
-        runSpacing: 8,
+  Widget _questionRow(int question) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          GlassButton.custom(
-            width: 96,
-            height: 44,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-            quality: GlassQuality.standard,
-            onTap: () => setState(_draft.clear),
-            child: Text(widget.clearLabel),
-          ),
-          GlassButton.custom(
-            width: 96,
-            height: 44,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-            quality: GlassQuality.standard,
-            onTap: () => Navigator.of(context).pop(),
-            child: const Text('انصراف'),
-          ),
-          GlassButton.custom(
-            width: 122,
-            height: 44,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-            quality: GlassQuality.standard,
-            style: GlassButtonStyle.filled,
-            onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
+          SizedBox(
+            width: 64,
             child: Text(
-              widget.saveLabel,
-              style: const TextStyle(fontWeight: FontWeight.w800),
+              'سؤال $question',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              children: [
+                for (var option = 0; option < _options.length; option++)
+                  GlassChip(
+                    label: _options[option],
+                    semanticLabel: 'سؤال $question، گزینه ${_options[option]}',
+                    selected: _draft[question] == option,
+                    selectedColor: accent.withValues(alpha: 0.18),
+                    labelStyle: TextStyle(
+                      color: _draft[question] == option
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11.5,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                    quality: GlassQuality.standard,
+                    onTap: () => setState(() {
+                      if (_draft[question] == option) {
+                        _draft.remove(question);
+                      } else {
+                        _draft[question] = option;
+                      }
+                    }),
+                  ),
+              ],
             ),
           ),
         ],
       ),
-    ],
+    );
+  }
+
+  Widget _footerActions() => Padding(
+    padding: const EdgeInsets.only(top: 12, bottom: 8),
+    child: Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        GlassButton.custom(
+          width: 96,
+          height: 44,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+          quality: GlassQuality.standard,
+          onTap: () => setState(_draft.clear),
+          child: Text(widget.clearLabel),
+        ),
+        GlassButton.custom(
+          width: 96,
+          height: 44,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+          quality: GlassQuality.standard,
+          onTap: () => Navigator.of(context).pop(),
+          child: const Text('انصراف'),
+        ),
+        GlassButton.custom(
+          width: 122,
+          height: 44,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+          quality: GlassQuality.standard,
+          style: GlassButtonStyle.filled,
+          onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
+          child: Text(
+            widget.saveLabel,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ],
+    ),
   );
+
+  @override
+  Widget build(BuildContext context) {
+    final questionCount = widget.questionCount.clamp(0, 200);
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: questionCount + 4,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              widget.title,
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          );
+        }
+        if (index == 1) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              '${_draft.length} از ${questionCount} سؤال دارای کلید پاسخ است.',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          );
+        }
+        if (index == 2) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: GlassProgressIndicator.linear(
+                height: 5,
+                minWidth: 0,
+                value: questionCount == 0
+                    ? 0
+                    : (_draft.length / questionCount).clamp(0.0, 1.0).toDouble(),
+                color: accent,
+                backgroundColor:
+                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                quality: GlassQuality.standard,
+                semanticLabel: 'پیشرفت ورود کلید پاسخ',
+              ),
+            ),
+          );
+        }
+        if (index == questionCount + 3) {
+          return _footerActions();
+        }
+        return _questionRow(index - 2);
+      },
+    );
+  }
 }
 
 class _ExamSetupPanel extends StatefulWidget {
