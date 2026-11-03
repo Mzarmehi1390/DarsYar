@@ -192,3 +192,9 @@ The redesign must not alter:
 - Tightened the weekly overview card's vertical rhythm and constrained its trailing status label so the seven-day overview remains clean at 320 dp.
 - Made the compact planner regression test reveal the Sunday chip before tapping it, matching the horizontal scrolling behavior of the weekday strip.
 - Corrected the saved-result test's numeric expectations to match the current UI's intentional Latin-digit percentage and question-count formatting.
+
+
+## Active exam answer-state regression
+
+- Added a compact-width widget test that selects an answer, verifies the persisted zero-based option value, navigates back, and confirms the selected option is still visibly selected.
+- Keep the timer, answer autosave, question progression, review marking and navigator interactions intact while refining the active-exam glass chrome.
