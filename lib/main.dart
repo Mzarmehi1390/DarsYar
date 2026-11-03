@@ -2935,11 +2935,28 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('مشخصات آزمون', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           SizedBox(height: 14),
-          TextField(controller: _name, maxLength: 60,
-            decoration: InputDecoration(labelText: 'نام آزمون', hintText: 'مثلاً آزمون فصل اول ریاضی')),
-          TextField(controller: _count, keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(labelText: 'تعداد سؤال (۱ تا ۲۰۰)')),
+          GlassFormField(
+            label: 'نام آزمون',
+            child: GlassTextField(
+              controller: _name,
+              maxLength: 60,
+              placeholder: 'مثلاً آزمون فصل اول ریاضی',
+              quality: GlassQuality.standard,
+              textInputAction: TextInputAction.next,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GlassFormField(
+            label: 'تعداد سؤال (۱ تا ۲۰۰)',
+            child: GlassTextField(
+              controller: _count,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 3,
+              quality: GlassQuality.standard,
+              textInputAction: TextInputAction.next,
+            ),
+          ),
           SizedBox(height: 14),
           Text('زمان دلخواه آزمون', style: TextStyle(fontWeight: FontWeight.w700)),
           SizedBox(height: 8),
