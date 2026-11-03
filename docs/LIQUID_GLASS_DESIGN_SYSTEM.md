@@ -46,7 +46,7 @@ the component geometry requires it.
   high-contrast text. These defaults are centralized in `DarsYarTheme` so
   transient UI does not drift between features.
 
-The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
+The app now uses `liquid_glass_widgets` 1.16.1 with its `GlassThemeData.ios27()` preset, shader prewarming, adaptive quality and `GlassScaffold` + `GlassTabBar.bottom` navigation. Planner weekday chips use `GlassChip`, and the exam-mode switcher uses `GlassSegmentedControl`. The dashboard hero and primary page-header icon wells use the library's shader-backed `GlassContainer` material; the bottom navigation uses its liquid selected indicator. Dense study lists, summaries, settings groups and exam setup panels use `DarsYarContentSurface` with solid, high-contrast fills. This follows iOS's separation between refractive navigation/control chrome and readable content surfaces.
 
 ## Typography
 
@@ -59,6 +59,8 @@ remain distinct through size and weight rather than color alone.
 
 - Use a cool, softly layered blue/green/violet ambient background so glass can pick up visible color variation.
 - The dashboard hero is a shader-backed, elevated focal glass surface, not an opaque gradient banner.
+- Planner weekday selectors use `GlassChip`; the exam destination selector uses `GlassSegmentedControl` with a fluid glass indicator.
+- Do not place refractive controls inside refractive cards. A solid content surface may contain a glass control; a glass hero may contain ordinary text and non-glass icon treatments.
 - Page-header icon wells use small independent shader-glass surfaces; they do not contain nested glass controls.
 - Keep the highest contrast in text and actionable controls; reflections stay near material edges and must not cross important copy.
 - Summary cards switch to a two-column wrap on compact widths instead of compressing Persian labels into narrow columns.
