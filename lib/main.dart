@@ -25,13 +25,7 @@ Future<void> main() async {
     // The adaptive glass widgets retain their standard fallback if shader
     // prewarming is unavailable on a particular device or renderer.
   }
-  runApp(
-    LiquidGlassWidgets.wrap(
-      child: const DarsYarApp(),
-      adaptiveQuality: true,
-      brightnessResolver: Theme.maybeBrightnessOf,
-    ),
-  );
+  runApp(const DarsYarApp());
 }
 
 const accent = DarsYarTokens.accent;
@@ -100,20 +94,26 @@ class _DarsYarAppState extends State<DarsYarApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'درس‌یار',
-      themeMode: mode,
-      theme: DarsYarTheme.light,
-      darkTheme: DarsYarTheme.dark,
-      builder: (context, child) => GlassTheme(
-        data: const GlassThemeData.ios27(),
-        child: Directionality(
+    return LiquidGlassWidgets.wrap(
+      theme: const GlassThemeData.ios27(),
+      adaptiveQuality: true,
+      brightnessResolver: Theme.maybeBrightnessOf,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'درس‌یار',
+        themeMode: mode,
+        theme: DarsYarTheme.light,
+        darkTheme: DarsYarTheme.dark,
+        builder: (context, child) => Directionality(
           textDirection: TextDirection.rtl,
           child: child ?? const SizedBox(),
         ),
+        home: DarsYarHome(
+          initialTab: widget.initialTab,
+          mode: mode,
+          onModeChanged: _setThemeMode,
+        ),
       ),
-      home: DarsYarHome(initialTab: widget.initialTab, mode: mode, onModeChanged: _setThemeMode),
     );
   }
 }
