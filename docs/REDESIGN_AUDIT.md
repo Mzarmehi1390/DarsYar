@@ -120,7 +120,7 @@ The redesign must not alter:
 
 ## Remaining validation
 
-- Verify the current GitHub Actions run against the latest redesign commit; the draft validation PR is not to be merged.
+- Verify the current GitHub Actions run against the latest redesign commit. The CI workflow runs analysis/tests/builds without requiring private release-signing secrets; generated APK/AAB files use the debug signing fallback and are validation artifacts only.
 - Inspect the updated app on a physical Android device in both themes.
 - Verify compact viewport and text scaling, long Persian labels and RTL overflow.
 - Profile scroll performance on lists with many sessions/tasks/results.
