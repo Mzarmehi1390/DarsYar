@@ -935,9 +935,37 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           padding: const EdgeInsets.only(left: 8),
           child: ChoiceChip(
             showCheckmark: false,
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            selectedColor: accent.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.24 : 0.13,
+            ),
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surface
+                .withValues(alpha: 0.62),
+            side: BorderSide(
+              color: selectedStudyDay == day
+                  ? accent.withValues(alpha: 0.62)
+                  : Theme.of(context).colorScheme.outlineVariant,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            labelStyle: TextStyle(
+              color: selectedStudyDay == day
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: selectedStudyDay == day
+                  ? FontWeight.w800
+                  : FontWeight.w600,
+            ),
             label: Text(weekDays[day]),
             selected: selectedStudyDay == day,
-            onSelected: (_) { setState(() => selectedStudyDay = day); _revealSelectedDay(); },
+            onSelected: (_) {
+              setState(() => selectedStudyDay = day);
+              _revealSelectedDay();
+            },
           ),
         )).toList(),
       )),
@@ -1133,7 +1161,26 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               Row(children: [
                 Expanded(child: Text(weekDays[day], style: TextStyle(
                   fontWeight: FontWeight.w800, color: selected ? accent : null))),
-                if (selected) Icon(Icons.check_circle_rounded, size: 16, color: accent),
+                if (selected)
+                  Semantics(
+                    label: 'روز انتخاب‌شده',
+                    child: Container(
+                      key: const ValueKey<String>('planner-week-selected-indicator'),
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                        color: accent,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.28),
+                            blurRadius: 7,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ]),
               SizedBox(height: 8),
               Text('${sessions.length} جلسه • $minutes دقیقه', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
