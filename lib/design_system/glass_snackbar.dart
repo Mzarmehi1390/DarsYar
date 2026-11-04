@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import 'glass_tokens.dart';
+
 void showDarsYarGlassSnackBar(
   BuildContext context,
   SnackBar snackBar, {
@@ -15,7 +17,7 @@ void showDarsYarGlassSnackBar(
         content: GlassContainer.card(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-          quality: GlassQuality.standard,
+          quality: DarsYarGlassTokens.quality,
           useOwnLayer: true,
           child: DefaultTextStyle.merge(
             style: TextStyle(
