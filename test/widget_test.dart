@@ -363,9 +363,12 @@ void main() {
     final sheet = tester.widget<GlassModalSheetScaffold>(
       find.byType(GlassModalSheetScaffold),
     );
-    expect(sheet.detents, {GlassSheetDetent.medium});
-    expect(sheet.halfSize, 0.9);
-    expect(sheet.fullSize, isNull);
+    expect(sheet.detents, {GlassSheetDetent.medium, GlassSheetDetent.large});
+    expect(sheet.initialState, GlassSheetState.full);
+    expect(sheet.halfSize, DarsYarGlassTokens.defaultHalfSheetSize);
+    expect(sheet.fullSize, 0.9);
+    expect(sheet.fullSettings, isNotNull);
+    expect(sheet.fullSettings!.blur, greaterThan(0));
     expect(sheet.fillThreshold, 1.0);
     expect(sheet.maintainContentGlass, isTrue);
 
@@ -374,10 +377,9 @@ void main() {
     expect(list.controller!.hasClients, isTrue);
     expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
 
-    // The tall medium detent must keep the form scrollable without forcing
-    // the sheet into the package's opaque large detent. Verify the actual
-    // scroll extent, then move to the end without assuming a pixel-to-row
-    // mapping that changes with device density and viewport height.
+    // The true full-height detent must keep the form scrollable while
+    // retaining its explicit refractive full-state material. Verify the
+    // actual scroll extent rather than assuming a pixel-to-row mapping.
     final scrollController = list.controller!;
     expect(scrollController.position.maxScrollExtent, greaterThan(0));
     final maxScrollExtent = scrollController.position.maxScrollExtent;
