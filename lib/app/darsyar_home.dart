@@ -10,7 +10,6 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
-import '../design_system/modal_content.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/exam_setup_widgets.dart';
@@ -572,9 +571,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         quality: GlassQuality.standard,
         reduceMotion: !widget.animationsEnabled,
         barrierColor: DarsYarGlassTokens.dialogBarrierColor,
-        content: DarsYarModalContent(
-          child: GlassFormField(
-            label: 'نام آزمون',
+        content: GlassFormField(
+          label: 'نام آزمون',
           child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
@@ -583,7 +581,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             autofocus: true,
             textInputAction: TextInputAction.done,
           ),
-        ),
         ),
         actions: [
           GlassDialogAction(
@@ -615,14 +612,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }) {
     return showDarsYarGlassSheet<Map<int, int>>(
       context: context,
-      builder: (_) => DarsYarModalContent(
-        child: AnswerKeyEditorSheet(
-          title: title,
-          questionCount: questionCount,
-          initialAnswers: initialAnswers,
-          clearLabel: clearLabel,
-          saveLabel: saveLabel,
-        ),
+      builder: (_) => AnswerKeyEditorSheet(
+        title: title,
+        questionCount: questionCount,
+        initialAnswers: initialAnswers,
+        clearLabel: clearLabel,
+        saveLabel: saveLabel,
       ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
@@ -1704,8 +1699,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       quality: GlassQuality.standard,
       reduceMotion: !widget.animationsEnabled,
       barrierColor: DarsYarGlassTokens.dialogBarrierColor,
-      content: DarsYarModalContent(
-        child: StatefulBuilder(
+      content: StatefulBuilder(
           builder: (dialogContext, dialogSet) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1767,7 +1761,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
           ],
           ),
-        ),
       ),
       actions: [
         GlassDialogAction(
@@ -1854,9 +1847,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> importBackup() async {
     final raw = await showDarsYarGlassSheet<String>(
       context: context,
-      builder: (_) => const DarsYarModalContent(
-        child: BackupImportDialog(),
-      ),
+      builder: (_) => const BackupImportDialog(),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
       quality: GlassQuality.standard,
