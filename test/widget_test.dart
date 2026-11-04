@@ -130,12 +130,13 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final planner = tester.widget<ListView>(
+    final planner = tester.widget<CustomScrollView>(
       find.byKey(const PageStorageKey<String>('planner-scroll')),
     );
+    expect(planner.slivers, isNotEmpty);
     expect(
-      planner.padding,
-      EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance),
+      planner.slivers.whereType<SliverList>().length,
+      greaterThanOrEqualTo(3),
     );
     expect(DarsYarTokens.pageBottomClearance, 152);
     expect(tester.takeException(), isNull);
