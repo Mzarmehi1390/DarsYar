@@ -3,7 +3,6 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_surface.dart';
-import '../../../exam_percentage_calculator.dart';
 import '../../../exam_result.dart';
 import 'exam_result_card.dart';
 
@@ -59,8 +58,6 @@ class ExamHistoryPage extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 14),
-        const ExamPercentageCalculator(),
         const SizedBox(height: 18),
         Row(
           children: [

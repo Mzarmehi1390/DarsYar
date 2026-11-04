@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:dars_yar/exam_percentage_calculator.dart';
 
 void main() {
-  test('calculates regular, negative and skipped-wrong percentages', () {
+  test('calculates regular and negative-marking percentages', () {
     final result = calculateExamPercentages(
       correct: 15,
       wrong: 3,
@@ -11,7 +11,6 @@ void main() {
 
     expect(result.withoutPenalty, 75);
     expect(result.withPenalty, closeTo(70, 0.0001));
-    expect(result.ifWrongWereSkipped, 75);
   });
 
   test('negative percentage is clamped at zero', () {

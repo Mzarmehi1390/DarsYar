@@ -3,6 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/page_header.dart';
 import 'exam_setup_panel.dart';
+import '../../../exam_percentage_calculator.dart';
 
 class ExamPage extends StatelessWidget {
   const ExamPage({
@@ -47,6 +48,10 @@ class ExamPage extends StatelessWidget {
                 label: 'آزمون‌های من',
                 semanticLabel: 'آزمون‌های من',
               ),
+              GlassSegment(
+                label: 'محاسبه درصد',
+                semanticLabel: 'ماشین‌حساب درصد آزمون',
+              ),
             ],
             selectedIndex: examSection,
             onSegmentSelected: onExamSectionChanged,
@@ -70,9 +75,14 @@ class ExamPage extends StatelessWidget {
         ]),
       ),
       Expanded(
-        child: examSection == 0
-            ? ExamSetupPanel(onCreate: onCreate, onMessage: onMessage)
-            : myExamsBuilder(),
+        child: switch (examSection) {
+          0 => ExamSetupPanel(onCreate: onCreate, onMessage: onMessage),
+          1 => myExamsBuilder(),
+          _ => const SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 28),
+              child: ExamPercentageCalculator(),
+            ),
+        },
       ),
     ]);
   }

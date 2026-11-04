@@ -8,12 +8,10 @@ class ExamPercentageResult {
   const ExamPercentageResult({
     required this.withoutPenalty,
     required this.withPenalty,
-    required this.ifWrongWereSkipped,
   });
 
   final double? withoutPenalty;
   final double? withPenalty;
-  final double? ifWrongWereSkipped;
 }
 
 ExamPercentageResult calculateExamPercentages({
@@ -26,7 +24,6 @@ ExamPercentageResult calculateExamPercentages({
     return const ExamPercentageResult(
       withoutPenalty: null,
       withPenalty: null,
-      ifWrongWereSkipped: null,
     );
   }
   final plain = correct * 100 / total;
@@ -35,7 +32,6 @@ ExamPercentageResult calculateExamPercentages({
   return ExamPercentageResult(
     withoutPenalty: plain,
     withPenalty: penalized,
-    ifWrongWereSkipped: plain,
   );
 }
 
@@ -91,6 +87,14 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
           child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
+            onTap: () {
+              if (controller.text == '0') {
+                controller.selection = TextSelection(
+                  baseOffset: 0,
+                  extentOffset: controller.text.length,
+                );
+              }
+            },
             keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
@@ -160,18 +164,6 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
             'با نمره منفی (هر ۳ غلط = ۱ درست)',
             _format(result.withPenalty),
             Icons.remove_circle_outline_rounded,
-          ),
-          const SizedBox(height: 8),
-          _resultRow(
-            context,
-            'اگر پاسخ‌های غلط را سفید می‌گذاشتی',
-            _format(result.ifWrongWereSkipped),
-            Icons.lightbulb_outline_rounded,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'در حالت آخر، پاسخ‌های غلط بی‌پاسخ فرض می‌شوند؛ بنابراین فقط جریمه نمره منفی حذف می‌شود.',
-            style: TextStyle(fontSize: 11, height: 1.45, color: muted),
           ),
         ],
       ),

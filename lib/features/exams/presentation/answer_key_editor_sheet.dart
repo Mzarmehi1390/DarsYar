@@ -192,7 +192,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   }
 
   Widget _footerActions() => Padding(
-        padding: const EdgeInsets.only(top: 12, bottom: 8),
+        padding: const EdgeInsets.fromLTRB(0, 10, 0, 8),
         child: Wrap(
           alignment: WrapAlignment.center,
           spacing: 8,
@@ -234,12 +234,15 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   Widget build(BuildContext context) {
     final questionCount = widget.questionCount.clamp(0, 200);
     final scrollData = ScrollControllerProvider.of(context);
-    return ListView.builder(
-      controller: scrollData?.controller,
-      physics: scrollData?.physics,
-      padding: EdgeInsets.zero,
-      itemCount: questionCount + 4,
-      itemBuilder: (context, index) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            controller: scrollData?.controller,
+            physics: scrollData?.physics,
+            padding: EdgeInsets.zero,
+            itemCount: questionCount + 3,
+            itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -293,11 +296,13 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
             ),
           );
         }
-        if (index == questionCount + 3) {
-          return _footerActions();
-        }
-        return _questionRow(index - 2);
-      },
+              return _questionRow(index - 2);
+            },
+          ),
+        ),
+        const Divider(height: 1),
+        _footerActions(),
+      ],
     );
   }
 }

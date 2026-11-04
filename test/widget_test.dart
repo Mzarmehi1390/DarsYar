@@ -1642,11 +1642,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('1 از 3 سؤال دارای کلید پاسخ است.'), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('ثبت'),
-      240,
-      scrollable: find.byType(Scrollable).last,
-    );
+    expect(tester.getRect(find.text('ثبت')).bottom,
+        lessThan(tester.view.physicalSize.height));
     await tester.tap(find.text('ثبت'));
     await tester.pumpAndSettle();
 
