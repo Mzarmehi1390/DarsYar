@@ -15,6 +15,7 @@ import 'design_system/glass_surface.dart';
 import 'design_system/modal_content.dart';
 import 'design_system/page_header.dart';
 import 'exam_result.dart';
+import 'exam_percentage_calculator.dart';
 import 'exam_sheet.dart';
 import 'study_session.dart';
 import 'models/study_task.dart';
@@ -2792,6 +2793,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         SizedBox(height: 6),
         Text('نتایج ذخیره‌شده آزمون‌ها و روند درصدها را دنبال کن.',
           style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        SizedBox(height: 14),
+        const ExamPercentageCalculator(),
         SizedBox(height: 18),
         Row(children: [
           Expanded(child: summary('آزمون‌ها', results.length, Icons.assignment_turned_in_outlined)),
@@ -3563,58 +3566,67 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ),
     ]))),
     SizedBox(height: 12),
-    _glassSurface(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                widget.animationsEnabled
-                    ? Icons.motion_photos_on_rounded
-                    : Icons.motion_photos_off_rounded,
-                color: accent,
-                size: 21,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'انیمیشن‌های برنامه',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+    Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () => widget.onAnimationsChanged(!widget.animationsEnabled),
+        child: _glassSurface(
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
+                  child: Icon(
                     widget.animationsEnabled
-                        ? 'حرکت‌ها و جابه‌جایی‌های نرم فعال هستند.'
-                        : 'حرکت‌های غیرضروری غیرفعال شده‌اند تا رابط سبک‌تر اجرا شود.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.45,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                        ? Icons.motion_photos_on_rounded
+                        : Icons.motion_photos_off_rounded,
+                    color: accent,
+                    size: 21,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'انیمیشن‌های برنامه',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        widget.animationsEnabled
+                            ? 'حرکت‌ها و جابه‌جایی‌های نرم فعال هستند.'
+                            : 'حالت سبک: حرکت‌های کوتاه و کم‌جلوه اجرا می‌شوند.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.45,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IgnorePointer(
+                  child: GlassSwitch(
+                    value: widget.animationsEnabled,
+                    activeColor: accent,
+                    semanticLabel: 'روشن یا خاموش کردن انیمیشن‌های برنامه',
+                    quality: GlassQuality.standard,
+                    onChanged: widget.onAnimationsChanged,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            GlassSwitch(
-              value: widget.animationsEnabled,
-              activeColor: accent,
-              semanticLabel: 'روشن یا خاموش کردن انیمیشن‌های برنامه',
-              quality: GlassQuality.standard,
-              onChanged: widget.onAnimationsChanged,
-            ),
-          ],
+          ),
         ),
       ),
     ),
