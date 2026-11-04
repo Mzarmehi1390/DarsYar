@@ -5,8 +5,8 @@ import 'glass_tokens.dart';
 
 /// Shared presentation defaults for DarsYar modal sheets.
 ///
-/// The large detent must remain refractive. The package defaults to an opaque
-/// full sheet, so DarsYar uses a gradual fill threshold at the end of expansion.
+/// The package intentionally renders its large detent as opaque. DarsYar uses
+/// a tall medium detent instead, preserving the refractive glass surface.
 Future<T?> showDarsYarGlassSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
