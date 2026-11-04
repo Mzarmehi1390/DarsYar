@@ -19,6 +19,7 @@ import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_result_card.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
+import '../features/planner/presentation/task_details_dialog.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
@@ -602,71 +603,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  Future<(String, String)?> _requestTaskDetails([StudyTask? existing]) async {
-    final titleController = TextEditingController(text: existing?.title ?? '');
-    final subjectController = TextEditingController(text: existing?.subject ?? '');
-    try {
-      return await showDarsYarGlassDialog<(String, String)>(
-        context: context,
-        title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
-        maxWidth: 360,
-        quality: GlassQuality.standard,
-        reduceMotion: !widget.animationsEnabled,
-        barrierColor: DarsYarGlassTokens.dialogBarrierColor,
-        content: DarsYarModalContent(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-            GlassFormField(
-              label: 'عنوان وظیفه',
-              child: GlassTextField(
-                surfaceStyle: GlassSurfaceStyle.solid,
-                controller: titleController,
-                placeholder: 'مثلاً مرور فصل دوم',
-                maxLength: 100,
-                autofocus: true,
-                textInputAction: TextInputAction.next,
-              ),
-            ),
-            const SizedBox(height: 14),
-            GlassFormField(
-              label: 'درس',
-              child: GlassTextField(
-                surfaceStyle: GlassSurfaceStyle.solid,
-                controller: subjectController,
-                placeholder: 'مثلاً ریاضی',
-                maxLength: 50,
-                textInputAction: TextInputAction.done,
-              ),
-            ),
-            ],
-          ),
-        ),
-        actions: [
-          GlassDialogAction(
-            label: 'انصراف',
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          GlassDialogAction(
-            label: existing == null ? 'افزودن' : 'ذخیره',
-            isPrimary: true,
-            onPressed: () {
-              final title = titleController.text.trim();
-              if (title.isNotEmpty) {
-                Navigator.of(context).pop((
-                  title,
-                  subjectController.text.trim(),
-                ));
-              }
-            },
-          ),
-        ],
-      );
-    } finally {
-      titleController.dispose();
-      subjectController.dispose();
-    }
-  }
 
   Future<Map<int, int>?> _showAnswerKeyEditor({
     required String title,
@@ -2579,7 +2515,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> addTask([StudyTask? existing]) async {
-    final result = await _requestTaskDetails(existing);
+    final result = await showTaskDetailsDialog(
+      context: context,
+      existing: existing,
+      reduceMotion: !widget.animationsEnabled,
+    );
     if (result == null || !mounted) return;
     setState(() {
       _taskController.upsert(
