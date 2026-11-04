@@ -24,8 +24,11 @@ class SavedExamCard extends StatelessWidget {
   final VoidCallback onBegin;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 10),
+    color: Colors.transparent,
+    elevation: 0,
+    surfaceTintColor: Colors.transparent,
     child: DarsYarContentSurface(
       radius: 22,
       child: Padding(
