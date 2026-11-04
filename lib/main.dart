@@ -36,7 +36,8 @@ void showDarsYarGlassSnackBar(
         content: GlassContainer.card(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-              useOwnLayer: true,
+          quality: GlassQuality.standard,
+          useOwnLayer: true,
           child: DefaultTextStyle.merge(
             style: TextStyle(
               color: colors.onSurface,
@@ -528,9 +529,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: loading
               ? const Center(child: CircularProgressIndicator())
               : AnimatedSwitcher(
-                  // Lite mode keeps a calm, readable fade at the same
-                  // deliberate pace; it removes the slide rather than
-                  // accelerating the transition.
+                  // Lite mode keeps a calm fade at the same deliberate pace;
+                  // it removes the slide instead of accelerating the transition.
                   duration: const Duration(milliseconds: 220),
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
@@ -663,6 +663,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       title: title,
       message: message,
       maxWidth: 340,
+      quality: GlassQuality.standard,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.30),
       actions: [
@@ -691,7 +692,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         context: context,
         title: isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید',
         maxWidth: 360,
-          barrierColor: Colors.black.withValues(alpha: 0.30),
+        quality: GlassQuality.standard,
+        barrierColor: Colors.black.withValues(alpha: 0.30),
         content: DarsYarModalContent(
           child: GlassFormField(
             label: 'نام آزمون',
@@ -733,7 +735,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         context: context,
         title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
         maxWidth: 360,
-          barrierColor: Colors.black.withValues(alpha: 0.30),
+        quality: GlassQuality.standard,
+        barrierColor: Colors.black.withValues(alpha: 0.30),
         content: DarsYarModalContent(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -807,7 +810,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           saveLabel: saveLabel,
         ),
       ),
+      initialState: GlassSheetState.full,
       fullSize: 0.90,
+      quality: GlassQuality.standard,
+      fillThreshold: 1.0,
+      maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
       barrierColor: Colors.transparent,
     );
@@ -824,6 +831,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       padding: EdgeInsets.zero,
       shape: const LiquidRoundedSuperellipse(borderRadius: 30),
       useOwnLayer: true,
+      quality: GlassQuality.standard,
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
@@ -1084,7 +1092,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       GlassButton.custom(
         height: 36,
         shape: const LiquidRoundedSuperellipse(borderRadius: 12),
-          style: GlassButtonStyle.transparent,
+        quality: GlassQuality.standard,
+        style: GlassButtonStyle.transparent,
         onTap: _openPlanner,
         child: const Text('مشاهده همه'),
       )]),
@@ -1117,6 +1126,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       width: double.infinity,
       height: height,
       shape: const LiquidRoundedSuperellipse(borderRadius: 23),
+      quality: GlassQuality.standard,
       style: GlassButtonStyle.filled,
       onTap: action,
       child: Padding(
@@ -1285,7 +1295,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               fontSize: 13,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  onTap: () {
+            quality: GlassQuality.standard,
+            onTap: () {
               setState(() => selectedStudyDay = day);
               _revealSelectedDay();
             },
@@ -1329,7 +1340,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             width: 132,
             height: 44,
             shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                  style: GlassButtonStyle.filled,
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
             onTap: addStudySession,
             child: const Text(
               'جلسه جدید',
@@ -1339,7 +1351,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           GlassPullDownButton(
             icon: const Icon(Icons.copy_all_rounded),
             semanticLabel: 'کپی برنامه این روز',
-                  menuWidth: 230,
+            quality: GlassQuality.standard,
+            menuWidth: 230,
             items: [
               for (var day = 0; day < 7; day++)
                 GlassMenuItem(
@@ -1373,7 +1386,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             width: 126,
             height: 44,
             shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                  style: GlassButtonStyle.filled,
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
             onTap: addTask,
             child: const Text(
               'ثبت وظیفه',
@@ -1453,7 +1467,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 backgroundColor:
                     Theme.of(context).colorScheme.surfaceContainerHighest,
                 color: accent,
-                          semanticLabel: 'پیشرفت هفتگی مطالعه',
+                quality: GlassQuality.standard,
+                semanticLabel: 'پیشرفت هفتگی مطالعه',
               ),
             ),
             const SizedBox(height: 8),
@@ -1606,7 +1621,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   backgroundColor:
                       Theme.of(context).colorScheme.surfaceContainerHighest,
                   color: accent,
-                              semanticLabel: 'پیشرفت روز ${weekDays[day]}',
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'پیشرفت روز ${weekDays[day]}',
                 ),
               ),
             ),
@@ -1631,7 +1647,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       return GlassContainer.card(
         padding: EdgeInsets.zero,
         shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-          useOwnLayer: false,
+        quality: GlassQuality.standard,
+        useOwnLayer: false,
         child: cardContent,
       );
     }
@@ -1671,7 +1688,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   },
                   size: 38,
                   shape: GlassIconButtonShape.circle,
-                              semanticLabel: session.completed
+                  quality: GlassQuality.standard,
+                  semanticLabel: session.completed
                       ? 'علامت‌گذاری جلسه به‌عنوان انجام‌نشده'
                       : 'علامت‌گذاری جلسه به‌عنوان انجام‌شده',
                 ),
@@ -1734,7 +1752,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   onPressed: () => editStudySession(session),
                   size: 36,
                   shape: GlassIconButtonShape.roundedSquare,
-                              semanticLabel: 'ویرایش جلسه',
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'ویرایش جلسه',
                 ),
                 const SizedBox(width: 6),
                 GlassIconButton(
@@ -1755,7 +1774,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   },
                   size: 36,
                   shape: GlassIconButtonShape.roundedSquare,
-                              semanticLabel: 'حذف جلسه',
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'حذف جلسه',
                 ),
               ],
             ),
@@ -1878,7 +1898,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   },
                   size: 38,
                   shape: GlassIconButtonShape.circle,
-                              semanticLabel: task.done
+                  quality: GlassQuality.standard,
+                  semanticLabel: task.done
                       ? 'علامت‌گذاری وظیفه به‌عنوان انجام‌نشده'
                       : 'علامت‌گذاری وظیفه به‌عنوان انجام‌شده',
                 ),
@@ -1914,7 +1935,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   onPressed: () => addTask(task),
                   size: 36,
                   shape: GlassIconButtonShape.roundedSquare,
-                              semanticLabel: 'ویرایش وظیفه',
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'ویرایش وظیفه',
                 ),
                 const SizedBox(width: 6),
                 GlassIconButton(
@@ -1935,7 +1957,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   },
                   size: 36,
                   shape: GlassIconButtonShape.roundedSquare,
-                              semanticLabel: 'حذف وظیفه',
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'حذف وظیفه',
                 ),
               ],
             ),
@@ -1974,7 +1997,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             height: 46,
             borderRadius: 20,
             useOwnLayer: true,
-                  selectedTextStyle: TextStyle(
+            quality: GlassQuality.standard,
+            selectedTextStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
               fontSize: 12.5,
               fontWeight: FontWeight.w800,
@@ -2024,7 +2048,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 GlassPullDownButton(
                   icon: const Icon(Icons.more_horiz_rounded),
                   semanticLabel: 'مدیریت آزمون ${exam.name}',
-                              menuWidth: 220,
+                  quality: GlassQuality.standard,
+                  menuWidth: 220,
                   items: [
                     GlassMenuItem(
                       title: 'تغییر نام',
@@ -2086,7 +2111,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       width: 142,
                       height: 44,
                       shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                                      style: GlassButtonStyle.filled,
+                      quality: GlassQuality.standard,
+                      style: GlassButtonStyle.filled,
                       onTap: () => _beginExam(exam),
                       child: Text(
                         exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
@@ -2198,7 +2224,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         GlassContainer.card(
           shape: const LiquidRoundedSuperellipse(borderRadius: 22),
           useOwnLayer: true,
-              clipBehavior: Clip.antiAlias,
+          quality: GlassQuality.standard,
+          clipBehavior: Clip.antiAlias,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
             child: Column(
@@ -2211,7 +2238,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       onPressed: () => setState(() => isTakingExam = false),
                       size: 40,
                       shape: GlassIconButtonShape.roundedSquare,
-                                      semanticLabel: 'بازگشت به پاسخ‌برگ',
+                      quality: GlassQuality.standard,
+                      semanticLabel: 'بازگشت به پاسخ‌برگ',
                     );
                     final timerBadge = Container(
                       padding: const EdgeInsets.symmetric(
@@ -2263,7 +2291,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       ),
                       size: 40,
                       shape: GlassIconButtonShape.roundedSquare,
-                                      semanticLabel: 'فهرست سؤال‌ها',
+                      quality: GlassQuality.standard,
+                      semanticLabel: 'فهرست سؤال‌ها',
                     );
                     final timerButton = GlassIconButton(
                       icon: Icon(
@@ -2272,7 +2301,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       onPressed: _toggleExamTimer,
                       size: 40,
                       shape: GlassIconButtonShape.roundedSquare,
-                                      semanticLabel: _examTimerRunning
+                      quality: GlassQuality.standard,
+                      semanticLabel: _examTimerRunning
                           ? 'توقف زمان‌سنج'
                           : 'ادامه زمان‌سنج',
                     );
@@ -2335,7 +2365,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     color: accent,
                     backgroundColor:
                         Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-                                  semanticLabel: 'پیشرفت آزمون',
+                    quality: GlassQuality.standard,
+                    semanticLabel: 'پیشرفت آزمون',
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -2533,14 +2564,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                                       fontSize: 13,
                                     ),
                                     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                                                                  onTap: () => _answerQuestion(option),
+                                    quality: GlassQuality.standard,
+                                    onTap: () => _answerQuestion(option),
                                   ),
                               ],
                             ),
                             GlassButton.custom(
                               height: 42,
                               shape: const LiquidRoundedSuperellipse(borderRadius: 14),
-                                                      style: GlassButtonStyle.transparent,
+                              quality: GlassQuality.standard,
+                              style: GlassButtonStyle.transparent,
                               onTap: () => _toggleQuestionMarked(q),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -2578,7 +2611,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           width: double.infinity,
                           height: 48,
                           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                                              style: GlassButtonStyle.filled,
+                          quality: GlassQuality.standard,
+                          style: GlassButtonStyle.filled,
                           onTap: () {
                             if (q > 1) {
                               setState(() => currentQuestionNumber--);
@@ -2590,7 +2624,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           width: double.infinity,
                           height: 48,
                           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                                              style: GlassButtonStyle.prominent,
+                          quality: GlassQuality.standard,
+                          style: GlassButtonStyle.prominent,
                           onTap: q < exam.questionCount
                               ? () => setState(() => currentQuestionNumber++)
                               : _finishExam,
@@ -2627,7 +2662,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       child: GlassButton.custom(
                         height: 42,
                         shape: const LiquidRoundedSuperellipse(borderRadius: 13),
-                                          style: GlassButtonStyle.transparent,
+                        quality: GlassQuality.standard,
+                        style: GlassButtonStyle.transparent,
                         onTap: _finishExam,
                         child: const Text('ثبت پایان آزمون'),
                       ),
@@ -2797,7 +2833,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                             value: ((chartResults[i].percentage ?? 0) / 100).clamp(0.0, 1.0).toDouble(),
                             color: accent,
                             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                                  semanticLabel: 'درصد نتیجه آزمون',
+                            quality: GlassQuality.standard,
+                            semanticLabel: 'درصد نتیجه آزمون',
                           ),
                         )),
                         SizedBox(width: 10),
@@ -2925,7 +2962,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           child: GlassButton.custom(
                             height: 40,
                             shape: const LiquidRoundedSuperellipse(borderRadius: 13),
-                                                  style: GlassButtonStyle.transparent,
+                            quality: GlassQuality.standard,
+                            style: GlassButtonStyle.transparent,
                             onTap: () => editResultAnswerKey(result),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -3230,6 +3268,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       context: context,
       title: 'سؤال $number',
       maxWidth: 360,
+      quality: GlassQuality.standard,
       barrierColor: Colors.black.withValues(alpha: 0.30),
       content: DarsYarModalContent(
         child: StatefulBuilder(
@@ -3255,7 +3294,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     semanticLabel: 'سؤال $number، گزینه ${['الف', 'ب', 'ج', 'د'][i]}',
                     selected: answer == i,
                     selectedColor: accent.withValues(alpha: 0.18),
-                                  onTap: () => dialogSet(
+                    quality: GlassQuality.standard,
+                    onTap: () => dialogSet(
                       () => answer = answer == i ? null : i,
                     ),
                   ),
@@ -3277,7 +3317,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   value: flag,
                   activeColor: accent,
                   semanticLabel: 'علامت‌گذاری سؤال برای مرور',
-                              onChanged: (value) => dialogSet(() => flag = value),
+                  quality: GlassQuality.standard,
+                  onChanged: (value) => dialogSet(() => flag = value),
                 ),
               ],
             ),
@@ -3286,7 +3327,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               child: GlassChip(
                 label: 'پاک کردن پاسخ',
                 selected: false,
-                          onTap: () => dialogSet(() => answer = null),
+                quality: GlassQuality.standard,
+                onTap: () => dialogSet(() => answer = null),
               ),
             ),
           ],
@@ -3381,9 +3423,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       builder: (_) => const DarsYarModalContent(
         child: _BackupImportDialog(),
       ),
+      initialState: GlassSheetState.full,
       fullSize: 0.90,
+      quality: GlassQuality.standard,
       // Keep the full-height sheet refractive instead of letting the package's
       // default fill transition flatten it into an opaque panel.
+      fillThreshold: 1.0,
+      maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
       barrierColor: Colors.transparent,
     );
@@ -3510,7 +3556,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           [ThemeMode.system, ThemeMode.light, ThemeMode.dark][index],
         ),
         height: 46,
-          useOwnLayer: true,
+        quality: GlassQuality.standard,
+        useOwnLayer: true,
         selectedTextStyle: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.w800,
@@ -3578,7 +3625,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     value: widget.animationsEnabled,
                     activeColor: accent,
                     semanticLabel: 'روشن یا خاموش کردن انیمیشن‌های برنامه',
-                                  onChanged: widget.onAnimationsChanged,
+                    quality: GlassQuality.standard,
+                    onChanged: widget.onAnimationsChanged,
                   ),
                 ),
               ],
@@ -3644,7 +3692,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: GlassButton.custom(
             height: 48,
             shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                  style: GlassButtonStyle.prominent,
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.prominent,
             onTap: exportBackup,
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -3662,7 +3711,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: GlassButton.custom(
             height: 48,
             shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                  style: GlassButtonStyle.filled,
+            quality: GlassQuality.standard,
+            style: GlassButtonStyle.filled,
             onTap: importBackup,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -3730,7 +3780,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           ),
         ),
       ),
+      initialState: GlassSheetState.full,
       fullSize: 0.90,
+      quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
       barrierColor: Colors.black.withValues(alpha: 0.32),
     );
@@ -3832,7 +3884,8 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
             child: GlassButton.custom(
               height: 46,
               shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                      onTap: () => Navigator.of(context).pop(),
+              quality: GlassQuality.standard,
+              onTap: () => Navigator.of(context).pop(),
               child: const Text('انصراف'),
             ),
           ),
@@ -3841,7 +3894,8 @@ class _TimePickerSheetState extends State<_TimePickerSheet> {
             child: GlassButton.custom(
               height: 46,
               shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                      style: GlassButtonStyle.filled,
+              quality: GlassQuality.standard,
+              style: GlassButtonStyle.filled,
               onTap: () => Navigator.of(context).pop(
                 TimeOfDay(hour: _selected.hour, minute: _selected.minute),
               ),
@@ -3923,7 +3977,8 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
                       fontSize: 11.5,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                                  onTap: () => setState(() {
+                    quality: GlassQuality.standard,
+                    onTap: () => setState(() {
                       if (_draft[question] == option) {
                         _draft.remove(question);
                       } else {
@@ -3950,21 +4005,24 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
           width: 96,
           height: 44,
           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-              onTap: () => setState(_draft.clear),
+          quality: GlassQuality.standard,
+          onTap: () => setState(_draft.clear),
           child: Text(widget.clearLabel),
         ),
         GlassButton.custom(
           width: 96,
           height: 44,
           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-              onTap: () => Navigator.of(context).pop(),
+          quality: GlassQuality.standard,
+          onTap: () => Navigator.of(context).pop(),
           child: const Text('انصراف'),
         ),
         GlassButton.custom(
           width: 122,
           height: 44,
           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-              style: GlassButtonStyle.filled,
+          quality: GlassQuality.standard,
+          style: GlassButtonStyle.filled,
           onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
           child: Text(
             widget.saveLabel,
@@ -4018,7 +4076,8 @@ class _AnswerKeyEditorSheetState extends State<_AnswerKeyEditorSheet> {
                 color: accent,
                 backgroundColor:
                     Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-                          semanticLabel: 'پیشرفت ورود کلید پاسخ',
+                quality: GlassQuality.standard,
+                semanticLabel: 'پیشرفت ورود کلید پاسخ',
               ),
             ),
           );
@@ -4097,7 +4156,9 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
       builder: (_) => DarsYarModalContent(
         child: _ExamDurationDialog(initialDuration: _duration),
       ),
+      initialState: GlassSheetState.full,
       fullSize: 0.82,
+      quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
       barrierColor: Colors.black.withValues(alpha: 0.32),
     );
@@ -4117,7 +4178,9 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
           saveLabel: 'ذخیره کلید',
         ),
       ),
+      initialState: GlassSheetState.full,
       fullSize: 0.90,
+      quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
       barrierColor: Colors.black.withValues(alpha: 0.32),
     );
@@ -4146,7 +4209,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               controller: _name,
               maxLength: 60,
               placeholder: 'مثلاً آزمون فصل اول ریاضی',
-                      textInputAction: TextInputAction.next,
+              quality: GlassQuality.standard,
+              textInputAction: TextInputAction.next,
             ),
           ),
           const SizedBox(height: 12),
@@ -4158,7 +4222,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               maxLength: 3,
-                      textInputAction: TextInputAction.next,
+              quality: GlassQuality.standard,
+              textInputAction: TextInputAction.next,
             ),
           ),
           SizedBox(height: 14),
@@ -4199,7 +4264,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                   width: 112,
                   height: 42,
                   shape: const LiquidRoundedSuperellipse(borderRadius: 14),
-                              style: GlassButtonStyle.filled,
+                  quality: GlassQuality.standard,
+                  style: GlassButtonStyle.filled,
                   onTap: _editDuration,
                   child: const Text('تغییر زمان'),
                 );
@@ -4231,7 +4297,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                       width: 112,
                       height: 40,
                       shape: const LiquidRoundedSuperellipse(borderRadius: 13),
-                                      style: GlassButtonStyle.filled,
+                      quality: GlassQuality.standard,
+                      style: GlassButtonStyle.filled,
                       onTap: _editSetupAnswerKey,
                       child: const Text('ورود کلید'),
                     )]),
@@ -4266,7 +4333,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                         value: _negativeMarking,
                         activeColor: accent,
                         semanticLabel: 'محاسبه با نمره منفی',
-                                          onChanged: (value) => setState(() => _negativeMarking = value),
+                        quality: GlassQuality.standard,
+                        onChanged: (value) => setState(() => _negativeMarking = value),
                       ),
                     ),
                   ],
@@ -4280,7 +4348,8 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
             child: GlassButton.custom(
               height: 52,
               shape: const LiquidRoundedSuperellipse(borderRadius: 17),
-                      style: GlassButtonStyle.prominent,
+              quality: GlassQuality.standard,
+              style: GlassButtonStyle.prominent,
               onTap: _submit,
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10),
@@ -4385,7 +4454,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               LengthLimitingTextInputFormatter(2),
             ],
             maxLength: 2,
-                  onChanged: (_) => setState(() {}),
+            quality: GlassQuality.standard,
+            onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.next,
           ),
         ),
@@ -4425,7 +4495,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                     LengthLimitingTextInputFormatter(2),
                   ],
                   maxLength: 2,
-                              onChanged: (_) => setState(() {}),
+                  quality: GlassQuality.standard,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
               const SizedBox(height: 12),
@@ -4440,7 +4511,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                     LengthLimitingTextInputFormatter(2),
                   ],
                   maxLength: 2,
-                              onChanged: (_) => setState(() {}),
+                  quality: GlassQuality.standard,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
               const SizedBox(height: 12),
@@ -4455,7 +4527,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                     LengthLimitingTextInputFormatter(2),
                   ],
                   maxLength: 2,
-                              onChanged: (_) => setState(() {}),
+                  quality: GlassQuality.standard,
+                  onChanged: (_) => setState(() {}),
                 ),
               ),
             ],
@@ -4490,7 +4563,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
                     _minutes.text == (preset % 60).toString() &&
                     _seconds.text == '0',
                 selectedColor: accent.withValues(alpha: 0.16),
-                          onTap: () => _setPreset(preset),
+                quality: GlassQuality.standard,
+                onTap: () => _setPreset(preset),
               ),
           ],
         ),
@@ -4501,7 +4575,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          onTap: () => Navigator.of(context).pop(),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
                 child: const Text('انصراف'),
               ),
             ),
@@ -4510,7 +4585,8 @@ class _ExamDurationDialogState extends State<_ExamDurationDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          style: GlassButtonStyle.filled,
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
                 onTap: _submit,
                 child: const Text(
                   'ذخیره زمان',
@@ -4579,7 +4655,8 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
             maxLines: 4,
             keyboardType: TextInputType.multiline,
             placeholder: 'محتوای نسخه پشتیبان…',
-                ),
+            quality: GlassQuality.standard,
+          ),
         ),
         const SizedBox(height: 22),
         Row(
@@ -4588,7 +4665,8 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          onTap: () => Navigator.of(context).pop(),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
                 child: const Text('انصراف'),
               ),
             ),
@@ -4597,7 +4675,8 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          style: GlassButtonStyle.filled,
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
                 onTap: () => Navigator.of(context).pop(_controller.text),
                 child: const Text(
                   'بررسی نسخه',
@@ -4681,7 +4760,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
             controller: _titleController,
             autofocus: widget.existing == null,
             placeholder: 'مثلاً حل تمرین فصل اول',
-                  textInputAction: TextInputAction.next,
+            quality: GlassQuality.standard,
+            textInputAction: TextInputAction.next,
           ),
         ),
         const SizedBox(height: 14),
@@ -4691,7 +4771,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _subjectController,
             placeholder: 'مثلاً ریاضی',
-                  textInputAction: TextInputAction.next,
+            quality: GlassQuality.standard,
+            textInputAction: TextInputAction.next,
           ),
         ),
         const SizedBox(height: 16),
@@ -4715,7 +4796,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           onSegmentSelected: (index) =>
               setState(() => _weekday = weekDayOrder[index]),
           height: 44,
-              selectedTextStyle: TextStyle(
+          quality: GlassQuality.standard,
+          selectedTextStyle: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w800,
             fontSize: 12,
@@ -4739,7 +4821,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
           width: 250,
           height: 50,
           shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-              onTap: () async {
+          quality: GlassQuality.standard,
+          onTap: () async {
             final picked = await showDarsYarGlassSheet<TimeOfDay>(
               context: context,
               builder: (_) => DarsYarModalContent(
@@ -4753,7 +4836,10 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               initialState: GlassSheetState.half,
               halfSize: 0.54,
               fullSize: 0.64,
-                                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              quality: GlassQuality.standard,
+              fillThreshold: 1.0,
+              maintainContentGlass: true,
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               barrierColor: Colors.transparent,
             );
             if (picked != null && mounted) {
@@ -4782,7 +4868,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               LengthLimitingTextInputFormatter(4),
             ],
             maxLength: 4,
-                  onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
+            quality: GlassQuality.standard,
+            onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
             textInputAction: TextInputAction.done,
           ),
         ),
@@ -4793,7 +4880,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          onTap: () => Navigator.of(context).pop(),
+                quality: GlassQuality.standard,
+                onTap: () => Navigator.of(context).pop(),
                 child: const Text('انصراف'),
               ),
             ),
@@ -4802,7 +4890,8 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               child: GlassButton.custom(
                 height: 48,
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                          style: GlassButtonStyle.filled,
+                quality: GlassQuality.standard,
+                style: GlassButtonStyle.filled,
                 onTap: _submit,
                 child: Text(
                   widget.existing == null ? 'افزودن' : 'ذخیره تغییرات',
