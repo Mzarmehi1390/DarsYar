@@ -72,6 +72,7 @@ class ExamTimerController {
       final milliseconds = currentDeadline.difference(DateTime.now()).inMilliseconds;
       final remaining = milliseconds <= 0 ? 0 : (milliseconds + 999) ~/ 1000;
       if (remaining <= 0) {
+        setRemaining(0);
         stop();
         onExpired();
       } else if (remaining != remainingSeconds) {
