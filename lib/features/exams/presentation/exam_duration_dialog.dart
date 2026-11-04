@@ -89,7 +89,7 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
   @override
   Widget build(BuildContext context) {
     final scrollData = ScrollControllerProvider.of(context);
-    return Column(
+        return Column(
       children: [
         Expanded(
           child: SingleChildScrollView(
@@ -232,10 +232,10 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
               ),
             ),
           ],
-        ),,
+        ),
           ),
         ),
-    ],
-  );
+      ],
+    );
   }
 }
