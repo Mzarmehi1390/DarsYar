@@ -33,8 +33,18 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   @override
   void initState() {
     super.initState();
-    _draft = Map<int, int>.from(widget.initialAnswers);
     final questionCount = widget.questionCount.clamp(0, 200);
+    // Ignore stale keys outside the current exam and invalid option indices.
+    // Otherwise the progress counter can exceed the question count and a
+    // later save can silently preserve answers that have no visible row.
+    _draft = Map<int, int>.fromEntries(
+      widget.initialAnswers.entries.where(
+        (entry) => entry.key >= 1 &&
+            entry.key <= questionCount &&
+            entry.value >= 0 &&
+            entry.value < _options.length,
+      ),
+    );
     _selectedByQuestion = {
       for (var question = 1; question <= questionCount; question++)
         question: ValueNotifier<int?>(_draft[question]),
