@@ -10,7 +10,7 @@ import 'glass_tokens.dart';
 Future<T?> showDarsYarGlassSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-  GlassSheetState initialState = GlassSheetState.full,
+  GlassSheetState initialState = GlassSheetState.half,
   double halfSize = DarsYarGlassTokens.defaultHalfSheetSize,
   double? fullSize,
   GlassQuality? quality = DarsYarGlassTokens.quality,
@@ -23,14 +23,17 @@ Future<T?> showDarsYarGlassSheet<T>({
   return GlassModalSheet.show<T>(
     context: context,
     builder: builder,
-    initialState: initialState,
-    halfSize: halfSize,
+    // GlassSheetDetent.large is intentionally opaque in liquid_glass_widgets.
+    // Use a tall medium detent instead so editors remain refractive at rest.
+    initialState: initialState == GlassSheetState.full
+        ? GlassSheetState.half
+        : initialState,
+    detents: const {GlassSheetDetent.medium},
+    halfSize: fullSize ?? halfSize,
     fullSize: fullSize,
     quality: quality,
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
-    expandedColor: Colors.transparent,
-    fullSettings: DarsYarGlassTokens.fullSheetSettings,
     maintainContentGlass: maintainContentGlass,
     padding: padding,
     barrierColor: barrierColor,
