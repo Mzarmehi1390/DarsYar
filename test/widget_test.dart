@@ -155,7 +155,9 @@ void main() {
     );
     expect(tester.widget<GlassSwitch>(find.byType(GlassSwitch).first).value, isFalse);
 
-    await tester.tap(find.byType(GlassSwitch).first);
+    // The complete settings surface, not only the small switch thumb,
+    // must toggle the preference.
+    await tester.tap(find.text('انیمیشن‌های برنامه'));
     await tester.pumpAndSettle();
 
     expect(
