@@ -14,6 +14,7 @@ Future<T?> showDarsYarGlassSheet<T>({
   GlassSheetState initialState = GlassSheetState.half,
   double halfSize = DarsYarGlassTokens.defaultHalfSheetSize,
   double? fullSize,
+  LiquidGlassSettings? fullSettings,
   GlassQuality? quality = DarsYarGlassTokens.quality,
   double fillThreshold = DarsYarGlassTokens.sheetFillThreshold,
   GlassFillTransition fillTransition = DarsYarGlassTokens.sheetFillTransition,
@@ -29,6 +30,20 @@ Future<T?> showDarsYarGlassSheet<T>({
     from: context,
     to: Navigator.of(context).context,
   );
+
+  // The upstream sheet normally fades its large detent to a solid fill.
+  // Supplying an explicit, non-zero-blur fullSettings keeps the actual full
+  // detent refractive: the package's renderer then holds colorOpacity at zero
+  // while preserving the full-screen geometry and the iOS 27 glass material.
+  final isDark = GlassTheme.brightnessOf(context) == Brightness.dark;
+  final themedGlassBase = isDark
+      ? LiquidGlassSettings.ios27Dark
+      : LiquidGlassSettings.ios27Light;
+  final resolvedFullSettings = fullSettings ??
+      settings ??
+      GlassThemeData.of(context).settingsFor(context)?.applyTo(themedGlassBase) ??
+      themedGlassBase;
+
   return GlassModalSheet.show<T>(
     context: context,
     // Every sheet gets the same RTL, typography and Cupertino contrast contract.
@@ -36,17 +51,12 @@ Future<T?> showDarsYarGlassSheet<T>({
     builder: (sheetContext) => capturedThemes.wrap(
       DarsYarModalContent(child: builder(sheetContext)),
     ),
-    // GlassSheetDetent.large is intentionally opaque in liquid_glass_widgets.
-    // Use a tall medium detent instead so editors remain refractive at rest.
-    initialState: initialState == GlassSheetState.full
-        ? GlassSheetState.half
-        : initialState,
-    detents: const {GlassSheetDetent.medium},
-    // DarsYar intentionally offers one tall, refractive medium detent.
-    // fullSize belongs to the package's separate large detent; forwarding the
-    // same value for both creates a zero-length half-to-full geometry range.
-    halfSize: fullSize ?? halfSize,
-    fullSize: null,
+    initialState: initialState,
+    // Offer both the content-height glass stop and the full-height glass stop.
+    detents: const {GlassSheetDetent.medium, GlassSheetDetent.large},
+    halfSize: halfSize,
+    fullSize: fullSize,
+    fullSettings: resolvedFullSettings,
     quality: quality,
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
