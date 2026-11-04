@@ -9,8 +9,8 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 abstract final class DarsYarGlassTokens {
   static const GlassQuality quality = GlassQuality.standard;
   static const Duration modalTransitionDuration = Duration(milliseconds: 220);
-  static const Color dialogBarrierColor = Color(0x2E000000); // 18% backdrop tint
-  static const Color sheetBarrierColor = Color(0x24000000); // 14% backdrop tint
+  static const Color dialogBarrierColor = Color(0x8F000000); // 56% backdrop tint
+  static const Color sheetBarrierColor = Color(0x8F000000); // 56% backdrop tint
   static const double sheetFillThreshold = 1.0;
   static const GlassFillTransition sheetFillTransition =
       GlassFillTransition.gradual;
