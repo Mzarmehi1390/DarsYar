@@ -1266,4 +1266,11 @@ void main() {
   });
 
 
+
+  test('glass modal backdrops stay light enough to preserve the refractive context', () {
+    expect(DarsYarGlassTokens.dialogBarrierColor.a, lessThan(0.20));
+    expect(DarsYarGlassTokens.sheetBarrierColor.a, lessThan(0.16));
+  });
+
+
 }
