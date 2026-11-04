@@ -14,6 +14,7 @@ import 'package:dars_yar/app/darsyar_app.dart';
 import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
 import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
+import 'package:dars_yar/features/exams/presentation/exam_setup_widgets.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -217,6 +218,33 @@ void main() {
       expect(theme.hoverColor, Colors.transparent);
       expect(theme.cardTheme.elevation, 0);
     }
+  });
+
+  testWidgets('large answer key uses readable lightweight selectable options', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: AnswerKeyEditorSheet(
+            title: 'کلید پاسخ آزمون',
+            questionCount: 200,
+            initialAnswers: {},
+            clearLabel: 'پاک‌کردن',
+            saveLabel: 'ذخیره کلید',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    final firstOption = find.text('الف').first;
+    await tester.tap(firstOption);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    expect(find.bySemanticsLabel('سؤال 1، گزینه الف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('exam setup answer-key editor adapts to a compact screen', (WidgetTester tester) async {
