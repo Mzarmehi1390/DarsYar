@@ -59,7 +59,6 @@ class BackupImportDialogState extends State<BackupImportDialog> {
             maxLines: 4,
             keyboardType: TextInputType.multiline,
             placeholder: 'محتوای نسخه پشتیبان…',
-            quality: GlassQuality.standard,
           ),
         ),
         const SizedBox(height: 22),
