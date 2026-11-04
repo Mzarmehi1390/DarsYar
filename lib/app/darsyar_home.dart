@@ -996,11 +996,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   onPressed: () async {
-                    final index = studySessions.indexWhere((item) => item.id == session.id);
-                    if (index < 0) return;
                     setState(
-                      () => studySessions[index] =
-                          session.copyWith(completed: !session.completed),
+                      () => _plannerController.toggleCompletion(
+                        studySessions,
+                        session.id,
+                      ),
                     );
                     await save(sections: {'studySessions'});
                   },
@@ -1087,7 +1087,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       destructive: true,
                     );
                     if (!confirmed || !mounted) return;
-                    setState(() => studySessions.removeWhere((item) => item.id == session.id));
+                    setState(() => _plannerController.removeById(studySessions, session.id));
                     await save(sections: {'studySessions'});
                   },
                   size: 36,
@@ -2817,12 +2817,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (result == null || !mounted) return;
     setState(() {
-      final index = studySessions.indexWhere((session) => session.id == result.id);
-      if (index < 0) {
-        studySessions.add(result);
-      } else {
-        studySessions[index] = result;
-      }
+      _plannerController.upsert(studySessions, result);
       selectedStudyDay = result.weekday;
     });
     _revealSelectedDay();
