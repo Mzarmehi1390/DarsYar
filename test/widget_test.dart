@@ -227,7 +227,6 @@ void main() {
 
   testWidgets('large answer key uses readable lightweight selectable options', (tester) async {
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
     await tester.pumpWidget(
       MaterialApp(
         theme: DarsYarTheme.light,
@@ -252,6 +251,7 @@ void main() {
     expect(find.text('1 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
     expect(find.bySemanticsLabel('سؤال 1، گزینه الف'), findsOneWidget);
     expect(tester.takeException(), isNull);
+    semantics.dispose();
   });
 
   testWidgets('answer key list shares the glass sheet scroll controller', (tester) async {
