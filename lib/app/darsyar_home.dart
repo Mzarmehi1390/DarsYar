@@ -536,6 +536,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       maxWidth: 340,
       quality: GlassQuality.standard,
       barrierDismissible: false,
+      reduceMotion: !widget.animationsEnabled,
       barrierColor: Colors.black.withValues(alpha: 0.30),
       actions: [
         GlassDialogAction(
@@ -564,6 +565,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید',
         maxWidth: 360,
         quality: GlassQuality.standard,
+        reduceMotion: !widget.animationsEnabled,
         barrierColor: Colors.black.withValues(alpha: 0.30),
         content: DarsYarModalContent(
           child: GlassFormField(
