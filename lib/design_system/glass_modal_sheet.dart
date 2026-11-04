@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import 'glass_tokens.dart';
+
 /// Shared presentation defaults for DarsYar modal sheets.
 ///
 /// The large detent must remain refractive. The package defaults to an opaque
@@ -9,12 +11,12 @@ Future<T?> showDarsYarGlassSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   GlassSheetState initialState = GlassSheetState.full,
-  double halfSize = 0.45,
+  double halfSize = DarsYarGlassTokens.defaultHalfSheetSize,
   double? fullSize,
-  GlassQuality? quality = GlassQuality.standard,
-  double fillThreshold = 1.0,
-  GlassFillTransition fillTransition = GlassFillTransition.gradual,
-  bool maintainContentGlass = true,
+  GlassQuality? quality = DarsYarGlassTokens.quality,
+  double fillThreshold = DarsYarGlassTokens.sheetFillThreshold,
+  GlassFillTransition fillTransition = DarsYarGlassTokens.sheetFillTransition,
+  bool maintainContentGlass = DarsYarGlassTokens.maintainSheetContentGlass,
   EdgeInsetsGeometry? padding,
   Color barrierColor = Colors.transparent,
 }) {
