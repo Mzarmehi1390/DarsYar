@@ -15,6 +15,7 @@ import 'package:dars_yar/app/darsyar_app.dart';
 import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
 import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
+import 'package:dars_yar/features/planner/presentation/task_details_dialog.dart';
 import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';
 
 void main() {
@@ -1341,6 +1342,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  testWidgets('task details glass dialog keeps actions visible on a compact screen', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () => showTaskDetailsDialog(
+                  context: context,
+                  reduceMotion: true,
+                ),
+                child: const Text('وظیفه آزمایشی'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('وظیفه آزمایشی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('وظیفه جدید'), findsOneWidget);
+    expect(find.text('عنوان وظیفه'), findsOneWidget);
+    expect(find.text('درس'), findsOneWidget);
+    expect(find.text('افزودن'), findsOneWidget);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('study session time picker expands inline without opening a nested sheet', (tester) async {
     await tester.pumpWidget(
