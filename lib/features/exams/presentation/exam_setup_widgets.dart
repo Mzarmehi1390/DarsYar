@@ -6,7 +6,6 @@ import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_modal_sheet.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../design_system/glass_tokens.dart';
-import '../../../design_system/modal_content.dart';
 
 class AnswerKeyEditorSheet extends StatefulWidget {
   const AnswerKeyEditorSheet({
@@ -291,9 +290,7 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
   Future<void> _editDuration() async {
     final updated = await showDarsYarGlassSheet<Duration>(
       context: context,
-      builder: (_) => DarsYarModalContent(
-        child: ExamDurationDialog(initialDuration: _duration, onMessage: widget.onMessage),
-      ),
+      builder: (_) => ExamDurationDialog(initialDuration: _duration, onMessage: widget.onMessage),
       initialState: GlassSheetState.full,
       fullSize: 0.82,
       quality: GlassQuality.standard,
@@ -307,14 +304,12 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
     final count = int.tryParse(_count.text)?.clamp(1, 200).toInt() ?? 20;
     final updated = await showDarsYarGlassSheet<Map<int, int>>(
       context: context,
-      builder: (_) => DarsYarModalContent(
-        child: AnswerKeyEditorSheet(
-          title: 'کلید پاسخ آزمون',
-          questionCount: count,
-          initialAnswers: _answerKey,
-          clearLabel: 'پاک‌کردن',
-          saveLabel: 'ذخیره کلید',
-        ),
+      builder: (_) => AnswerKeyEditorSheet(
+        title: 'کلید پاسخ آزمون',
+        questionCount: count,
+        initialAnswers: _answerKey,
+        clearLabel: 'پاک‌کردن',
+        saveLabel: 'ذخیره کلید',
       ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
