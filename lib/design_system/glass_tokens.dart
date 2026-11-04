@@ -15,6 +15,8 @@ abstract final class DarsYarGlassTokens {
   static const GlassFillTransition sheetFillTransition =
       GlassFillTransition.gradual;
   static const bool maintainSheetContentGlass = true;
+  // Keep the glass refraction, but skip the whole-sheet saturation pulse on taps.
+  static const bool enableSheetSaturationGlow = false;
   // A tall medium detent stays refractive; the package's large detent is opaque.
   static const double defaultHalfSheetSize = 0.92;
 
