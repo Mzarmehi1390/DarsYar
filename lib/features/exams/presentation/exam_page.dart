@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/page_header.dart';
-import 'exam_setup_widgets.dart';
+import 'exam_setup_panel.dart';
 
 class ExamPage extends StatelessWidget {
   const ExamPage({
