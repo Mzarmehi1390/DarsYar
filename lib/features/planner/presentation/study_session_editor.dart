@@ -291,7 +291,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
       _showMessage('عنوان جلسه را وارد کن.');
       return;
     }
-    if (_startMinutes + _durationMinutes > 1440) {
+    if (_startMinutes.value + _durationMinutes > 1440) {
       _showMessage('جلسه نباید از نیمه‌شب عبور کند؛ ساعت شروع را تغییر بده.');
       return;
     }
