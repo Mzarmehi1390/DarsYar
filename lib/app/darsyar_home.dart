@@ -2487,17 +2487,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editStudySession([StudySession? existing]) async {
     final result = await showDarsYarGlassSheet<StudySession>(
       context: context,
-      builder: (_) => DarsYarModalContent(
-        child: StudySessionEditorDialog(
-          existing: existing,
-          initialWeekday: selectedStudyDay,
-          weekDays: weekDays,
-          hasOverlap: (candidate) => _hasOverlappingSession(
-            candidate,
-            excludingId: existing?.id,
-          ),
-          onMessage: (message) => _showSnackBar(SnackBar(content: Text(message))),
+      builder: (_) => StudySessionEditorDialog(
+        existing: existing,
+        initialWeekday: selectedStudyDay,
+        weekDays: weekDays,
+        hasOverlap: (candidate) => _hasOverlappingSession(
+          candidate,
+          excludingId: existing?.id,
         ),
+        onMessage: (message) => _showSnackBar(SnackBar(content: Text(message))),
       ),
       initialState: GlassSheetState.full,
       fullSize: 0.90,
