@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/darsyar_theme.dart';\nimport '../../../design_system/modal_content.dart';
 
 class ExamDurationDialog extends StatefulWidget {
   const ExamDurationDialog({super.key, required this.initialDuration, required this.onMessage});
@@ -98,7 +98,7 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
         Text(
           'تنظیم زمان آزمون',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -202,7 +202,7 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
                 quality: GlassQuality.standard,
                 onTap: () => Navigator.of(context).pop(),
-                child: const Text('انصراف'),
+                child: const DarsYarModalButtonLabel(child: Text('انصراف')),
               ),
             ),
             const SizedBox(width: 10),
