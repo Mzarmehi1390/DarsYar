@@ -8,7 +8,7 @@ import '../../../design_system/modal_content.dart';
 import '../../../study_session.dart';
 
 class TimePickerSheet extends StatefulWidget {
-  const TimePickerSheet({required this.initialTime});
+  const TimePickerSheet({super.key, required this.initialTime});
 
   final TimeOfDay initialTime;
 
