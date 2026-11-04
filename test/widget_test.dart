@@ -293,6 +293,15 @@ void main() {
     await tester.tap(find.text('بازکردن کلید'));
     await tester.pumpAndSettle();
 
+    final sheet = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(sheet.detents, {GlassSheetDetent.medium});
+    expect(sheet.halfSize, 0.9);
+    expect(sheet.fullSize, isNull);
+    expect(sheet.fillThreshold, 1.0);
+    expect(sheet.maintainContentGlass, isTrue);
+
     final list = tester.widget<ListView>(find.byType(ListView).last);
     expect(list.controller, isNotNull);
     expect(list.controller!.hasClients, isTrue);
