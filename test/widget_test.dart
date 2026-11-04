@@ -1523,6 +1523,15 @@ void main() {
     await tester.tap(find.text('جلسه جدید'));
     await tester.pumpAndSettle();
 
+    final sheet = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(sheet.initialState, GlassSheetState.full);
+    expect(sheet.detents, contains(GlassSheetDetent.large));
+    expect(sheet.fullSettings, isNotNull);
+    expect(sheet.fullSettings!.blur, greaterThan(0));
+    expect(sheet.halfSize, lessThan(sheet.fullSize!));
+
     final scrollView = tester.widget<SingleChildScrollView>(
       find.byType(SingleChildScrollView).last,
     );
