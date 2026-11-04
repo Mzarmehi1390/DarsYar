@@ -111,22 +111,22 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           width: double.infinity,
           child: GlassSegmentedControl.scrollable(
             segments: [
-            for (final day in weekDayOrder)
-              GlassSegment(
-                label: widget.weekDays[day],
-                semanticLabel: widget.weekDays[day],
-              ),
-          ],
-          selectedIndex: weekDayOrder.indexOf(_weekday),
-          onSegmentSelected: (index) =>
-              setState(() => _weekday = weekDayOrder[index]),
-          height: 44,
-          quality: GlassQuality.standard,
-          selectedTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w800,
-            fontSize: 12,
-          ),
+              for (final day in weekDayOrder)
+                GlassSegment(
+                  label: widget.weekDays[day],
+                  semanticLabel: widget.weekDays[day],
+                ),
+            ],
+            selectedIndex: weekDayOrder.indexOf(_weekday),
+            onSegmentSelected: (index) =>
+                setState(() => _weekday = weekDayOrder[index]),
+            height: 44,
+            quality: GlassQuality.standard,
+            selectedTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
             unselectedTextStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
