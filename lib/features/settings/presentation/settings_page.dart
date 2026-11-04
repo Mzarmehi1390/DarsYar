@@ -23,7 +23,8 @@ class SettingsPage extends StatelessWidget {
   final VoidCallback onExportBackup;
   final VoidCallback onImportBackup;
 
-Widget settings() => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
+@override
+  Widget build(BuildContext context) => ListView(key: const PageStorageKey<String>('settings-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'تنظیمات',
       subtitle: 'ظاهر و نگهداری اطلاعات برنامه را مدیریت کن.',
