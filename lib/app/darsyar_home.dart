@@ -12,7 +12,7 @@ import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
-import '../features/exams/presentation/exam_setup_widgets.dart';
+import '../features/exams/presentation/exam_setup_panel.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
