@@ -256,6 +256,7 @@ class DashboardPage extends StatelessWidget {
         final compact = constraints.maxWidth < 350;
         final actionHeight = compact ? 116.0 : 172.0;
         final plannerAction = quickAction(
+          context,
           Icons.calendar_month_rounded,
           'برنامه‌ریزی درسی',
           'مدیریت وظایف',
@@ -265,6 +266,7 @@ class DashboardPage extends StatelessWidget {
           height: actionHeight,
         );
         final examAction = quickAction(
+          context,
           Icons.fact_check_rounded,
           'پاسخ‌برگ آزمون',
           'ثبت پاسخ‌ها',
@@ -307,6 +309,7 @@ class DashboardPage extends StatelessWidget {
   ]);
 
   Widget quickAction(
+    BuildContext context,
     IconData icon,
     String title,
     String subtitle,
@@ -338,7 +341,7 @@ class DashboardPage extends StatelessWidget {
         child: compact
             ? Row(
                 children: [
-                  _quickActionIcon(icon, iconTop, iconBottom, iconColor, isDark),
+                  _quickActionIcon(context, icon, iconTop, iconBottom, iconColor, isDark),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -398,6 +401,7 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _quickActionIcon(
+    BuildContext context,
     IconData icon,
     Color iconTop,
     Color iconBottom,
