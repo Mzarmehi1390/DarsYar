@@ -39,6 +39,14 @@ Future<T?> showDarsYarGlassSheet<T>({
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
     maintainContentGlass: maintainContentGlass,
+    // Respect the app's Reduce Motion setting for sheets as well as dialogs
+    // and page transitions; do not compensate by making motion faster.
+    sheetAnimationStyle: MediaQuery.of(context).disableAnimations
+        ? AnimationStyle.noAnimation
+        : const AnimationStyle(
+            duration: Duration(milliseconds: 240),
+            reverseDuration: Duration(milliseconds: 200),
+          ),
     padding: padding,
     barrierColor: barrierColor,
   );
