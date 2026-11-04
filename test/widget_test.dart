@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
@@ -11,6 +12,7 @@ import 'package:dars_yar/design_system/modal_content.dart';
 import 'package:dars_yar/app/darsyar_app.dart';
 import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
+import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1228,5 +1230,40 @@ void main() {
     expect(find.text('بی‌پاسخ: 3'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+
+  testWidgets('study session time picker expands inline without opening a nested sheet', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: StudySessionEditorDialog(
+            initialWeekday: 1,
+            weekDays: const ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
+            hasOverlap: (_) => false,
+            onMessage: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('16:00'), findsOneWidget);
+    expect(find.byType(CupertinoDatePicker), findsNothing);
+
+    await tester.tap(find.text('16:00'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CupertinoDatePicker), findsOneWidget);
+    expect(find.text('اعمال ساعت انتخاب‌شده'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('اعمال ساعت انتخاب‌شده'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CupertinoDatePicker), findsNothing);
+    expect(find.text('16:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 
 }
