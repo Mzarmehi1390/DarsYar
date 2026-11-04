@@ -2589,7 +2589,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       answerKey
         ..clear()
         ..addAll(result);
-      _syncExamResults(activeExam);
+      _examController.syncResults(results: results, exam: activeExam);
     });
     await save(sections: {'exams', 'results', 'activeExam'});
   }
