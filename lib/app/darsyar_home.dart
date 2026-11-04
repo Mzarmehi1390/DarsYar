@@ -572,28 +572,42 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyStateBuilder: emptyState,
       );
 
-  Widget _plannerPage() => PlannerPage(
-        sessions: studySessions,
-        tasks: tasks,
-        selectedDay: selectedStudyDay,
-        onSelectedDayChanged: (day) {
-          setState(() => selectedStudyDay = day);
-          _revealSelectedDay();
-        },
-        daysOrder: weekDayOrder,
-        dayLabels: weekDays,
-        dayKeys: _plannerDayKeys,
-        weekKeys: _plannerWeekKeys,
-        summaryBuilder: summary,
-        weekOverviewCardBuilder: weekOverviewCard,
-        weeklyReportCardBuilder: weeklyReportCard,
-        studySessionTileBuilder: studySessionTile,
-        taskTileBuilder: taskTile,
-        emptyStateBuilder: emptyState,
-        onAddStudySession: addStudySession,
-        onAddTask: () => addTask(),
-        onCopySelectedDayTo: copySelectedDayTo,
-      );
+  Widget _plannerPage() {
+    // Group sessions in one pass. The seven overview cards previously each
+    // filtered the complete session list during every planner rebuild.
+    final sessionsByDay = <int, List<StudySession>>{
+      for (final day in weekDayOrder) day: <StudySession>[],
+    };
+    for (final session in studySessions) {
+      sessionsByDay.putIfAbsent(session.weekday, () => <StudySession>[]).add(session);
+    }
+
+    return PlannerPage(
+      sessions: studySessions,
+      tasks: tasks,
+      selectedDay: selectedStudyDay,
+      onSelectedDayChanged: (day) {
+        setState(() => selectedStudyDay = day);
+        _revealSelectedDay();
+      },
+      daysOrder: weekDayOrder,
+      dayLabels: weekDays,
+      dayKeys: _plannerDayKeys,
+      weekKeys: _plannerWeekKeys,
+      summaryBuilder: summary,
+      weekOverviewCardBuilder: (day) => weekOverviewCard(
+        day,
+        sessionsByDay[day] ?? const <StudySession>[],
+      ),
+      weeklyReportCardBuilder: weeklyReportCard,
+      studySessionTileBuilder: studySessionTile,
+      taskTileBuilder: taskTile,
+      emptyStateBuilder: emptyState,
+      onAddStudySession: addStudySession,
+      onAddTask: () => addTask(),
+      onCopySelectedDayTo: copySelectedDayTo,
+    );
+  }
 
   Widget weeklyReportCard({required PlannerSummary summary}) =>
       PlannerWeeklyReportCard(summary: summary, sessions: studySessions);
@@ -648,9 +662,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget weekOverviewCard(int day) => PlannerWeekOverviewCard(
+  Widget weekOverviewCard(int day, List<StudySession> sessions) =>
+      PlannerWeekOverviewCard(
     dayLabel: weekDays[day],
-    sessions: studySessions.where((session) => session.weekday == day).toList(),
+    sessions: sessions,
     selected: day == selectedStudyDay,
     animationsEnabled: widget.animationsEnabled,
     onTap: () {
