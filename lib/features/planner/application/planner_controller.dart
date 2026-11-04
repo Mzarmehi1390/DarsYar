@@ -4,6 +4,26 @@ import '../../../study_session.dart';
 class PlannerController {
   const PlannerController();
 
+  void toggleCompletion(List<StudySession> sessions, String id) {
+    final index = sessions.indexWhere((session) => session.id == id);
+    if (index < 0) return;
+    final session = sessions[index];
+    sessions[index] = session.copyWith(completed: !session.completed);
+  }
+
+  void upsert(List<StudySession> sessions, StudySession session) {
+    final index = sessions.indexWhere((item) => item.id == session.id);
+    if (index < 0) {
+      sessions.add(session);
+    } else {
+      sessions[index] = session;
+    }
+  }
+
+  void removeById(List<StudySession> sessions, String id) {
+    sessions.removeWhere((session) => session.id == id);
+  }
+
   List<StudySession> sessionsForDay(
     Iterable<StudySession> sessions,
     int weekday,
