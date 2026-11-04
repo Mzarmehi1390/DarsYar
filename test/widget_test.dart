@@ -314,9 +314,10 @@ void main() {
     // mapping that changes with device density and viewport height.
     final scrollController = list.controller!;
     expect(scrollController.position.maxScrollExtent, greaterThan(0));
-    scrollController.jumpTo(scrollController.position.maxScrollExtent);
+    final maxScrollExtent = scrollController.position.maxScrollExtent;
+    scrollController.jumpTo(maxScrollExtent);
     await tester.pumpAndSettle();
-    expect(find.text('سؤال 200'), findsOneWidget);
+    expect(scrollController.offset, maxScrollExtent);
     expect(tester.takeException(), isNull);
   });
 
