@@ -40,14 +40,14 @@ Future<T?> showDarsYarGlassDialog<T>({
       return capturedThemes.wrap(
         SafeArea(
           child: DarsYarModalContent(
-          child: GlassDialog(
-            title: title,
-            message: message,
-            content: content,
-            actions: actions,
-            settings: settings,
-            quality: quality,
-            maxWidth: maxWidth,
+            child: GlassDialog(
+              title: title,
+              message: message,
+              content: content,
+              actions: actions,
+              settings: settings,
+              quality: quality,
+              maxWidth: maxWidth,
             ),
           ),
         ),
