@@ -5,6 +5,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_modal_sheet.dart';
 import '../../../design_system/glass_surface.dart';
+import '../../../design_system/glass_tokens.dart';
 import '../../../design_system/modal_content.dart';
 
 class AnswerKeyEditorSheet extends StatefulWidget {
@@ -255,7 +256,7 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
       fullSize: 0.82,
       quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-      barrierColor: Colors.black.withValues(alpha: 0.32),
+      barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
     if (updated != null && mounted) setState(() => _duration = updated);
   }
@@ -277,7 +278,7 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
       fullSize: 0.90,
       quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-      barrierColor: Colors.black.withValues(alpha: 0.32),
+      barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
     if (updated != null && mounted) {
       setState(() {
