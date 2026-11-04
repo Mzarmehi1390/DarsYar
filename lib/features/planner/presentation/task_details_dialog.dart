@@ -27,29 +27,29 @@ Future<(String, String)?> showTaskDetailsDialog({
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-          GlassFormField(
-            label: 'عنوان وظیفه',
-            child: GlassTextField(
-              surfaceStyle: GlassSurfaceStyle.solid,
-              controller: titleController,
-              placeholder: 'مثلاً مرور فصل دوم',
-              maxLength: 100,
-              // Let the glass dialog finish its entrance before the keyboard resizes it.
-              autofocus: false,
-              textInputAction: TextInputAction.next,
-            ),
-          ),
-          const SizedBox(height: 14),
-          GlassFormField(
-            label: 'درس',
-            child: GlassTextField(
-              surfaceStyle: GlassSurfaceStyle.solid,
-              controller: subjectController,
-              placeholder: 'مثلاً ریاضی',
-              maxLength: 50,
-              textInputAction: TextInputAction.done,
-            ),
-          ),
+              GlassFormField(
+                label: 'عنوان وظیفه',
+                child: GlassTextField(
+                  surfaceStyle: GlassSurfaceStyle.solid,
+                  controller: titleController,
+                  placeholder: 'مثلاً مرور فصل دوم',
+                  maxLength: 100,
+                  // Let the glass dialog finish its entrance before the keyboard resizes it.
+                  autofocus: false,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              const SizedBox(height: 14),
+              GlassFormField(
+                label: 'درس',
+                child: GlassTextField(
+                  surfaceStyle: GlassSurfaceStyle.solid,
+                  controller: subjectController,
+                  placeholder: 'مثلاً ریاضی',
+                  maxLength: 50,
+                  textInputAction: TextInputAction.done,
+                ),
+              ),
             ],
           ),
         ),
