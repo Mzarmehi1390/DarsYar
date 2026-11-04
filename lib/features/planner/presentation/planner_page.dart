@@ -39,7 +39,7 @@ class PlannerPage extends StatelessWidget {
   final Map<int, GlobalKey> weekKeys;
   final Widget Function(String label, int? value, IconData icon) summaryBuilder;
   final Widget Function(int day) weekOverviewCardBuilder;
-  final Widget Function(PlannerSummary summary) weeklyReportCardBuilder;
+  final Widget Function({required PlannerSummary summary}) weeklyReportCardBuilder;
   final Widget Function(StudySession session) studySessionTileBuilder;
   final Widget Function(StudyTask task) taskTileBuilder;
   final Widget Function(IconData icon, String title, String subtitle) emptyStateBuilder;
@@ -147,7 +147,7 @@ class PlannerPage extends StatelessWidget {
         ),
       ),
       SizedBox(height: 16),
-      weeklyReportCardBuilder(plannerSummary),
+      weeklyReportCardBuilder(summary: plannerSummary),
       SizedBox(height: 20),
       Wrap(
         alignment: WrapAlignment.spaceBetween,
