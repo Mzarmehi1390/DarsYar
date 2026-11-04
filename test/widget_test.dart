@@ -8,6 +8,7 @@ import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
 import 'package:dars_yar/design_system/glass_tokens.dart';
+import 'package:dars_yar/design_system/glass_modal_sheet.dart';
 import 'package:dars_yar/design_system/modal_content.dart';
 
 import 'package:dars_yar/app/darsyar_app.dart';
@@ -254,6 +255,45 @@ void main() {
 
     expect(find.text('1 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
     expect(find.bySemanticsLabel('سؤال 1، گزینه الف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('answer key list shares the glass sheet scroll controller', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  await showDarsYarGlassSheet<void>(
+                    context: context,
+                    initialState: GlassSheetState.full,
+                    fullSize: 0.9,
+                    builder: (_) => const AnswerKeyEditorSheet(
+                      title: 'کلید پاسخ آزمون',
+                      questionCount: 200,
+                      initialAnswers: {},
+                      clearLabel: 'پاک‌کردن',
+                      saveLabel: 'ذخیره کلید',
+                    ),
+                  );
+                },
+                child: const Text('بازکردن کلید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('بازکردن کلید'));
+    await tester.pumpAndSettle();
+
+    final list = tester.widget<ListView>(find.byType(ListView).last);
+    expect(list.controller, isNotNull);
+    expect(list.controller!.hasClients, isTrue);
+    expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
