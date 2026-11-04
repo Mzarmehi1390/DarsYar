@@ -50,7 +50,12 @@ void main() {
     final textStyle = DefaultTextStyle.of(tester.element(find.text('جلسه مطالعه'))).style;
 
     expect(directionality.textDirection, TextDirection.rtl);
+    expect(textStyle.color, DarsYarTheme.light.colorScheme.onSurface);
     expect(textStyle.decoration, TextDecoration.none);
+    expect(
+      CupertinoTheme.of(tester.element(find.text('جلسه مطالعه'))).brightness,
+      Brightness.light,
+    );
     expect(tester.takeException(), isNull);
   });
 
