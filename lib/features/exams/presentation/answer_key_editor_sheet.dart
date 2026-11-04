@@ -54,14 +54,14 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   void _selectAnswer(int question, int option) {
     final selected = _selectedByQuestion[question];
     if (selected == null) return;
+
     if (selected.value == option) {
       _draft.remove(question);
       selected.value = null;
-      _answeredCount.value = _draft.length;
-      return;
+    } else {
+      _draft[question] = option;
+      selected.value = option;
     }
-    _draft[question] = option;
-    selected.value = option;
     _answeredCount.value = _draft.length;
   }
 
@@ -79,46 +79,45 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
       builder: (context, selectedOption, _) {
         final scheme = Theme.of(context).colorScheme;
         return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 64,
-            child: Text(
-              'سؤال $question',
-              style: TextStyle(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (var option = 0; option < _options.length; option++)
-                  _answerOption(
-                    question,
-                    option,
-                    selected: selectedOption == option,
-                    scheme: scheme,
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 64,
+                child: Text(
+                  'سؤال $question',
+                  style: TextStyle(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
                   ),
-              ],
-            ),
+                ),
+              ),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (var option = 0; option < _options.length; option++)
+                      _answerOption(
+                        question,
+                        option,
+                        selected: selectedOption == option,
+                        scheme: scheme,
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-        ),
-      );
+        );
       },
     );
   }
 
-  /// Answer choices are intentionally shader-free: a 200-question key can
-  /// create 800 controls, so per-chip backdrop captures cause avoidable GPU
-  /// work and make the editor feel sluggish while scrolling.
+  /// Keep the dense answer grid shader-free: the surrounding sheet retains
+  /// its Liquid Glass material while individual choices stay inexpensive.
   Widget _answerOption(
     int question,
     int option, {
@@ -134,79 +133,79 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-          borderRadius: BorderRadius.circular(11),
-          onTap: () => _selectAnswer(question, option),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            curve: Curves.easeOut,
-            constraints: const BoxConstraints(minWidth: 38, minHeight: 36),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: selected
-                  ? scheme.primary.withValues(alpha: 0.16)
-                  : scheme.surfaceContainerHighest.withValues(alpha: 0.48),
-              borderRadius: BorderRadius.circular(11),
-              border: Border.all(
+            borderRadius: BorderRadius.circular(11),
+            onTap: () => _selectAnswer(question, option),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              curve: Curves.easeOut,
+              constraints: const BoxConstraints(minWidth: 38, minHeight: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
                 color: selected
-                    ? scheme.primary.withValues(alpha: 0.72)
-                    : scheme.outlineVariant.withValues(alpha: 0.62),
-                width: selected ? 1.3 : 0.8,
+                    ? scheme.primary.withValues(alpha: 0.16)
+                    : scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: selected
+                      ? scheme.primary.withValues(alpha: 0.72)
+                      : scheme.outlineVariant.withValues(alpha: 0.62),
+                  width: selected ? 1.3 : 0.8,
+                ),
               ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _options[option],
-              style: TextStyle(
-                color: selected ? scheme.primary : scheme.onSurface,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
+              alignment: Alignment.center,
+              child: Text(
+                _options[option],
+                style: TextStyle(
+                  color: selected ? scheme.primary : scheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
 
   Widget _footerActions() => Padding(
-    padding: const EdgeInsets.only(top: 12, bottom: 8),
-    child: Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        GlassButton.custom(
-          width: 96,
-          height: 44,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-          quality: GlassQuality.standard,
-          onTap: _clearAnswers,
-          child: Text(widget.clearLabel),
+        padding: const EdgeInsets.only(top: 12, bottom: 8),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            GlassButton.custom(
+              width: 96,
+              height: 44,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+              quality: GlassQuality.standard,
+              onTap: _clearAnswers,
+              child: Text(widget.clearLabel),
+            ),
+            GlassButton.custom(
+              width: 96,
+              height: 44,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+              quality: GlassQuality.standard,
+              onTap: () => Navigator.of(context).pop(),
+              child: const Text('انصراف'),
+            ),
+            GlassButton.custom(
+              width: 122,
+              height: 44,
+              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+              quality: GlassQuality.standard,
+              style: GlassButtonStyle.filled,
+              onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
+              child: Text(
+                widget.saveLabel,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
         ),
-        GlassButton.custom(
-          width: 96,
-          height: 44,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-          quality: GlassQuality.standard,
-          onTap: () => Navigator.of(context).pop(),
-          child: const Text('انصراف'),
-        ),
-        GlassButton.custom(
-          width: 122,
-          height: 44,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-          quality: GlassQuality.standard,
-          style: GlassButtonStyle.filled,
-          onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
-          child: Text(
-            widget.saveLabel,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -234,14 +233,12 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
         if (index == 1) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              child: ValueListenableBuilder<int>(
-                valueListenable: _answeredCount,
-                builder: (context, answeredCount, _) => Text(
-                  '$answeredCount از $questionCount سؤال دارای کلید پاسخ است.',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+            child: ValueListenableBuilder<int>(
+              valueListenable: _answeredCount,
+              builder: (context, answeredCount, _) => Text(
+                '$answeredCount از $questionCount سؤال دارای کلید پاسخ است.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -252,15 +249,23 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
             padding: const EdgeInsets.only(bottom: 12),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: GlassProgressIndicator.linear(
-                height: 5,
-                minWidth: 0,
-                value: questionCount == 0 ? 0 : _answeredCount.value / questionCount,
-                color: DarsYarTokens.accent,
-                backgroundColor:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-                quality: GlassQuality.standard,
-                semanticLabel: 'پیشرفت ورود کلید پاسخ',
+              child: ValueListenableBuilder<int>(
+                valueListenable: _answeredCount,
+                builder: (context, answeredCount, _) =>
+                    GlassProgressIndicator.linear(
+                  height: 5,
+                  minWidth: 0,
+                  value: questionCount == 0
+                      ? 0
+                      : (answeredCount / questionCount).clamp(0.0, 1.0),
+                  color: DarsYarTokens.accent,
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.08),
+                  quality: GlassQuality.standard,
+                  semanticLabel: 'پیشرفت ورود کلید پاسخ',
+                ),
               ),
             ),
           );
