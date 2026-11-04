@@ -23,6 +23,7 @@ import '../features/planner/presentation/task_details_dialog.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
+import '../features/planner/presentation/planner_week_overview_card.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
@@ -808,113 +809,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
-  Widget weekOverviewCard(int day) {
-    final sessions = studySessions.where((session) => session.weekday == day).toList();
-    final minutes = sessions.fold<int>(0, (sum, session) => sum + session.durationMinutes);
-    final done = sessions.where((session) => session.completed).length;
-    final selected = day == selectedStudyDay;
-    final cardContent = InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: () {
-        setState(() => selectedStudyDay = day);
-        _revealSelectedDay();
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    weekDays[day],
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: selected ? accent : null,
-                    ),
-                  ),
-                ),
-                if (selected)
-                  Semantics(
-                    label: 'روز انتخاب‌شده',
-                    child: Container(
-                      key: const ValueKey<String>('planner-week-selected-indicator'),
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                        color: accent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.28),
-                            blurRadius: 7,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              '${sessions.length} جلسه • $minutes دقیقه',
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 5),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(
-                  begin: 0,
-                  end: sessions.isEmpty ? 0 : done / sessions.length,
-                ),
-                duration: const Duration(milliseconds: 130),
-                curve: Curves.easeOutCubic,
-                builder: (context, progress, _) => GlassProgressIndicator.linear(
-                  height: 5,
-                  minWidth: 0,
-                  value: progress,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
-                  color: accent,
-                  quality: GlassQuality.standard,
-                  semanticLabel: 'پیشرفت روز ${weekDays[day]}',
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              sessions.isEmpty
-                  ? 'بدون برنامه'
-                  : '$done از ${sessions.length} انجام‌شده',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (selected) {
-      return GlassContainer.card(
-        padding: EdgeInsets.zero,
-        shape: const LiquidRoundedSuperellipse(borderRadius: 18),
-        quality: GlassQuality.standard,
-        useOwnLayer: false,
-        child: cardContent,
-      );
-    }
-    return _glassSurface(radius: 18, child: cardContent);
-  }
+  Widget weekOverviewCard(int day) => PlannerWeekOverviewCard(
+    day: day,
+    dayLabel: weekDays[day],
+    sessions: studySessions.where((session) => session.weekday == day).toList(),
+    selected: day == selectedStudyDay,
+    animationsEnabled: widget.animationsEnabled,
+    onTap: () {
+      setState(() => selectedStudyDay = day);
+      _revealSelectedDay();
+    },
+  );
 
   Widget studySessionTile(StudySession session) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
