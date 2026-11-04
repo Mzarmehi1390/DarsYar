@@ -18,6 +18,7 @@ import '../features/planner/presentation/study_session_editor.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
+import '../features/planner/application/planner_controller.dart';
 import '../answer_scoring.dart';
 import '../backup_codec.dart';
 import '../darsyar_storage.dart';
@@ -60,6 +61,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
   final DarsYarStorage _storage = DarsYarStorage();
+  const PlannerController _plannerController = PlannerController();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
@@ -823,25 +825,26 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> copySelectedDayTo(int targetDay) async {
     if (targetDay == selectedStudyDay) return;
-    final sourceSessions = studySessions
-        .where((session) => session.weekday == selectedStudyDay)
-        .toList()
-      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+    final sourceSessions = _plannerController.sessionsForDay(
+      studySessions,
+      selectedStudyDay,
+    );
     if (sourceSessions.isEmpty) {
       _showSnackBar(
         SnackBar(content: Text('برای کپی‌کردن، ابتدا در این روز جلسه‌ای بساز.')),
       );
       return;
     }
-    final copies = sourceSessions.map((session) => StudySession(
-      id: '${DateTime.now().microsecondsSinceEpoch}-${session.id}-$targetDay',
-      title: session.title,
-      subject: session.subject,
-      weekday: targetDay,
-      startMinutes: session.startMinutes,
-      durationMinutes: session.durationMinutes,
-    )).toList();
-    final conflicts = copies.any((candidate) => _hasOverlappingSession(candidate));
+    final copyTimestamp = DateTime.now().microsecondsSinceEpoch;
+    final copies = _plannerController.copyDay(
+      sessions: sourceSessions,
+      sourceDay: selectedStudyDay,
+      targetDay: targetDay,
+      createId: (session) => '$copyTimestamp-${session.id}-$targetDay',
+    );
+    final conflicts = copies.any(
+      (candidate) => _plannerController.hasOverlap(studySessions, candidate),
+    );
     if (conflicts) {
       _showSnackBar(
         SnackBar(content: Text('برنامه ${weekDays[targetDay]} با ساعت یکی از جلسه‌های فعلی تداخل دارد؛ چیزی کپی نشد.')),
@@ -2780,10 +2783,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
 
   bool _hasOverlappingSession(StudySession candidate, {String? excludingId}) {
-    return studySessions.any((session) {
-      if (session.id == excludingId || session.weekday != candidate.weekday) return false;
-      return studySessionsOverlap(candidate, session);
-    });
+    return _plannerController.hasOverlap(
+      studySessions,
+      candidate,
+      excludingId: excludingId,
+    );
   }
 
   Future<void> addStudySession() => editStudySession();
