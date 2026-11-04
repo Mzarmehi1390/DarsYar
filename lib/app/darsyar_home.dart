@@ -317,6 +317,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           child: loading
               ? const Center(child: CircularProgressIndicator())
               : AnimatedSwitcher(
+                  // Do not keep the previous (potentially expensive) page in
+                  // the render tree while the next page enters. The incoming
+                  // page still gets its glass transition, without compositing
+                  // two complete page trees during navigation.
+                  layoutBuilder: (currentChild, previousChildren) =>
+                      currentChild ?? const SizedBox.shrink(),
                   // Lite mode keeps a calm fade at the same deliberate pace;
                   // it removes the slide instead of accelerating the transition.
                   duration: const Duration(milliseconds: 220),
