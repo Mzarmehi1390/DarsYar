@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../exam_percentage_calculator.dart';
 import '../../../exam_result.dart';
@@ -126,7 +127,7 @@ class ExamHistoryPage extends StatelessWidget {
                                           100)
                                       .clamp(0.0, 1.0)
                                       .toDouble(),
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: DarsYarTokens.accent,
                                   backgroundColor: Theme.of(context)
                                       .colorScheme
                                       .surfaceContainerHighest,
