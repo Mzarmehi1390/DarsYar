@@ -13,6 +13,7 @@ import 'darsyar_storage.dart';
 import 'design_system/darsyar_theme.dart';
 import 'design_system/glass_surface.dart';
 import 'design_system/glass_modal_sheet.dart';
+import 'design_system/glass_dialog.dart';
 import 'design_system/modal_content.dart';
 import 'design_system/page_header.dart';
 import 'exam_result.dart';
@@ -658,7 +659,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     String cancelLabel = 'انصراف',
     bool destructive = false,
   }) async {
-    final result = await GlassDialog.show<bool>(
+    final result = await showDarsYarGlassDialog<bool>(
       context: context,
       title: title,
       message: message,
@@ -688,7 +689,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }) async {
     final controller = TextEditingController(text: initialName);
     try {
-      return await GlassDialog.show<String>(
+      return await showDarsYarGlassDialog<String>(
         context: context,
         title: isRename ? 'تغییر نام آزمون' : 'پاسخ‌برگ جدید',
         maxWidth: 360,
@@ -731,7 +732,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final titleController = TextEditingController(text: existing?.title ?? '');
     final subjectController = TextEditingController(text: existing?.subject ?? '');
     try {
-      return await GlassDialog.show<(String, String)>(
+      return await showDarsYarGlassDialog<(String, String)>(
         context: context,
         title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
         maxWidth: 360,
@@ -3264,7 +3265,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> editAnswer(int number) async {
     int? answer = answers[number];
     bool flag = marked.contains(number);
-    final result = await GlassDialog.show<({int? answer, bool marked})>(
+    final result = await showDarsYarGlassDialog<({int? answer, bool marked})>(
       context: context,
       title: 'سؤال $number',
       maxWidth: 360,
