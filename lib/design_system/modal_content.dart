@@ -46,7 +46,9 @@ class DarsYarModalContent extends StatelessWidget {
                 decoration: TextDecoration.none,
                 decorationColor: Colors.transparent,
               ),
-              child: child,
+              // Keep dynamic form/list repaints inside the modal content
+              // layer instead of invalidating the surrounding glass surface.
+              child: RepaintBoundary(child: child),
             ),
           ),
         ),
