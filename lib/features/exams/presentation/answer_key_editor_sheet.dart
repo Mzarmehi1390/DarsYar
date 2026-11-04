@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/darsyar_theme.dart';\nimport '../../../design_system/modal_content.dart';
 
 class AnswerKeyEditorSheet extends StatefulWidget {
   const AnswerKeyEditorSheet({
@@ -203,7 +203,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
               shape: const LiquidRoundedSuperellipse(borderRadius: 15),
               quality: GlassQuality.standard,
               onTap: _clearAnswers,
-              child: Text(widget.clearLabel),
+              child: DarsYarModalButtonLabel(child: Text(widget.clearLabel)),
             ),
             GlassButton.custom(
               width: 96,
@@ -211,7 +211,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
               shape: const LiquidRoundedSuperellipse(borderRadius: 15),
               quality: GlassQuality.standard,
               onTap: () => Navigator.of(context).pop(),
-              child: const Text('انصراف'),
+              child: const DarsYarModalButtonLabel(child: Text('انصراف')),
             ),
             GlassButton.custom(
               width: 122,
@@ -245,7 +245,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
             child: Text(
               widget.title,
               style: TextStyle(
-                fontSize: 21,
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
