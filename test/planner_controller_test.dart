@@ -46,6 +46,30 @@ void main() {
     );
   });
 
+  test('session mutations toggle completion, upsert, and remove by id', () {
+    final sessions = <StudySession>[
+      session(id: 'first', weekday: 1, start: 500),
+    ];
+
+    planner.toggleCompletion(sessions, 'first');
+    expect(sessions.single.completed, isTrue);
+
+    final edited = sessions.single.copyWith(title: 'جلسه ویرایش‌شده');
+    planner.upsert(sessions, edited);
+    expect(sessions, hasLength(1));
+    expect(sessions.single.title, 'جلسه ویرایش‌شده');
+    expect(sessions.single.completed, isTrue);
+
+    planner.upsert(
+      sessions,
+      session(id: 'second', weekday: 1, start: 700),
+    );
+    expect(sessions, hasLength(2));
+
+    planner.removeById(sessions, 'first');
+    expect(sessions.map((item) => item.id).toList(), ['second']);
+  });
+
   test('copyDay preserves lesson details and resets completion state', () {
     final source = session(id: 'source', weekday: 1, start: 540);
     final copies = planner.copyDay(
