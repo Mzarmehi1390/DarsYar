@@ -13,6 +13,7 @@ import '../design_system/glass_snackbar.dart';
 import '../design_system/modal_content.dart';
 import '../design_system/page_header.dart';
 import '../features/exams/presentation/exam_setup_widgets.dart';
+import '../features/exams/presentation/exam_page.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
 import '../features/settings/presentation/settings_page.dart';
@@ -290,7 +291,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final page = switch (tab) {
       0 => _dashboardPage(),
       1 => _plannerPage(),
-      2 => answerSheet(),
+      2 => _examPage(),
       3 => SettingsPage(
             mode: widget.mode,
             onModeChanged: widget.onModeChanged,
@@ -1292,56 +1293,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
   );
 
-  Widget answerSheet() {
-    if (isTakingExam) return _takingExamView();
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const DarsYarPageHeader(
-            title: 'پاسخ‌برگ آزمون',
-            subtitle: 'آزمون بساز، پاسخ‌ها را ثبت کن و نتیجه‌ها را بررسی کن.',
-            icon: Icons.fact_check_rounded,
-          ),
-          SizedBox(height: 14),
-          GlassSegmentedControl(
-            segments: const [
-              GlassSegment(
-                label: 'ساخت آزمون جدید',
-                semanticLabel: 'ساخت آزمون جدید',
-              ),
-              GlassSegment(
-                label: 'آزمون‌های من',
-                semanticLabel: 'آزمون‌های من',
-              ),
-            ],
-            selectedIndex: examSection,
-            onSegmentSelected: (value) =>
-                setState(() => examSection = value),
-            height: 46,
-            borderRadius: 20,
-            useOwnLayer: true,
-            quality: GlassQuality.standard,
-            selectedTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w800,
-            ),
-            unselectedTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-            ),
-            backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.22),
-            indicatorColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-          ),
-        ]),
-      ),
-      Expanded(child: examSection == 0
-        ? ExamSetupPanel(onCreate: _createExamFromSetup, onMessage: (message) => _showSnackBar(SnackBar(content: Text(message))))
-        : _myExamsView()),
-    ]);
-  }
+  Widget _examPage() => ExamPage(
+        isTakingExam: isTakingExam,
+        examSection: examSection,
+        onExamSectionChanged: (value) => setState(() => examSection = value),
+        onCreate: _createExamFromSetup,
+        onMessage: (message) => _showSnackBar(SnackBar(content: Text(message))),
+        takingExamBuilder: _takingExamView,
+        myExamsBuilder: _myExamsView,
+      );
 
   Widget _savedExamCard(ExamSheet exam) => Card(
     margin: const EdgeInsets.only(bottom: 10),
