@@ -82,12 +82,14 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   ) {
     final selected = _draft[question] == option;
     return Semantics(
+      container: true,
       button: true,
       selected: selected,
       label: 'سؤال $question، گزینه ${_options[option]}',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
+      child: ExcludeSemantics(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
           borderRadius: BorderRadius.circular(11),
           onTap: () => setState(() {
             if (selected) {
@@ -124,6 +126,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
