@@ -313,9 +313,9 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                     quality: GlassQuality.standard,
                     style: GlassButtonStyle.filled,
                     onTap: _submit,
-                    child: Text(
-                      widget.existing == null ? 'افزودن' : 'ذخیره تغییرات',
-                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    child: DarsYarModalButtonLabel(
+                      primary: true,
+                      child: Text(widget.existing == null ? 'افزودن' : 'ذخیره تغییرات'),
                     ),
                   ),
                 ),
