@@ -17,6 +17,7 @@ import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
 import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
+import '../features/planner/presentation/planner_page.dart';
 import '../answer_scoring.dart';
 import '../backup_codec.dart';
 import '../darsyar_storage.dart';
@@ -288,7 +289,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     // during every state update.
     final page = switch (tab) {
       0 => _dashboardPage(),
-      1 => planner(),
+      1 => _plannerPage(),
       2 => answerSheet(),
       3 => SettingsPage(
             mode: widget.mode,
@@ -703,183 +704,28 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         emptyStateBuilder: emptyState,
       );
 
-  Widget planner() {
-    final plannerSummary = PlannerSummary.fromSessions(studySessions);
-    final daySessions = plannerSummary.sessionsForDay(selectedStudyDay);
-    final completedSessions = plannerSummary.completedSessionCount;
-    final totalMinutes = plannerSummary.minutesForDay(selectedStudyDay);
-    return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance), children: [
-      const DarsYarPageHeader(
-        title: 'برنامه‌ریزی درسی',
-        subtitle: 'برای هر روز، جلسه مطالعه با زمان و مدت مشخص بچین.',
-        icon: Icons.calendar_month_rounded,
-      ),
-      SizedBox(height: 18),
-      LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 390;
-          final width = compact ? (constraints.maxWidth - 10) / 2 : null;
-          final cards = [
-            summary('جلسه‌ها', studySessions.length, Icons.calendar_month_rounded),
-            summary('انجام‌شده', completedSessions, Icons.check_circle_outline),
-            summary('دقیقه امروز', totalMinutes, Icons.timer_outlined),
-          ];
-          if (compact) {
-            return Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (final card in cards)
-                  SizedBox(width: width, child: card),
-              ],
-            );
-          }
-          return Row(
-            children: [
-              for (var i = 0; i < cards.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(child: cards[i]),
-              ],
-            ],
-          );
+  Widget _plannerPage() => PlannerPage(
+        sessions: studySessions,
+        tasks: tasks,
+        selectedDay: selectedStudyDay,
+        onSelectedDayChanged: (day) {
+          setState(() => selectedStudyDay = day);
+          _revealSelectedDay();
         },
-      ),
-      SizedBox(height: 20),
-      Text('انتخاب روز', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-      SizedBox(height: 10),
-      SizedBox(
-        height: 44,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: weekDayOrder.map((day) => Padding(
-          key: _plannerDayKeys[day],
-          padding: const EdgeInsets.only(left: 8),
-          child: GlassChip(
-            key: ValueKey<String>('planner-day-$day'),
-            label: weekDays[day],
-            semanticLabel: weekDays[day],
-            selected: selectedStudyDay == day,
-            selectedColor: accent.withValues(
-              alpha: Theme.of(context).brightness == Brightness.dark ? 0.28 : 0.18,
-            ),
-            labelStyle: TextStyle(
-              color: selectedStudyDay == day
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: selectedStudyDay == day
-                  ? FontWeight.w800
-                  : FontWeight.w600,
-              fontSize: 13,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            quality: GlassQuality.standard,
-            onTap: () {
-              setState(() => selectedStudyDay = day);
-              _revealSelectedDay();
-            },
-          ),
-        )).toList(),
-          ),
-        ),
-      ),
-      SizedBox(height: 20),
-      Text('نمای کلی هفته', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
-      SizedBox(height: 10),
-      SizedBox(
-        height: 124,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: weekDayOrder.map((day) => Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: SizedBox(
-                key: _plannerWeekKeys[day],
-                width: 190,
-                child: weekOverviewCard(day),
-              ),
-            )).toList(),
-          ),
-        ),
-      ),
-      SizedBox(height: 16),
-      weeklyReportCard(summary: plannerSummary),
-      SizedBox(height: 20),
-      Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        runSpacing: 8,
-        children: [
-          Text(
-            weekDays[selectedStudyDay],
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-          ),
-          GlassButton.custom(
-            width: 132,
-            height: 44,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-            quality: GlassQuality.standard,
-            style: GlassButtonStyle.filled,
-            onTap: addStudySession,
-            child: const Text(
-              'جلسه جدید',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-          GlassPullDownButton(
-            icon: const Icon(Icons.copy_all_rounded),
-            semanticLabel: 'کپی برنامه این روز',
-            quality: GlassQuality.standard,
-            menuWidth: 230,
-            items: [
-              for (var day = 0; day < 7; day++)
-                GlassMenuItem(
-                  title: 'کپی برنامه به ${weekDays[day]}',
-                  icon: const Icon(Icons.calendar_today_rounded),
-                  enabled: day != selectedStudyDay,
-                  onTap: () => copySelectedDayTo(day),
-                ),
-            ],
-          ),
-        ],
-      ),
-      if (daySessions.isEmpty)
-        emptyState(Icons.event_available_rounded, 'برای این روز جلسه‌ای نداری', 'با دکمه «جلسه جدید» یک زمان مطالعه اضافه کن.')
-      else ...daySessions.map(studySessionTile),
-      SizedBox(height: 22),
-      Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        runSpacing: 8,
-        children: [
-          Text(
-            'فهرست وظایف',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          GlassButton.custom(
-            width: 126,
-            height: 44,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-            quality: GlassQuality.standard,
-            style: GlassButtonStyle.filled,
-            onTap: addTask,
-            child: const Text(
-              'ثبت وظیفه',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-      SizedBox(height: 10),
-      if (tasks.isEmpty)
-        emptyState(Icons.edit_calendar_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'برای یادآوری تکالیف، دکمه «افزودن وظیفه» را بزن.')
-      else ...tasks.map(taskTile),
-    ]);
-  }
+        daysOrder: weekDayOrder,
+        dayLabels: weekDays,
+        dayKeys: _plannerDayKeys,
+        weekKeys: _plannerWeekKeys,
+        summaryBuilder: summary,
+        weekOverviewCardBuilder: weekOverviewCard,
+        weeklyReportCardBuilder: weeklyReportCard,
+        studySessionTileBuilder: studySessionTile,
+        taskTileBuilder: taskTile,
+        emptyStateBuilder: emptyState,
+        onAddStudySession: addStudySession,
+        onAddTask: () => addTask(),
+        onCopySelectedDayTo: copySelectedDayTo,
+      );
 
   Widget weeklyReportCard({required PlannerSummary summary}) {
     final plannedMinutes = summary.plannedMinutes;
