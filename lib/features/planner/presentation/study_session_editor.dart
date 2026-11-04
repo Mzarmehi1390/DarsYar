@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import '../../../study_session.dart';\nimport '../../../design_system/modal_content.dart';
+import '../../../study_session.dart';
+import '../../../design_system/modal_content.dart';
 
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
@@ -255,7 +256,10 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                                   _startMinutes.value = _selectedTime.hour * 60 + _selectedTime.minute;
                                   _showTimePicker.value = false;
                                 },
-                                child: const DarsYarModalButtonLabel(\n                                  primary: true,\n                                  child: Text('اعمال ساعت انتخاب‌شده'),\n                                ),
+                                child: const DarsYarModalButtonLabel(
+                                  primary: true,
+                                  child: Text('اعمال ساعت انتخاب‌شده'),
+                                ),
                               ),
                             ),
                           ],
