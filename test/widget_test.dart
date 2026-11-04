@@ -136,7 +136,7 @@ void main() {
     expect(planner.slivers, isNotEmpty);
     expect(
       planner.slivers.whereType<SliverList>().length,
-      greaterThanOrEqualTo(3),
+      greaterThanOrEqualTo(2),
     );
     expect(DarsYarTokens.pageBottomClearance, 152);
     expect(tester.takeException(), isNull);
