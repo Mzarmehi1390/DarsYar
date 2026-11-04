@@ -1479,6 +1479,11 @@ void main() {
 
     expect(find.text('16:00'), findsOneWidget);
     expect(find.byType(CupertinoDatePicker), findsNothing);
+    for (final day in [6, 0, 1, 2, 3, 4, 5]) {
+      expect(find.byKey(ValueKey<String>('study-session-day-$day')), findsOneWidget);
+    }
+    expect(find.text('روز هفته'), findsOneWidget);
+    expect(find.text('ساعت شروع'), findsOneWidget);
 
     await tester.tap(find.text('16:00'));
     await tester.pumpAndSettle();
@@ -1552,9 +1557,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('glass modal backdrops stay light enough to preserve the refractive context', () {
-    expect(DarsYarGlassTokens.dialogBarrierColor.a, lessThan(0.20));
-    expect(DarsYarGlassTokens.sheetBarrierColor.a, lessThan(0.16));
+  test('glass modal backdrops provide clear separation from the page', () {
+    expect(DarsYarGlassTokens.dialogBarrierColor.a, greaterThan(0.5));
+    expect(DarsYarGlassTokens.sheetBarrierColor.a, greaterThan(0.5));
   });
 
 
