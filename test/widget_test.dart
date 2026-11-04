@@ -8,7 +8,8 @@ import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
 import 'package:dars_yar/design_system/modal_content.dart';
 
-import 'package:dars_yar/main.dart';
+import 'package:dars_yar/app/darsyar_app.dart';
+import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
 
 void main() {
