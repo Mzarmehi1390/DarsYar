@@ -810,7 +810,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget weekOverviewCard(int day) => PlannerWeekOverviewCard(
-    day: day,
     dayLabel: weekDays[day],
     sessions: studySessions.where((session) => session.weekday == day).toList(),
     selected: day == selectedStudyDay,
