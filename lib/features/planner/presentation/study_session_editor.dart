@@ -85,7 +85,6 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
             // Let the glass sheet settle before the keyboard changes its viewport.
             autofocus: false,
             placeholder: 'مثلاً حل تمرین فصل اول',
-            quality: GlassQuality.standard,
             textInputAction: TextInputAction.next,
           ),
         ),
@@ -96,7 +95,6 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _subjectController,
             placeholder: 'مثلاً ریاضی',
-            quality: GlassQuality.standard,
             textInputAction: TextInputAction.next,
           ),
         ),
@@ -222,7 +220,6 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
               LengthLimitingTextInputFormatter(4),
             ],
             maxLength: 4,
-            quality: GlassQuality.standard,
             onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
             textInputAction: TextInputAction.done,
           ),
