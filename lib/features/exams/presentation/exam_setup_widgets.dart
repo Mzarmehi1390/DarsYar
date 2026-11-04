@@ -40,6 +40,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   }
 
   Widget _questionRow(int question) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -50,7 +51,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
             child: Text(
               'سؤال $question',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -58,36 +59,71 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
           ),
           Expanded(
             child: Wrap(
-              spacing: 5,
-              runSpacing: 5,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (var option = 0; option < _options.length; option++)
-                  GlassChip(
-                    label: _options[option],
-                    semanticLabel: 'سؤال $question، گزینه ${_options[option]}',
-                    selected: _draft[question] == option,
-                    selectedColor: DarsYarTokens.accent.withValues(alpha: 0.18),
-                    labelStyle: TextStyle(
-                      color: _draft[question] == option
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11.5,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                    quality: GlassQuality.standard,
-                    onTap: () => setState(() {
-                      if (_draft[question] == option) {
-                        _draft.remove(question);
-                      } else {
-                        _draft[question] = option;
-                      }
-                    }),
-                  ),
+                  _answerOption(question, option, scheme),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Answer choices are intentionally shader-free: a 200-question key can
+  /// create 800 controls, so per-chip backdrop captures cause avoidable GPU
+  /// work and make the editor feel sluggish while scrolling.
+  Widget _answerOption(
+    int question,
+    int option,
+    ColorScheme scheme,
+  ) {
+    final selected = _draft[question] == option;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'سؤال $question، گزینه ${_options[option]}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(11),
+          onTap: () => setState(() {
+            if (selected) {
+              _draft.remove(question);
+            } else {
+              _draft[question] = option;
+            }
+          }),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            constraints: const BoxConstraints(minWidth: 38, minHeight: 36),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: selected
+                  ? scheme.primary.withValues(alpha: 0.16)
+                  : scheme.surfaceContainerHighest.withValues(alpha: 0.48),
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(
+                color: selected
+                    ? scheme.primary.withValues(alpha: 0.72)
+                    : scheme.outlineVariant.withValues(alpha: 0.62),
+                width: selected ? 1.3 : 0.8,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _options[option],
+              style: TextStyle(
+                color: selected ? scheme.primary : scheme.onSurface,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
