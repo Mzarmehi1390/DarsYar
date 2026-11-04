@@ -221,6 +221,8 @@ void main() {
   });
 
   testWidgets('large answer key uses readable lightweight selectable options', (tester) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     await tester.pumpWidget(
       MaterialApp(
         theme: DarsYarTheme.light,
