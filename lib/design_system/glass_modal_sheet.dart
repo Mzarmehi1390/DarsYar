@@ -18,7 +18,7 @@ Future<T?> showDarsYarGlassSheet<T>({
   GlassFillTransition fillTransition = DarsYarGlassTokens.sheetFillTransition,
   bool maintainContentGlass = DarsYarGlassTokens.maintainSheetContentGlass,
   EdgeInsetsGeometry? padding,
-  Color barrierColor = Colors.transparent,
+  Color barrierColor = DarsYarGlassTokens.sheetBarrierColor,
 }) {
   return GlassModalSheet.show<T>(
     context: context,
