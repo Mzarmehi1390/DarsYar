@@ -135,15 +135,9 @@ void main() {
     );
     expect(planner.slivers, isNotEmpty);
     expect(DarsYarTokens.pageBottomClearance, 152);
-    expect(
-      find.descendant(
-        of: find.byKey(const PageStorageKey<String>('planner-scroll')),
-        matching: find.byWidgetPredicate(
-          (widget) => widget is SizedBox && widget.height == 152,
-        ),
-      ),
-      findsOneWidget,
-    );
+    final bottomSpacer = planner.slivers.last as SliverToBoxAdapter;
+    expect(bottomSpacer.child, isA<SizedBox>());
+    expect((bottomSpacer.child! as SizedBox).height, 152);
     expect(tester.takeException(), isNull);
   });
 
