@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import '../../../design_system/glass_modal_sheet.dart';
-import '../../../design_system/modal_content.dart';
 import '../../../study_session.dart';
 
 class StudySessionEditorDialog extends StatefulWidget {
@@ -183,7 +181,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                       mode: CupertinoDatePickerMode.time,
                       initialDateTime: _selectedTime,
                       use24hFormat: true,
-                      onDateTimeChanged: (value) => setState(() => _selectedTime = value),
+                      onDateTimeChanged: (value) => _selectedTime = value,
                     ),
                   ),
                 ),
