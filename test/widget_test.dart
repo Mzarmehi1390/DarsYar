@@ -17,7 +17,8 @@ import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
 import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
 import 'package:dars_yar/features/planner/presentation/task_details_dialog.dart';
-import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';\nimport 'package:dars_yar/features/settings/presentation/backup_import_dialog.dart';
+import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';
+import 'package:dars_yar/features/settings/presentation/backup_import_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
