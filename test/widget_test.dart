@@ -1257,7 +1257,10 @@ void main() {
     expect(find.text('اعمال ساعت انتخاب‌شده'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('اعمال ساعت انتخاب‌شده'));
+    final applyTime = find.text('اعمال ساعت انتخاب‌شده');
+    await tester.ensureVisible(applyTime);
+    await tester.pumpAndSettle();
+    await tester.tap(applyTime);
     await tester.pumpAndSettle();
 
     expect(find.byType(CupertinoDatePicker), findsNothing);
