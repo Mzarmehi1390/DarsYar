@@ -495,6 +495,10 @@ void main() {
 
     expect(find.text('وظیفه جدید'), findsOneWidget);
     expect(find.byType(GlassTextField), findsNWidgets(2));
+    expect(
+      tester.widget<GlassTextField>(find.byType(GlassTextField).first).autofocus,
+      isFalse,
+    );
     expect(tester.takeException(), isNull);
   });
 
