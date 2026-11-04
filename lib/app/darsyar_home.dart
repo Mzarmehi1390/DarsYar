@@ -316,7 +316,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
           bottom: false,
           child: loading
               ? const Center(child: CircularProgressIndicator())
-              : AnimatedSwitcher(
+              : RepaintBoundary(
+                  // Keep page animation and timer-driven page paints isolated
+                  // from the persistent glass tab bar and ambient backdrop.
+                  child: AnimatedSwitcher(
                   // Do not keep the previous (potentially expensive) page in
                   // the render tree while the next page enters. The incoming
                   // page still gets its glass transition, without compositing
@@ -348,6 +351,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   child: KeyedSubtree(
                     key: ValueKey<int>(tab),
                     child: page,
+                  ),
                   ),
                 ),
         ),
