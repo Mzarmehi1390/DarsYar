@@ -84,23 +84,25 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
         width: 88,
         child: GlassFormField(
           label: label,
-          child: GlassTextField(
-            surfaceStyle: GlassSurfaceStyle.solid,
-            controller: controller,
-            onTap: () {
-              if (controller.text == '0') {
+          child: Focus(
+            onFocusChange: (hasFocus) {
+              if (hasFocus && controller.text == '0') {
                 controller.selection = TextSelection(
                   baseOffset: 0,
                   extentOffset: controller.text.length,
                 );
               }
             },
-            keyboardType: TextInputType.number,
+            child: GlassTextField(
+              surfaceStyle: GlassSurfaceStyle.solid,
+              controller: controller,
+              keyboardType: TextInputType.number,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(3),
             ],
-            onChanged: (_) => setState(() {}),
+              onChanged: (_) => setState(() {}),
+            ),
           ),
         ),
       );
