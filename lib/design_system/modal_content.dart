@@ -35,9 +35,13 @@ class DarsYarModalContent extends StatelessWidget {
             brightness: theme.brightness,
             primaryColor: scheme.primary,
           ),
-          child: IconTheme.merge(
+          // Force the modal's readable foreground through nested package
+          // defaults as well; GlassButton/GlassChip may otherwise reintroduce
+          // a low-contrast default text style inside an overlay.
+          child: IconTheme(
             data: IconThemeData(color: scheme.onSurface),
             child: DefaultTextStyle.merge(
+              force: true,
               style: TextStyle(
                 color: scheme.onSurface,
                 decoration: TextDecoration.none,
