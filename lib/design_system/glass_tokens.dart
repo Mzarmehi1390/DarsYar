@@ -14,16 +14,7 @@ abstract final class DarsYarGlassTokens {
   static const GlassFillTransition sheetFillTransition =
       GlassFillTransition.gradual;
   static const bool maintainSheetContentGlass = true;
-  static const double defaultHalfSheetSize = 0.45;
-  /// Keeps the large sheet detent refractive instead of inheriting an opaque
-  /// full-state material. Content remains separately tuned for legibility.
-  static const LiquidGlassSettings fullSheetSettings = LiquidGlassSettings(
-    blur: 14,
-    thickness: 26,
-    refractiveIndex: 0.18,
-    saturation: 1.2,
-    lightIntensity: 0.8,
-    ambientStrength: 0.4,
-    glassColor: Color(0x1FFFFFFF),
-  );
+  // A tall medium detent stays refractive; the package's large detent is opaque.
+  static const double defaultHalfSheetSize = 0.92;
+
 }
