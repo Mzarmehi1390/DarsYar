@@ -110,3 +110,24 @@ class DarsYarModalContent extends StatelessWidget {
     );
   }
 }
+
+
+/// Keeps every glass sheet's complete content above Android/iOS system
+/// navigation areas. The inset belongs to the sheet as a whole, not only to
+/// its action row, so scrolling content and fixed actions share one safe edge.
+class DarsYarModalSheetContent extends StatelessWidget {
+  const DarsYarModalSheetContent({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    return DarsYarModalContent(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottomInset + 8),
+        child: child,
+      ),
+    );
+  }
+}

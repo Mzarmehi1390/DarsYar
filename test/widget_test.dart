@@ -155,6 +155,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('glass sheet adds the system navigation inset to its entire content', (tester) async {
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          viewPadding: EdgeInsets.only(bottom: 24),
+        ),
+        child: MaterialApp(
+          theme: DarsYarTheme.light,
+          home: const Scaffold(
+            body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
+          ),
+        ),
+      ),
+    );
+
+    final safePadding = tester.widget<Padding>(
+      find.ancestor(
+        of: find.text('محتوای شیت'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Padding &&
+              widget.padding == const EdgeInsets.only(bottom: 32),
+        ),
+      ).first,
+    );
+    expect(safePadding.padding, const EdgeInsets.only(bottom: 32));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('glass sheet preserves dark Material and Cupertino themes on its route', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

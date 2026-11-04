@@ -50,7 +50,7 @@ Future<T?> showDarsYarGlassSheet<T>({
     // Every sheet gets the same RTL, typography and Cupertino contrast contract.
     // Call sites may still wrap specialized content without changing behaviour.
     builder: (sheetContext) => capturedThemes.wrap(
-      DarsYarModalContent(child: builder(sheetContext)),
+      DarsYarModalSheetContent(child: builder(sheetContext)),
     ),
     initialState: initialState,
     // Offer both the content-height glass stop and the full-height glass stop.
