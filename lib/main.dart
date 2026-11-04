@@ -527,20 +527,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               : AnimatedSwitcher(
                   duration: !widget.animationsEnabled ||
                           MediaQuery.of(context).disableAnimations
-                      ? Duration.zero
+                      ? const Duration(milliseconds: 120)
                       : const Duration(milliseconds: 190),
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) => FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
+                  transitionBuilder: (child, animation) {
+                    final fade = FadeTransition(opacity: animation, child: child);
+                    if (!widget.animationsEnabled ||
+                        MediaQuery.of(context).disableAnimations) {
+                      return fade;
+                    }
+                    return SlideTransition(
                       position: Tween<Offset>(
                         begin: const Offset(0, 0.018),
                         end: Offset.zero,
                       ).animate(animation),
-                      child: child,
-                    ),
-                  ),
+                      child: fade,
+                    );
+                  },
                   child: KeyedSubtree(
                     key: ValueKey<int>(tab),
                     child: page,
@@ -803,8 +807,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       initialState: GlassSheetState.full,
       fullSize: 0.90,
       quality: GlassQuality.standard,
+      fillThreshold: 1.0,
+      maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-      barrierColor: Colors.black.withValues(alpha: 0.32),
+      barrierColor: Colors.transparent,
     );
   }
 
@@ -1016,9 +1022,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   borderRadius: BorderRadius.circular(10),
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
-                    duration: MediaQuery.of(context).disableAnimations
-                        ? Duration.zero
-                        : const Duration(milliseconds: 260),
+                    duration: const Duration(milliseconds: 150),
                     curve: Curves.easeOutCubic,
                     builder: (context, progress, _) => LinearProgressIndicator(
                       minHeight: 8,
@@ -1602,9 +1606,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   begin: 0,
                   end: sessions.isEmpty ? 0 : done / sessions.length,
                 ),
-                duration: MediaQuery.of(context).disableAnimations
-                    ? Duration.zero
-                    : const Duration(milliseconds: 180),
+                duration: const Duration(milliseconds: 130),
                 curve: Curves.easeOutCubic,
                 builder: (context, progress, _) => GlassProgressIndicator.linear(
                   height: 5,
@@ -3416,8 +3418,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       initialState: GlassSheetState.full,
       fullSize: 0.90,
       quality: GlassQuality.standard,
+      // Keep the full-height sheet refractive instead of letting the package's
+      // default fill transition flatten it into an opaque panel.
+      fillThreshold: 1.0,
+      maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-      barrierColor: Colors.black.withValues(alpha: 0.32),
+      barrierColor: Colors.transparent,
     );
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
@@ -4802,8 +4808,10 @@ class _StudySessionEditorDialogState extends State<_StudySessionEditorDialog> {
               halfSize: 0.54,
               fullSize: 0.64,
               quality: GlassQuality.standard,
+              fillThreshold: 1.0,
+              maintainContentGlass: true,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              barrierColor: Colors.black.withValues(alpha: 0.30),
+              barrierColor: Colors.transparent,
             );
             if (picked != null && mounted) {
               setState(() => _startMinutes = picked.hour * 60 + picked.minute);
