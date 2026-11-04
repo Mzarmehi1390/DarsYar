@@ -17,6 +17,7 @@ import '../features/exams/presentation/exam_setup_widgets.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_result_card.dart';
+import '../features/exams/presentation/exam_history_page.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
 import '../features/planner/presentation/task_details_dialog.dart';
@@ -1802,88 +1803,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  Widget resultsHistory() {
-    final sorted = results.toList()
-      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-    final chartResults = sorted.where((result) => result.percentage != null).take(7).toList().reversed.toList();
-    final scoredResults = results.where((result) => result.percentage != null).toList();
-    final average = scoredResults.isEmpty ? 0.0 :
-        scoredResults.map((result) => result.percentage!).reduce((a, b) => a + b) / scoredResults.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('تاریخچه و پیشرفت', style: TextStyle(
-          fontSize: 25, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
-        )),
-        SizedBox(height: 6),
-        Text('نتایج ذخیره‌شده آزمون‌ها و روند درصدها را دنبال کن.',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-        SizedBox(height: 14),
-        const ExamPercentageCalculator(),
-        SizedBox(height: 18),
-        Row(children: [
-          Expanded(child: summary('آزمون‌ها', results.length, Icons.assignment_turned_in_outlined)),
-          SizedBox(width: 8),
-          Expanded(child: summary('میانگین درصد', scoredResults.isEmpty ? null : average.round(), Icons.insights_rounded)),
-        ]),
-        SizedBox(height: 20),
-        if (results.isEmpty)
-          _resultsEmptyIllustration()
-        else ...[
-          if (chartResults.isNotEmpty) ...[
-          Text('روند ۷ نتیجه اخیر', style: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
-          )),
-          SizedBox(height: 12),
-          _glassSurface(child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                children: [
-                  for (var i = 0; i < chartResults.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 7),
-                      child: Row(children: [
-                        SizedBox(width: 26, child: Text('${i + 1}',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))),
-                        Expanded(child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: GlassProgressIndicator.linear(
-                            height: 12,
-                            minWidth: 0,
-                            value: ((chartResults[i].percentage ?? 0) / 100).clamp(0.0, 1.0).toDouble(),
-                            color: accent,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            quality: GlassQuality.standard,
-                            semanticLabel: 'درصد نتیجه آزمون',
-                          ),
-                        )),
-                        SizedBox(width: 10),
-                        SizedBox(width: 46, child: Text(
-                          '${chartResults[i].percentage?.round() ?? '—'}%',
-                          textAlign: TextAlign.end,
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        )),
-                      ]),
-                    ),
-                ],
-              ),
-            )),
-          ],
-          SizedBox(height: 20),
-          Text('همه نتایج', style: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface,
-          )),
-          SizedBox(height: 10),
-          for (final result in sorted)
-            ExamResultCard(
-              result: result,
-              onAddAnswerKey: () => editResultAnswerKey(result),
-            ),
-        ],
-      ],
-    );
-  }
-
+  Widget resultsHistory() => ExamHistoryPage(
+    results: results,
+    summaryBuilder: summary,
+    emptyState: _resultsEmptyIllustration(),
+    onAddAnswerKey: editResultAnswerKey,
+  );
   String _formatDuration(int totalSeconds) {
     final minutes = (totalSeconds ~/ 60).toString().padLeft(2, '0');
     final seconds = (totalSeconds % 60).toString().padLeft(2, '0');
