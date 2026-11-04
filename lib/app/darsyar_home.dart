@@ -11,6 +11,7 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/modal_content.dart';
+import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/presentation/exam_setup_widgets.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
@@ -75,26 +76,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ];
   String activeExamId = 'default';
 
-  Timer? _examTimer;
-  int _remainingExamSeconds = 0;
-  final ValueNotifier<int> _timerDisplaySeconds = ValueNotifier<int>(0);
+  final ExamTimerController _examTimerController = ExamTimerController();
   int examSection = 0;
   bool isTakingExam = false;
   int currentQuestionNumber = 1;
-  bool _examTimerRunning = false;
   bool _savingExamResult = false;
-  String? _timerExamId;
-  DateTime? _examDeadline;
-
-  void _setRemainingExamSeconds(int value) {
-    _remainingExamSeconds = value;
-    _timerDisplaySeconds.value = value;
-  }
 
   @override
   void dispose() {
-    _examTimer?.cancel();
-    _timerDisplaySeconds.dispose();
+    _examTimerController.dispose();
     super.dispose();
   }
 
@@ -1491,7 +1481,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final exam = activeExam;
     final q = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
     final remaining =
-        _timerExamId == activeExamId ? _remainingExamSeconds : exam.durationSeconds;
+        _examTimerController.examId == activeExamId ? _examTimerController.remainingSeconds : exam.durationSeconds;
     final answered = exam.answers.length;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final markerBackground = isDark
@@ -1546,10 +1536,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           ),
                           const SizedBox(width: 5),
                           ValueListenableBuilder<int>(
-                            valueListenable: _timerDisplaySeconds,
+                            valueListenable: _examTimerController.displaySeconds,
                             builder: (context, seconds, _) => Text(
                               _formatDuration(
-                                _timerExamId == activeExamId ? seconds : remaining,
+                                _examTimerController.examId == activeExamId ? seconds : remaining,
                               ),
                               style: TextStyle(
                                 fontSize: 17,
@@ -1579,13 +1569,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     );
                     final timerButton = GlassIconButton(
                       icon: Icon(
-                        _examTimerRunning ? Icons.pause : Icons.play_arrow,
+                        _examTimerController.isRunning ? Icons.pause : Icons.play_arrow,
                       ),
                       onPressed: _toggleExamTimer,
                       size: 40,
                       shape: GlassIconButtonShape.roundedSquare,
                       quality: GlassQuality.standard,
-                      semanticLabel: _examTimerRunning
+                      semanticLabel: _examTimerController.isRunning
                           ? 'توقف زمان‌سنج'
                           : 'ادامه زمان‌سنج',
                     );
@@ -1978,14 +1968,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   void _beginExam(ExamSheet exam) {
-    if (_timerExamId != exam.id) {
-      _examTimer?.cancel();
-      _examTimerRunning = false;
-      _examDeadline = null;
-      _setRemainingExamSeconds(exam.durationSeconds);
-      _timerExamId = exam.id;
-    } else if (_remainingExamSeconds == 0) {
-      _setRemainingExamSeconds(exam.durationSeconds);
+    if (_examTimerController.examId != exam.id) {
+      _examTimerController.stop();
+      _examTimerController.isRunning = false;
+      _examTimerController.deadline = null;
+      _examTimerController.setRemaining(exam.durationSeconds);
+      _examTimerController.examId = exam.id;
+    } else if (_examTimerController.remainingSeconds == 0) {
+      _examTimerController.setRemaining(exam.durationSeconds);
     }
     var firstUnansweredQuestion = 1;
     for (var question = 1; question <= exam.questionCount; question++) {
@@ -1999,7 +1989,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       isTakingExam = true;
       currentQuestionNumber = firstUnansweredQuestion;
     });
-    if (!_examTimerRunning) _toggleExamTimer();
+    if (!_examTimerController.isRunning) _toggleExamTimer();
     save(sections: {'exams', 'activeExam'});
   }
 
@@ -2014,12 +2004,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
       if (!ok || !mounted || !isTakingExam) return;
     }
-    _examTimer?.cancel();
+    _examTimerController.stop();
     setState(() {
       activeExam.isCompleted = true;
       isTakingExam = false;
-      _examTimerRunning = false;
-      _examDeadline = null;
+      _examTimerController.isRunning = false;
+      _examTimerController.deadline = null;
       examSection = 1;
     });
     await saveExamResult();
@@ -2276,88 +2266,40 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   void _startExamTimer() {
-    _examTimer?.cancel();
     setState(() {
-      _setRemainingExamSeconds(activeExam.durationSeconds);
-      _timerExamId = activeExamId;
-      _examDeadline = DateTime.now().add(
-        Duration(seconds: activeExam.durationSeconds),
+      _examTimerController.start(
+        examId: activeExamId,
+        durationSeconds: activeExam.durationSeconds,
+        onExpired: _handleExamTimerExpired,
       );
-      _examTimerRunning = true;
-    });
-    _scheduleExamTimerTick();
-  }
-
-  void _scheduleExamTimerTick() {
-    _examTimer?.cancel();
-    _examTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateExamTimer();
     });
   }
 
-  void _updateExamTimer() {
-    if (!mounted) {
-      _examTimer?.cancel();
-      return;
-    }
-    final deadline = _examDeadline;
-    if (!_examTimerRunning || deadline == null) return;
-
-    final millisecondsRemaining = deadline.difference(DateTime.now()).inMilliseconds;
-    final remaining = millisecondsRemaining <= 0
-        ? 0
-        : (millisecondsRemaining + 999) ~/ 1000;
-    if (remaining <= 0) {
-      _examTimer?.cancel();
-      setState(() {
-        _setRemainingExamSeconds(0);
-        _examTimerRunning = false;
-        _examDeadline = null;
-      });
-      if (isTakingExam) {
-        _finishExam(automatic: true);
-      } else {
-        _showSnackBar(SnackBar(content: Text('زمان‌سنج به پایان رسید.')));
-      }
-      return;
-    }
-
-    if (remaining != _remainingExamSeconds) {
-      _setRemainingExamSeconds(remaining);
+  void _handleExamTimerExpired() {
+    if (!mounted) return;
+    if (isTakingExam) {
+      _finishExam(automatic: true);
+    } else {
+      setState(() {});
+      _showSnackBar(SnackBar(content: Text('زمان‌سنج به پایان رسید.')));
     }
   }
 
   void _toggleExamTimer() {
-    if (_examTimerRunning) {
-      final deadline = _examDeadline;
-      final millisecondsRemaining = deadline?.difference(DateTime.now()).inMilliseconds;
-      final remaining = millisecondsRemaining == null
-          ? _remainingExamSeconds
-          : millisecondsRemaining <= 0
-              ? 0
-              : (millisecondsRemaining + 999) ~/ 1000;
-      _examTimer?.cancel();
-      setState(() {
-        _setRemainingExamSeconds(remaining.clamp(0, 24 * 60 * 60).toInt());
-        _examTimerRunning = false;
-        _examDeadline = null;
-      });
+    if (_examTimerController.isRunning) {
+      final remaining = _examTimerController.pause();
+      setState(() {});
       if (remaining <= 0) {
-        _showSnackBar(
-          SnackBar(content: Text('زمان آزمون به پایان رسید.')),
-        );
+        _showSnackBar(SnackBar(content: Text('زمان آزمون به پایان رسید.')));
       }
       return;
     }
 
-    if (_remainingExamSeconds > 0 && _timerExamId == activeExamId) {
+    if (_examTimerController.remainingSeconds > 0 &&
+        _examTimerController.examId == activeExamId) {
       setState(() {
-        _examTimerRunning = true;
-        _examDeadline = DateTime.now().add(
-          Duration(seconds: _remainingExamSeconds),
-        );
+        _examTimerController.resume(onExpired: _handleExamTimerExpired);
       });
-      _scheduleExamTimerTick();
     } else {
       _startExamTimer();
     }
@@ -2779,12 +2721,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     // A countdown belongs to the exam data that was active before restore.
     // Stop it before replacing that data so a stale timer cannot carry over
     // to an imported exam that happens to reuse the same identifier.
-    _examTimer?.cancel();
+    _examTimerController.stop();
     setState(() {
-      _examTimerRunning = false;
-      _setRemainingExamSeconds(0);
-      _timerExamId = null;
-      _examDeadline = null;
+      _examTimerController.isRunning = false;
+      _examTimerController.setRemaining(0);
+      _examTimerController.examId = null;
+      _examTimerController.deadline = null;
       tasks..clear()..addAll(importedTasks);
       studySessions..clear()..addAll(importedSessions);
       exams..clear()..addAll(importedExams);
