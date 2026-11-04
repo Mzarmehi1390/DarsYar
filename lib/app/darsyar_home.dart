@@ -25,6 +25,7 @@ import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
 import '../features/planner/presentation/planner_week_overview_card.dart';
 import '../features/planner/presentation/planner_weekly_report_card.dart';
+import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
@@ -728,171 +729,25 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     },
   );
 
-  Widget studySessionTile(StudySession session) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: _glassSurface(
-      radius: 21,
-      tint: session.completed ? accent.withValues(alpha: 0.07) : null,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GlassIconButton(
-                  icon: Icon(
-                    session.completed
-                        ? Icons.check_circle_rounded
-                        : Icons.radio_button_unchecked_rounded,
-                    color: session.completed
-                        ? accent
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  onPressed: () async {
-                    setState(
-                      () => _plannerController.toggleCompletion(
-                        studySessions,
-                        session.id,
-                      ),
-                    );
-                    await save(sections: {'studySessions'});
-                  },
-                  size: 38,
-                  shape: GlassIconButtonShape.circle,
-                  quality: GlassQuality.standard,
-                  semanticLabel: session.completed
-                      ? 'علامت‌گذاری جلسه به‌عنوان انجام‌نشده'
-                      : 'علامت‌گذاری جلسه به‌عنوان انجام‌شده',
-                ),
-                const SizedBox(width: 9),
-                Container(
-                  width: 3,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: session.completed
-                        ? accent.withValues(alpha: 0.55)
-                        : accent,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    session.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      height: 1.35,
-                      decoration: session.completed
-                          ? TextDecoration.lineThrough
-                          : null,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 58, top: 8),
-              child: Wrap(
-                spacing: 7,
-                runSpacing: 6,
-                children: [
-                  _plannerMetaPill(
-                    Icons.menu_book_rounded,
-                    session.subject,
-                  ),
-                  _plannerMetaPill(
-                    Icons.schedule_rounded,
-                    _formatStudyTime(session.startMinutes),
-                  ),
-                  _plannerMetaPill(
-                    Icons.timelapse_rounded,
-                    '${session.durationMinutes} دقیقه',
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 7),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GlassIconButton(
-                  icon: Icon(Icons.edit_outlined, color: accent),
-                  onPressed: () => editStudySession(session),
-                  size: 36,
-                  shape: GlassIconButtonShape.roundedSquare,
-                  quality: GlassQuality.standard,
-                  semanticLabel: 'ویرایش جلسه',
-                ),
-                const SizedBox(width: 6),
-                GlassIconButton(
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  onPressed: () async {
-                    final confirmed = await _confirmGlass(
-                      title: 'حذف جلسه مطالعه',
-                      message: 'جلسه «${session.title}» حذف شود؟',
-                      confirmLabel: 'حذف',
-                      destructive: true,
-                    );
-                    if (!confirmed || !mounted) return;
-                    setState(() => _plannerController.removeById(studySessions, session.id));
-                    await save(sections: {'studySessions'});
-                  },
-                  size: 36,
-                  shape: GlassIconButtonShape.roundedSquare,
-                  quality: GlassQuality.standard,
-                  semanticLabel: 'حذف جلسه',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
+  Widget studySessionTile(StudySession session) => StudySessionTile(
+    session: session,
+    onToggle: () async {
+      setState(() => _plannerController.toggleCompletion(studySessions, session.id));
+      await save(sections: {'studySessions'});
+    },
+    onEdit: () => editStudySession(session),
+    onDelete: () async {
+      final confirmed = await _confirmGlass(
+        title: 'حذف جلسه مطالعه',
+        message: 'جلسه «${session.title}» حذف شود؟',
+        confirmLabel: 'حذف',
+        destructive: true,
+      );
+      if (!confirmed || !mounted) return;
+      setState(() => _plannerController.removeById(studySessions, session.id));
+      await save(sections: {'studySessions'});
+    },
   );
-
-  Widget _plannerMetaPill(IconData icon, String label) => Container(
-    constraints: const BoxConstraints(maxWidth: 190),
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
-        alpha: Theme.of(context).brightness == Brightness.dark ? 0.48 : 0.72,
-      ),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(
-        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.42),
-      ),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 13, color: accent),
-        const SizedBox(width: 5),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  String _formatStudyTime(int minutes) =>
-      '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
 
   Widget summary(String label, int? value, IconData icon) => _glassSurface(
     radius: 19,
@@ -945,100 +800,24 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
   );
 
-  Widget taskTile(StudyTask task) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: _glassSurface(
-      radius: 21,
-      tint: task.done ? accent.withValues(alpha: 0.07) : null,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 9),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                GlassIconButton(
-                  icon: Icon(
-                    task.done ? Icons.check_circle_rounded : Icons.circle_outlined,
-                    color: task.done
-                        ? accent
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  onPressed: () async {
-                    setState(() => _taskController.toggleCompletion(task));
-                    await save(sections: {'tasks'});
-                  },
-                  size: 38,
-                  shape: GlassIconButtonShape.circle,
-                  quality: GlassQuality.standard,
-                  semanticLabel: task.done
-                      ? 'علامت‌گذاری وظیفه به‌عنوان انجام‌نشده'
-                      : 'علامت‌گذاری وظیفه به‌عنوان انجام‌شده',
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        task.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          height: 1.35,
-                          color: Theme.of(context).colorScheme.onSurface,
-                          decoration: task.done ? TextDecoration.lineThrough : null,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      _plannerMetaPill(Icons.menu_book_rounded, task.subject),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                GlassIconButton(
-                  icon: Icon(Icons.edit_outlined, color: accent),
-                  onPressed: () => addTask(task),
-                  size: 36,
-                  shape: GlassIconButtonShape.roundedSquare,
-                  quality: GlassQuality.standard,
-                  semanticLabel: 'ویرایش وظیفه',
-                ),
-                const SizedBox(width: 6),
-                GlassIconButton(
-                  icon: Icon(
-                    Icons.delete_outline_rounded,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  onPressed: () async {
-                    final confirmed = await _confirmGlass(
-                      title: 'حذف وظیفه',
-                      message: 'وظیفه «${task.title}» حذف شود؟',
-                      confirmLabel: 'حذف',
-                      destructive: true,
-                    );
-                    if (!confirmed || !mounted) return;
-                    setState(() => _taskController.removeById(tasks, task.id));
-                    await save(sections: {'tasks'});
-                  },
-                  size: 36,
-                  shape: GlassIconButtonShape.roundedSquare,
-                  quality: GlassQuality.standard,
-                  semanticLabel: 'حذف وظیفه',
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
+  Widget taskTile(StudyTask task) => StudyTaskTile(
+    task: task,
+    onToggle: () async {
+      setState(() => _taskController.toggleCompletion(task));
+      await save(sections: {'tasks'});
+    },
+    onEdit: () => addTask(task),
+    onDelete: () async {
+      final confirmed = await _confirmGlass(
+        title: 'حذف وظیفه',
+        message: 'وظیفه «${task.title}» حذف شود؟',
+        confirmLabel: 'حذف',
+        destructive: true,
+      );
+      if (!confirmed || !mounted) return;
+      setState(() => _taskController.removeById(tasks, task.id));
+      await save(sections: {'tasks'});
+    },
   );
 
   Widget _examPage() => ExamPage(
