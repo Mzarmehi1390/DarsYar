@@ -4298,32 +4298,44 @@ class _ExamSetupPanelState extends State<_ExamSetupPanel> {
                       child: const Text('ورود کلید'),
                     )]),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => setState(() => _negativeMarking = !_negativeMarking),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
                   children: [
-                    Text('محاسبه با نمره منفی', style: TextStyle(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 3),
-                    Text(
-                      'هر سه پاسخ غلط، معادل یک پاسخ درست کسر می‌شود.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('محاسبه با نمره منفی', style: TextStyle(fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 3),
+                          Text(
+                            'هر سه پاسخ غلط، معادل یک پاسخ درست کسر می‌شود.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IgnorePointer(
+                      child: GlassSwitch(
+                        value: _negativeMarking,
+                        activeColor: accent,
+                        semanticLabel: 'محاسبه با نمره منفی',
+                        quality: GlassQuality.standard,
+                        onChanged: (value) => setState(() => _negativeMarking = value),
                       ),
                     ),
                   ],
                 ),
               ),
-              GlassSwitch(
-                value: _negativeMarking,
-                activeColor: accent,
-                semanticLabel: 'محاسبه با نمره منفی',
-                quality: GlassQuality.standard,
-                onChanged: (value) => setState(() => _negativeMarking = value),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 14),
           SizedBox(
