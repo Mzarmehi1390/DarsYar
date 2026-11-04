@@ -9,6 +9,7 @@ import '../design_system/glass_surface.dart';
 import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
+import '../design_system/glass_tokens.dart';
 import '../design_system/modal_content.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
@@ -538,7 +539,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       quality: GlassQuality.standard,
       barrierDismissible: false,
       reduceMotion: !widget.animationsEnabled,
-      barrierColor: Colors.black.withValues(alpha: 0.30),
+      barrierColor: DarsYarGlassTokens.dialogBarrierColor,
       actions: [
         GlassDialogAction(
           label: cancelLabel,
@@ -567,7 +568,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         maxWidth: 360,
         quality: GlassQuality.standard,
         reduceMotion: !widget.animationsEnabled,
-        barrierColor: Colors.black.withValues(alpha: 0.30),
+        barrierColor: DarsYarGlassTokens.dialogBarrierColor,
         content: DarsYarModalContent(
           child: GlassFormField(
             label: 'نام آزمون',
@@ -611,7 +612,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         maxWidth: 360,
         quality: GlassQuality.standard,
         reduceMotion: !widget.animationsEnabled,
-        barrierColor: Colors.black.withValues(alpha: 0.30),
+        barrierColor: DarsYarGlassTokens.dialogBarrierColor,
         content: DarsYarModalContent(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -691,7 +692,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       fillThreshold: 1.0,
       maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
-      barrierColor: Colors.transparent,
+      barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
   }
 
@@ -2251,7 +2252,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       maxWidth: 360,
       quality: GlassQuality.standard,
       reduceMotion: !widget.animationsEnabled,
-      barrierColor: Colors.black.withValues(alpha: 0.30),
+      barrierColor: DarsYarGlassTokens.dialogBarrierColor,
       content: DarsYarModalContent(
         child: StatefulBuilder(
           builder: (dialogContext, dialogSet) => Column(
@@ -2413,7 +2414,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       fillThreshold: 1.0,
       maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-      barrierColor: Colors.transparent,
+      barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
@@ -2566,7 +2567,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       fullSize: 0.90,
       quality: GlassQuality.standard,
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
-      barrierColor: Colors.black.withValues(alpha: 0.32),
+      barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
     if (result == null || !mounted) return;
     setState(() {
