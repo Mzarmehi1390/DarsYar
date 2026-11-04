@@ -501,7 +501,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             controller: controller,
             placeholder: isRename ? 'نام جدید آزمون' : 'مثلاً آزمون ریاضی فصل اول',
             maxLength: 60,
-            autofocus: true,
+            // Avoid opening the keyboard during the glass dialog entrance;
+            // focus remains available on the first tap and the sheet stays stable.
+            autofocus: false,
             textInputAction: TextInputAction.done,
           ),
         ),
