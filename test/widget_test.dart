@@ -1287,8 +1287,8 @@ void main() {
 
     await tester.enterText(find.byType(GlassTextField).last, backup);
     final reviewButton = find.text('بررسی نسخه');
-    await tester.ensureVisible(reviewButton);
-    await tester.pumpAndSettle();
+    expect(tester.getRect(reviewButton).bottom,
+        lessThan(tester.view.physicalSize.height));
     await tester.tap(reviewButton);
     await tester.pumpAndSettle();
     final confirmRestore = find.text('بازیابی').last;
@@ -1596,6 +1596,10 @@ void main() {
     expect(find.byType(SingleChildScrollView), findsWidgets);
     expect(find.text('جلسه مطالعه جدید'), findsOneWidget);
     expect(find.byType(Scrollable), findsWidgets);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(find.text('افزودن'), findsOneWidget);
+    expect(tester.getRect(find.text('افزودن')).bottom,
+        lessThan(tester.view.physicalSize.height));
     expect(tester.takeException(), isNull);
   });
 
@@ -1634,6 +1638,27 @@ void main() {
       field.controller!.selection,
       const TextSelection(baseOffset: 0, extentOffset: 1),
     );
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('exam duration sheet keeps save actions visible outside its scroll area', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تغییر زمان'));
+    await tester.pumpAndSettle();
+
+    final save = find.text('ذخیره زمان');
+    expect(save, findsOneWidget);
+    expect(tester.getRect(save).bottom,
+        lessThan(tester.view.physicalSize.height));
+    expect(find.text('انصراف'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
