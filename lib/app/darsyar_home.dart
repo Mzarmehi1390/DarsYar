@@ -11,6 +11,7 @@ import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/modal_content.dart';
 import '../features/exams/application/exam_timer_controller.dart';
+import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/exam_setup_widgets.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
@@ -80,6 +81,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   String activeExamId = 'default';
 
   final ExamTimerController _examTimerController = ExamTimerController();
+  final ExamController _examController = ExamController();
   int examSection = 0;
   bool isTakingExam = false;
   int currentQuestionNumber = 1;
@@ -2341,34 +2343,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     _beginExam(exam);
   }
 
-  ExamResult _recalculateResult(ExamResult result, Map<int, int> key) {
-    final score = calculateAnswerScore(
-      answers: result.answers,
-      answerKey: key,
-      questionCount: result.questionCount,
-      negativeMarking: result.negativeMarking,
-    );
-    return result.copyWith(
-      correct: score.correct,
-      wrong: score.wrong,
-      unanswered: score.unanswered,
-      keyedQuestions: score.keyedQuestions,
-      percentage: score.percentage,
-      clearPercentage: score.percentage == null,
-      answerKey: Map<int, int>.from(key),
-    );
-  }
-
-  void _syncExamResults(ExamSheet exam) {
-    for (var i = 0; i < results.length; i++) {
-      final result = results[i];
-      if (result.examId == exam.id ||
-          (result.examId == null && result.examName == exam.name)) {
-        results[i] = _recalculateResult(result, exam.answerKey);
-      }
-    }
-  }
-
   Future<void> editResultAnswerKey(ExamResult result) async {
     final updatedKey = await _showAnswerKeyEditor(
       title: 'کلید پاسخ: ${result.examName}',
@@ -2395,9 +2369,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         linkedExam.answerKey
           ..clear()
           ..addAll(updatedKey);
-        _syncExamResults(linkedExam);
+        _examController.syncResults(results: results, exam: linkedExam);
       } else {
-        results[index] = _recalculateResult(result, updatedKey);
+        results[index] = _examController.recalculateResult(result, updatedKey);
       }
     });
     await save(sections: {'exams', 'results'});
