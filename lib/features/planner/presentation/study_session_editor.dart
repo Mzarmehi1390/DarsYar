@@ -59,7 +59,11 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
+  Widget build(BuildContext context) {
+    final scrollData = ScrollControllerProvider.of(context);
+    return SingleChildScrollView(
+    controller: scrollData?.controller,
+    physics: scrollData?.physics,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -254,6 +258,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
       ],
     ),
   );
+  }
 
   String _formatTime(int minutes) =>
       '${(minutes ~/ 60).toString().padLeft(2, '0')}:${(minutes % 60).toString().padLeft(2, '0')}';
