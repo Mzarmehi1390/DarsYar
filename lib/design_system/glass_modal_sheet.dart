@@ -39,6 +39,8 @@ Future<T?> showDarsYarGlassSheet<T>({
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
     maintainContentGlass: maintainContentGlass,
+    // Avoid repainting/pulsing the entire large form on every child tap.
+    enableSaturationGlow: DarsYarGlassTokens.enableSheetSaturationGlow,
     // Complex forms should not make the entire sheet wobble on every tap.
     suppressInteractionOnChildren: true,
     // Respect the app's Reduce Motion setting for sheets as well as dialogs
