@@ -79,7 +79,10 @@ class DarsYarModalContent extends StatelessWidget {
               ),
               actionTextStyle: TextStyle(
                 color: scheme.primary,
+                fontFamily: theme.textTheme.labelLarge?.fontFamily,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
+                height: 1.2,
               ),
             ),
           ),
@@ -91,6 +94,9 @@ class DarsYarModalContent extends StatelessWidget {
             child: DefaultTextStyle.merge(
               style: TextStyle(
                 color: scheme.onSurface,
+                fontFamily: theme.textTheme.bodyMedium?.fontFamily,
+                fontSize: 14,
+                height: 1.4,
                 decoration: TextDecoration.none,
                 decorationColor: Colors.transparent,
               ),
