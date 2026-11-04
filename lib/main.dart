@@ -528,24 +528,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               : AnimatedSwitcher(
                   duration: !widget.animationsEnabled ||
                           MediaQuery.of(context).disableAnimations
-                      ? const Duration(milliseconds: 120)
-                      : const Duration(milliseconds: 190),
+                      ? const Duration(milliseconds: 105)
+                      : const Duration(milliseconds: 150),
                   switchInCurve: Curves.easeOutCubic,
                   switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    final fade = FadeTransition(opacity: animation, child: child);
-                    if (!widget.animationsEnabled ||
-                        MediaQuery.of(context).disableAnimations) {
-                      return fade;
-                    }
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.018),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: fade,
-                    );
-                  },
+                  transitionBuilder: (child, animation) =>
+                      FadeTransition(opacity: animation, child: child),
                   child: KeyedSubtree(
                     key: ValueKey<int>(tab),
                     child: page,
