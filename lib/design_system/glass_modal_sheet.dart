@@ -21,6 +21,7 @@ Future<T?> showDarsYarGlassSheet<T>({
   EdgeInsetsGeometry? padding,
   Color barrierColor = DarsYarGlassTokens.sheetBarrierColor,
 }) {
+  final reduceMotion = MediaQuery.of(context).disableAnimations;
   return GlassModalSheet.show<T>(
     context: context,
     // Every sheet gets the same RTL, typography and Cupertino contrast contract.
@@ -39,13 +40,15 @@ Future<T?> showDarsYarGlassSheet<T>({
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
     maintainContentGlass: maintainContentGlass,
+    // Keep touch refraction in normal mode; remove the moving glare in lite mode.
+    enableInteractionGlow: !reduceMotion,
     // Avoid repainting/pulsing the entire large form on every child tap.
     enableSaturationGlow: DarsYarGlassTokens.enableSheetSaturationGlow,
     // Complex forms should not make the entire sheet wobble on every tap.
     suppressInteractionOnChildren: true,
     // Respect the app's Reduce Motion setting for sheets as well as dialogs
     // and page transitions; do not compensate by making motion faster.
-    sheetAnimationStyle: MediaQuery.of(context).disableAnimations
+    sheetAnimationStyle: reduceMotion
         ? AnimationStyle.noAnimation
         : const AnimationStyle(
             duration: Duration(milliseconds: 240),
