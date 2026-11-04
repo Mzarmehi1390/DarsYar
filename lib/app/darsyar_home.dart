@@ -10,6 +10,7 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
+import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
@@ -310,95 +311,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         // paint layer. Frequent page-state updates (including exam timer
         // ticks) should repaint the active content without repainting these
         // static glass-atmosphere layers.
-        background: RepaintBoundary(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  colors: isDark
-                      ? const [
-                          Color(0xFF101D30),
-                          Color(0xFF0A1321),
-                          Color(0xFF1A2034),
-                        ]
-                      : const [
-                          Color(0xFFF5F8FD),
-                          Color(0xFFE8F0F8),
-                          Color(0xFFF0ECF8),
-                        ],
-                ),
-              ),
-            ),
-            Positioned(
-              top: -150,
-              right: -125,
-              child: IgnorePointer(
-                child: Container(
-                  width: 330,
-                  height: 330,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        accent.withValues(alpha: isDark ? 0.22 : 0.16),
-                        accent.withValues(alpha: 0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -175,
-              left: -135,
-              child: IgnorePointer(
-                child: Container(
-                  width: 370,
-                  height: 370,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        (isDark
-                                ? const Color(0xFF4F8EB8)
-                                : const Color(0xFF8EBBE8))
-                            .withValues(alpha: isDark ? 0.16 : 0.20),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              top: 250,
-              left: -150,
-              child: IgnorePointer(
-                child: Container(
-                  width: 300,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        (isDark
-                                ? const Color(0xFF6673C8)
-                                : const Color(0xFFB8A8EE))
-                            .withValues(alpha: isDark ? 0.13 : 0.19),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              ),
-            ],
-          ),
-        ),
+        background: GlassAmbientBackground(isDark: isDark),
         body: SafeArea(
           bottom: false,
           child: loading
