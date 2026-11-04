@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'glass_tokens.dart';
+import 'modal_content.dart';
 
 /// Shared presentation defaults for DarsYar modal sheets.
 ///
@@ -22,7 +23,10 @@ Future<T?> showDarsYarGlassSheet<T>({
 }) {
   return GlassModalSheet.show<T>(
     context: context,
-    builder: builder,
+    // Every sheet gets the same RTL, typography and Cupertino contrast contract.
+    // Call sites may still wrap specialized content without changing behaviour.
+    builder: (sheetContext) =>
+        DarsYarModalContent(child: builder(sheetContext)),
     // GlassSheetDetent.large is intentionally opaque in liquid_glass_widgets.
     // Use a tall medium detent instead so editors remain refractive at rest.
     initialState: initialState == GlassSheetState.full
