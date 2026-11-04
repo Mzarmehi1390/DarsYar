@@ -19,9 +19,14 @@ Future<(String, String)?> showTaskDetailsDialog({
       maxWidth: 360,
       quality: GlassQuality.standard,
       reduceMotion: reduceMotion,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.55,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           GlassFormField(
             label: 'عنوان وظیفه',
             child: GlassTextField(
@@ -45,7 +50,9 @@ Future<(String, String)?> showTaskDetailsDialog({
               textInputAction: TextInputAction.done,
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
       actions: [
         GlassDialogAction(
