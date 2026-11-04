@@ -78,7 +78,8 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _titleController,
-            autofocus: widget.existing == null,
+            // Let the glass sheet settle before the keyboard changes its viewport.
+            autofocus: false,
             placeholder: 'مثلاً حل تمرین فصل اول',
             quality: GlassQuality.standard,
             textInputAction: TextInputAction.next,
