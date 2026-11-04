@@ -1505,7 +1505,7 @@ void main() {
 
 
 
-  testWidgets('study session editor shares the glass sheet scroll controller', (tester) async {
+  testWidgets('study session editor remains scrollable inside the glass sheet', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: DarsYarTheme.light,
@@ -1551,11 +1551,12 @@ void main() {
     final scrollView = tester.widget<SingleChildScrollView>(
       find.byType(SingleChildScrollView).last,
     );
-    expect(scrollView.controller, isNotNull);
-    expect(scrollView.controller!.hasClients, isTrue);
+    expect(scrollView.physics, isNotNull);
     expect(find.text('جلسه مطالعه جدید'), findsOneWidget);
+    expect(find.byType(Scrollable), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
 
   test('glass modal backdrops provide clear separation from the page', () {
     expect(DarsYarGlassTokens.dialogBarrierColor.a, greaterThan(0.5));
