@@ -47,7 +47,8 @@ class PlannerPage extends StatelessWidget {
   final VoidCallback onAddTask;
   final ValueChanged<int> onCopySelectedDayTo;
 
-Widget planner() {
+@override
+  Widget build(BuildContext context) {
     final plannerSummary = PlannerSummary.fromSessions(sessions);
     final daySessions = plannerSummary.sessionsForDay(selectedDay);
     final completedSessions = plannerSummary.completedSessionCount;
