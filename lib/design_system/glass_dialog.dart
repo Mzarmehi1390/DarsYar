@@ -23,6 +23,13 @@ Future<T?> showDarsYarGlassDialog<T>({
   double maxWidth = 280,
 }) {
   final liteMotion = reduceMotion || MediaQuery.of(context).disableAnimations;
+  // showGeneralDialog does not capture inherited themes like showDialog does.
+  // Capture them explicitly so Material/Cupertino brightness, colors and text
+  // styles remain identical inside the root-navigator overlay.
+  final capturedThemes = InheritedTheme.capture(
+    from: context,
+    to: Navigator.of(context, rootNavigator: true).context,
+  );
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
@@ -30,8 +37,9 @@ Future<T?> showDarsYarGlassDialog<T>({
     barrierColor: barrierColor,
     transitionDuration: DarsYarGlassTokens.modalTransitionDuration,
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
-      return SafeArea(
-        child: DarsYarModalContent(
+      return capturedThemes.wrap(
+        SafeArea(
+          child: DarsYarModalContent(
           child: GlassDialog(
             title: title,
             message: message,
@@ -40,6 +48,7 @@ Future<T?> showDarsYarGlassDialog<T>({
             settings: settings,
             quality: quality,
             maxWidth: maxWidth,
+            ),
           ),
         ),
       );
