@@ -9,6 +9,7 @@ import '../../../design_system/modal_content.dart';
 
 class AnswerKeyEditorSheet extends StatefulWidget {
   const AnswerKeyEditorSheet({
+    super.key,
     required this.title,
     required this.questionCount,
     required this.initialAnswers,
@@ -189,7 +190,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
 
 
 class ExamSetupPanel extends StatefulWidget {
-  const ExamSetupPanel({required this.onCreate, required this.onMessage});
+  const ExamSetupPanel({super.key, required this.onCreate, required this.onMessage});
   final void Function(String, int, int, bool, Map<int, int>) onCreate;
   final ValueChanged<String> onMessage;
 
@@ -468,7 +469,7 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
 
 
 class ExamDurationDialog extends StatefulWidget {
-  const ExamDurationDialog({required this.initialDuration, required this.onMessage});
+  const ExamDurationDialog({super.key, required this.initialDuration, required this.onMessage});
 
   final Duration initialDuration;
   final ValueChanged<String> onMessage;
