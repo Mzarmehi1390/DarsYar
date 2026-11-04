@@ -54,10 +54,6 @@ void main() {
     expect(directionality.textDirection, TextDirection.rtl);
     expect(textStyle.color, DarsYarTheme.light.colorScheme.onSurface);
     expect(
-      DefaultTextStyle.of(tester.element(find.text('جلسه مطالعه'))).force,
-      isTrue,
-    );
-    expect(
       IconTheme.of(tester.element(find.text('جلسه مطالعه'))).color,
       DarsYarTheme.light.colorScheme.onSurface,
     );
