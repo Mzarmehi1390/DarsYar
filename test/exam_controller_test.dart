@@ -31,6 +31,38 @@ void main() {
     );
   }
 
+
+  test('creates a result snapshot with calculated score and copied maps', () {
+    final exam = ExamSheet(
+      id: 'exam-create',
+      name: 'آزمون آزمایشی',
+      questionCount: 4,
+      durationSeconds: 600,
+      negativeMarking: true,
+      answers: {1: 0, 2: 1, 3: 2},
+      answerKey: {1: 0, 2: 2, 3: 1, 4: 3},
+    );
+    final completedAt = DateTime.utc(2026, 11, 4, 10);
+    final created = controller.createResult(
+      exam: exam,
+      id: 'result-created',
+      completedAt: completedAt,
+    );
+
+    expect(created.id, 'result-created');
+    expect(created.examId, exam.id);
+    expect(created.examName, exam.name);
+    expect(created.completedAt, completedAt.toIso8601String());
+    expect(created.correct, 1);
+    expect(created.wrong, 2);
+    expect(created.unanswered, 1);
+    expect(created.negativeMarking, isTrue);
+    expect(created.answers, exam.answers);
+    expect(created.answerKey, exam.answerKey);
+    expect(identical(created.answers, exam.answers), isFalse);
+    expect(identical(created.answerKey, exam.answerKey), isFalse);
+  });
+
   test('recalculates score and stores the revised answer key', () {
     final updated = controller.recalculateResult(
       result(negativeMarking: true),
