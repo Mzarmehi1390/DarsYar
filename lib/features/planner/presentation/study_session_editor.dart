@@ -75,7 +75,8 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
         Text(
           widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 20,
+            height: 1.25,
             fontWeight: FontWeight.w800,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -107,35 +108,70 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           'روز هفته',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            height: 1.3,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 8),
         ValueListenableBuilder<int>(
           valueListenable: _weekday,
           builder: (context, weekday, _) => SizedBox(
-            width: double.infinity,
-            child: GlassSegmentedControl.scrollable(
-              segments: [
-                for (final day in weekDayOrder)
-                  GlassSegment(
-                    label: widget.weekDays[day],
-                    semanticLabel: widget.weekDays[day],
-                  ),
-              ],
-              selectedIndex: weekDayOrder.indexOf(weekday),
-              onSegmentSelected: (index) => _weekday.value = weekDayOrder[index],
-              height: 44,
-              quality: GlassQuality.standard,
-              selectedTextStyle: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-              ),
-              unselectedTextStyle: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
+            height: 48,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final day in weekDayOrder)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 9),
+                      child: Tooltip(
+                        message: widget.weekDays[day],
+                        child: Semantics(
+                          button: true,
+                          selected: weekday == day,
+                          label: widget.weekDays[day],
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              key: ValueKey<String>('study-session-day-$day'),
+                              customBorder: const CircleBorder(),
+                              onTap: () => _weekday.value = day,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                curve: Curves.easeOutCubic,
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: weekday == day
+                                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
+                                      : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+                                  border: Border.all(
+                                    color: weekday == day
+                                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)
+                                        : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.62),
+                                    width: weekday == day ? 1.4 : 0.8,
+                                  ),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  widget.weekDays[day].substring(0, 1),
+                                  style: TextStyle(
+                                    color: weekday == day
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurface,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -145,7 +181,9 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           'ساعت شروع',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            height: 1.3,
+            fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 8),
@@ -248,32 +286,38 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           ),
         ),
         const SizedBox(height: 22),
-        Row(
-          children: [
-            Expanded(
-              child: GlassButton.custom(
-                height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                quality: GlassQuality.standard,
-                onTap: () => Navigator.of(context).pop(),
-                child: const Text('انصراف'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: GlassButton.custom(
-                height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-                quality: GlassQuality.standard,
-                style: GlassButtonStyle.filled,
-                onTap: _submit,
-                child: Text(
-                  widget.existing == null ? 'افزودن' : 'ذخیره تغییرات',
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GlassButton.custom(
+                    height: 48,
+                    shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                    quality: GlassQuality.standard,
+                    onTap: () => Navigator.of(context).pop(),
+                    child: const Text('انصراف'),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: GlassButton.custom(
+                    height: 48,
+                    shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                    quality: GlassQuality.standard,
+                    style: GlassButtonStyle.filled,
+                    onTap: _submit,
+                    child: Text(
+                      widget.existing == null ? 'افزودن' : 'ذخیره تغییرات',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     ),
