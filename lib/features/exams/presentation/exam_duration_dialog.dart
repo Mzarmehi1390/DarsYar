@@ -214,9 +214,9 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
                 quality: GlassQuality.standard,
                 style: GlassButtonStyle.filled,
                 onTap: _submit,
-                child: const Text(
-                  'ذخیره زمان',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                child: const DarsYarModalButtonLabel(
+                  primary: true,
+                  child: Text('ذخیره زمان'),
                 ),
               ),
             ),
