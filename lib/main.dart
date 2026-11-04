@@ -1315,7 +1315,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         ),
       ),
       SizedBox(height: 16),
-      weeklyReportCard(),
+      weeklyReportCard(summary: plannerSummary),
       SizedBox(height: 20),
       Wrap(
         alignment: WrapAlignment.spaceBetween,
@@ -1393,8 +1393,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ]);
   }
 
-  Widget weeklyReportCard() {
-    final summary = PlannerSummary.fromSessions(studySessions);
+  Widget weeklyReportCard({required PlannerSummary summary}) {
     final plannedMinutes = summary.plannedMinutes;
     final completedMinutes = summary.completedMinutes;
     final completion = summary.completion;
