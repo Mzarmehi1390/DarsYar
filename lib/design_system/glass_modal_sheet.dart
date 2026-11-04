@@ -6,8 +6,8 @@ import 'modal_content.dart';
 
 /// Shared presentation defaults for DarsYar modal sheets.
 ///
-/// The package intentionally renders its large detent as opaque. DarsYar uses
-/// a tall medium detent instead, preserving the refractive glass surface.
+/// Both medium and large detents stay refractive. The explicit full-state
+/// material overrides the package's default opaque fill at the large detent.
 Future<T?> showDarsYarGlassSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -39,9 +39,10 @@ Future<T?> showDarsYarGlassSheet<T>({
   final themedGlassBase = isDark
       ? LiquidGlassSettings.ios27Dark
       : LiquidGlassSettings.ios27Light;
+  final themedSettings = GlassThemeData.of(context).settingsFor(context);
   final resolvedFullSettings = fullSettings ??
       settings ??
-      GlassThemeData.of(context).settingsFor(context)?.applyTo(themedGlassBase) ??
+      themedSettings?.applyTo(themedGlassBase) ??
       themedGlassBase;
 
   return GlassModalSheet.show<T>(
