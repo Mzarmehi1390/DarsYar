@@ -39,6 +39,8 @@ Future<T?> showDarsYarGlassSheet<T>({
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
     maintainContentGlass: maintainContentGlass,
+    // Complex forms should not make the entire sheet wobble on every tap.
+    suppressInteractionOnChildren: true,
     // Respect the app's Reduce Motion setting for sheets as well as dialogs
     // and page transitions; do not compensate by making motion faster.
     sheetAnimationStyle: MediaQuery.of(context).disableAnimations
