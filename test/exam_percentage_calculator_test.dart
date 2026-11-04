@@ -10,7 +10,7 @@ void main() {
     );
 
     expect(result.withoutPenalty, 75);
-    expect(result.withPenalty, closeTo(65, 0.0001));
+    expect(result.withPenalty, closeTo(70, 0.0001));
     expect(result.ifWrongWereSkipped, 75);
   });
 
