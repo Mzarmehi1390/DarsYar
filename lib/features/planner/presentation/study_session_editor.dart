@@ -7,86 +7,6 @@ import '../../../design_system/glass_modal_sheet.dart';
 import '../../../design_system/modal_content.dart';
 import '../../../study_session.dart';
 
-class TimePickerSheet extends StatefulWidget {
-  const TimePickerSheet({super.key, required this.initialTime});
-
-  final TimeOfDay initialTime;
-
-  @override
-  State<TimePickerSheet> createState() => TimePickerSheetState();
-}
-
-class TimePickerSheetState extends State<TimePickerSheet> {
-  late DateTime _selected;
-
-  @override
-  void initState() {
-    super.initState();
-    _selected = DateTime(
-      2026,
-      1,
-      1,
-      widget.initialTime.hour,
-      widget.initialTime.minute,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        'انتخاب ساعت شروع',
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface,
-          fontSize: 19,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      const SizedBox(height: 10),
-      SizedBox(
-        height: 178,
-        child: CupertinoDatePicker(
-          mode: CupertinoDatePickerMode.time,
-          initialDateTime: _selected,
-          use24hFormat: true,
-          onDateTimeChanged: (value) => setState(() => _selected = value),
-        ),
-      ),
-      const SizedBox(height: 12),
-      Row(
-        children: [
-          Expanded(
-            child: GlassButton.custom(
-              height: 46,
-              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-              quality: GlassQuality.standard,
-              onTap: () => Navigator.of(context).pop(),
-              child: const Text('انصراف'),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: GlassButton.custom(
-              height: 46,
-              shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-              quality: GlassQuality.standard,
-              style: GlassButtonStyle.filled,
-              onTap: () => Navigator.of(context).pop(
-                TimeOfDay(hour: _selected.hour, minute: _selected.minute),
-              ),
-              child: const Text(
-                'انتخاب',
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
     super.key,
@@ -113,6 +33,8 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
   late final TextEditingController _subjectController;
   late int _weekday;
   late int _startMinutes;
+  late DateTime _selectedTime;
+  bool _showTimePicker = false;
   late int _durationMinutes;
   late final TextEditingController _durationController;
   String? _lastError;
@@ -125,6 +47,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
     _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
     _weekday = widget.existing?.weekday ?? widget.initialWeekday;
     _startMinutes = widget.existing?.startMinutes ?? 16 * 60;
+    _selectedTime = DateTime(2026, 1, 1, _startMinutes ~/ 60, _startMinutes % 60);
     _durationMinutes = widget.existing?.durationMinutes ?? 55;
     _durationController = TextEditingController(text: _durationMinutes.toString());
   }
@@ -221,39 +144,68 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           height: 50,
           shape: const LiquidRoundedSuperellipse(borderRadius: 16),
           quality: GlassQuality.standard,
-          onTap: () async {
-            final picked = await showDarsYarGlassSheet<TimeOfDay>(
-              context: context,
-              builder: (_) => DarsYarModalContent(
-                child: TimePickerSheet(
-                  initialTime: TimeOfDay(
-                    hour: _startMinutes ~/ 60,
-                    minute: _startMinutes % 60,
-                  ),
-                ),
-              ),
-              initialState: GlassSheetState.half,
-              halfSize: 0.54,
-              fullSize: 0.64,
-              quality: GlassQuality.standard,
-              fillThreshold: 1.0,
-              maintainContentGlass: true,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              barrierColor: Colors.transparent,
-            );
-            if (picked != null && mounted) {
-              setState(() => _startMinutes = picked.hour * 60 + picked.minute);
-            }
-          },
+          onTap: () => setState(() => _showTimePicker = !_showTimePicker),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.schedule_rounded, size: 19),
               const SizedBox(width: 10),
               Text(_formatTime(_startMinutes)),
+              const SizedBox(width: 8),
+              Icon(
+                _showTimePicker ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                size: 18,
+              ),
             ],
           ),
         ),
+        if (_showTimePicker) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.42),
+              ),
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 178,
+                  child: CupertinoTheme(
+                    data: CupertinoThemeData(
+                      brightness: Theme.of(context).brightness,
+                      primaryColor: Theme.of(context).colorScheme.primary,
+                    ),
+                    child: CupertinoDatePicker(
+                      mode: CupertinoDatePickerMode.time,
+                      initialDateTime: _selectedTime,
+                      use24hFormat: true,
+                      onDateTimeChanged: (value) => setState(() => _selectedTime = value),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: GlassButton.custom(
+                    height: 40,
+                    shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                    quality: GlassQuality.standard,
+                    style: GlassButtonStyle.filled,
+                    onTap: () => setState(() {
+                      _startMinutes = _selectedTime.hour * 60 + _selectedTime.minute;
+                      _showTimePicker = false;
+                    }),
+                    child: const Text('اعمال ساعت انتخاب‌شده'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         GlassFormField(
           label: 'مدت جلسه (دقیقه)',
