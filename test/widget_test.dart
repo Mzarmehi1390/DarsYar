@@ -17,7 +17,7 @@ import 'package:dars_yar/app/darsyar_home.dart';
 import 'package:dars_yar/models/study_task.dart';
 import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
 import 'package:dars_yar/features/planner/presentation/task_details_dialog.dart';
-import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';
+import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';\nimport 'package:dars_yar/features/settings/presentation/backup_import_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +71,50 @@ void main() {
       CupertinoTheme.of(tester.element(find.text('جلسه مطالعه'))).brightness,
       Brightness.light,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('modal action labels enforce readable shared typography', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarModalContent(
+            child: DarsYarModalButtonLabel(
+              primary: true,
+              child: Text('ذخیره'),
+            ),
+          ),
+        ),
+      ),
+    );
+    final style = DefaultTextStyle.of(tester.element(find.text('ذخیره'))).style;
+    expect(style.color, DarsYarTheme.light.colorScheme.onPrimary);
+    expect(style.fontSize, 14);
+    expect(style.fontWeight, FontWeight.w700);
+    expect(style.fontFamily, DarsYarTheme.light.textTheme.labelLarge?.fontFamily);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('backup restore sheet keeps explanatory copy compact and actions legible', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: Padding(
+            padding: EdgeInsets.all(20),
+            child: DarsYarModalContent(child: BackupImportDialog()),
+          ),
+        ),
+      ),
+    );
+    final description = tester.widget<Text>(
+      find.text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
+    );
+    expect(description.style?.fontSize, 13);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(find.text('بررسی نسخه'), findsOneWidget);
+    expect(find.byType(DarsYarModalButtonLabel), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });
 
