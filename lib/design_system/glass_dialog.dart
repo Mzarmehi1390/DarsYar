@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'modal_content.dart';
+import 'glass_tokens.dart';
 
 /// Shows the package's glass dialog with a DarsYar-owned modal barrier.
 ///
@@ -15,9 +16,9 @@ Future<T?> showDarsYarGlassDialog<T>({
   String? message,
   Widget? content,
   LiquidGlassSettings? settings,
-  GlassQuality quality = GlassQuality.standard,
+  GlassQuality quality = DarsYarGlassTokens.quality,
   bool barrierDismissible = false,
-  Color barrierColor = const Color(0x4D000000),
+  Color barrierColor = DarsYarGlassTokens.dialogBarrierColor,
   double maxWidth = 280,
 }) {
   final liteMotion = MediaQuery.of(context).disableAnimations;
@@ -26,7 +27,7 @@ Future<T?> showDarsYarGlassDialog<T>({
     barrierDismissible: barrierDismissible,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: barrierColor,
-    transitionDuration: const Duration(milliseconds: 220),
+    transitionDuration: DarsYarGlassTokens.modalTransitionDuration,
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
       return SafeArea(
         child: DarsYarModalContent(
