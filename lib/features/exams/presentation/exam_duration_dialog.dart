@@ -79,7 +79,6 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
               LengthLimitingTextInputFormatter(2),
             ],
             maxLength: 2,
-            quality: GlassQuality.standard,
             onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.next,
           ),
