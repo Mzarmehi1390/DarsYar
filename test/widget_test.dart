@@ -134,11 +134,16 @@ void main() {
       find.byKey(const PageStorageKey<String>('planner-scroll')),
     );
     expect(planner.slivers, isNotEmpty);
-    expect(
-      planner.slivers.whereType<SliverList>().length,
-      greaterThanOrEqualTo(2),
-    );
     expect(DarsYarTokens.pageBottomClearance, 152);
+    expect(
+      find.descendant(
+        of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is SizedBox && widget.height == 152,
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -503,13 +508,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
 
-    final plannerList = find.byType(ListView).first;
+    final plannerScroll = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    ).first;
 
-    // ListView builds children lazily, so scroll until the target has been
-    // built before trying to locate/tap it.
+    // The planner uses slivers; scroll its own viewport until lazy content
+    // has been built before trying to locate or tap it.
     Future<void> revealByScrolling(Finder target) async {
       for (var attempt = 0; attempt < 8 && target.evaluate().isEmpty; attempt++) {
-        await tester.drag(plannerList, const Offset(0, -420));
+        await tester.drag(plannerScroll, const Offset(0, -420));
         await tester.pumpAndSettle();
       }
       expect(target, findsWidgets);
@@ -595,10 +603,13 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final plannerList = find.byType(ListView).first;
+    final plannerScroll = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    ).first;
     final addTaskButton = find.text('ثبت وظیفه');
     for (var attempt = 0; attempt < 8 && addTaskButton.evaluate().isEmpty; attempt++) {
-      await tester.drag(plannerList, const Offset(0, -420));
+      await tester.drag(plannerScroll, const Offset(0, -420));
       await tester.pumpAndSettle();
     }
     await tester.ensureVisible(addTaskButton.last);
