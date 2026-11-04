@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';\n\nimport '../../../design_system/modal_content.dart';
 
 class BackupImportDialog extends StatefulWidget {
   const BackupImportDialog({super.key});
@@ -36,7 +36,7 @@ class BackupImportDialogState extends State<BackupImportDialog> {
         Text(
           'بازیابی نسخه پشتیبان',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -70,7 +70,7 @@ class BackupImportDialogState extends State<BackupImportDialog> {
                 shape: const LiquidRoundedSuperellipse(borderRadius: 16),
                 quality: GlassQuality.standard,
                 onTap: () => Navigator.of(context).pop(),
-                child: const Text('انصراف'),
+                child: const DarsYarModalButtonLabel(child: Text('انصراف')),
               ),
             ),
             const SizedBox(width: 10),
