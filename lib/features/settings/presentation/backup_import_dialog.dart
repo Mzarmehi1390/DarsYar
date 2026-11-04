@@ -24,8 +24,12 @@ class BackupImportDialogState extends State<BackupImportDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    child: Column(
+  Widget build(BuildContext context) {
+    final scrollData = ScrollControllerProvider.of(context);
+    return SingleChildScrollView(
+      controller: scrollData?.controller,
+      physics: scrollData?.physics,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -89,4 +93,5 @@ class BackupImportDialogState extends State<BackupImportDialog> {
       ],
     ),
   );
+  }
 }
