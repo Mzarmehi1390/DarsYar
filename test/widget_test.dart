@@ -119,6 +119,8 @@ void main() {
             builder: (context) => TextButton(
               onPressed: () => showDarsYarGlassSheet<void>(
                 context: context,
+                initialState: GlassSheetState.full,
+                fullSize: 0.9,
                 builder: (_) => const Center(child: Text('محتوای شیت آزمایشی')),
               ),
               child: const Text('بازکردن شیت'),
@@ -136,6 +138,13 @@ void main() {
     final sheetContext = tester.element(sheetContent);
     expect(Theme.of(sheetContext).brightness, Brightness.dark);
     expect(CupertinoTheme.of(sheetContext).brightness, Brightness.dark);
+    final scaffold = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(scaffold.initialState, GlassSheetState.full);
+    expect(scaffold.detents, contains(GlassSheetDetent.large));
+    expect(scaffold.fullSettings, isNotNull);
+    expect(scaffold.fullSettings!.blur, greaterThan(0));
     expect(tester.takeException(), isNull);
   });
 
