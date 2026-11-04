@@ -1558,4 +1558,49 @@ void main() {
   });
 
 
+  testWidgets('answer key editor discards stale answers and keeps progress accurate', (tester) async {
+    Map<int, int>? savedAnswers;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  savedAnswers = await Navigator.of(context).push<Map<int, int>>(
+                    MaterialPageRoute(
+                      builder: (_) => Scaffold(
+                        body: AnswerKeyEditorSheet(
+                          title: 'کلید آزمایشی',
+                          questionCount: 3,
+                          initialAnswers: const {1: 2, 2: 8, 4: 1},
+                          clearLabel: 'پاک‌کردن',
+                          saveLabel: 'ثبت',
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('باز کردن کلید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن کلید'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 از 3 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    await tester.ensureVisible(find.text('ثبت'));
+    await tester.tap(find.text('ثبت'));
+    await tester.pumpAndSettle();
+
+    expect(savedAnswers, equals(const {1: 2}));
+    expect(tester.takeException(), isNull);
+  });
+
+
 }
