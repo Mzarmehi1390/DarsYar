@@ -184,6 +184,37 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('glass sheet reserves Android gesture-navigation clearance when viewPadding is zero', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            viewPadding: EdgeInsets.zero,
+            padding: EdgeInsets.zero,
+            systemGestureInsets: const EdgeInsets.only(bottom: 28),
+          ),
+          child: child!,
+        ),
+        home: const Scaffold(
+          body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
+        ),
+      ),
+    );
+
+    final safePadding = tester.widget<Padding>(
+      find.ancestor(
+        of: find.text('محتوای شیت'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Padding &&
+              widget.padding == const EdgeInsets.only(bottom: 36),
+        ),
+      ).first,
+    );
+    expect(safePadding.padding, const EdgeInsets.only(bottom: 36));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('glass sheet preserves dark Material and Cupertino themes on its route', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

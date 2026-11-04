@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -122,10 +124,18 @@ class DarsYarModalSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final media = MediaQuery.of(context);
+    // Some Android edge-to-edge configurations report the gesture-navigation
+    // region through systemGestureInsets while viewPadding.bottom is zero.
+    // Keep a minimum footer clearance as a final fallback for those devices.
+    final systemBottomInset = math.max(
+      media.viewPadding.bottom,
+      math.max(media.systemGestureInsets.bottom, media.padding.bottom),
+    );
+    final bottomClearance = math.max(24.0, systemBottomInset + 8);
     return DarsYarModalContent(
       child: Padding(
-        padding: EdgeInsets.only(bottom: bottomInset + 8),
+        padding: EdgeInsets.only(bottom: bottomClearance),
         child: child,
       ),
     );
