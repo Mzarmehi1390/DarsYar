@@ -1606,6 +1606,38 @@ void main() {
   });
 
 
+  testWidgets('percentage calculator is a top-level answer sheet section and replaces the default zero on focus', (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ساخت آزمون جدید'), findsOneWidget);
+    expect(find.text('آزمون‌های من'), findsOneWidget);
+    expect(find.text('محاسبه درصد'), findsOneWidget);
+
+    await tester.tap(find.text('محاسبه درصد'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ماشین‌حساب درصد آزمون'), findsOneWidget);
+    expect(find.text('اگر پاسخ‌های غلط را سفید می‌گذاشتی'), findsNothing);
+
+    final firstField = find.byType(GlassTextField).first;
+    await tester.tap(firstField);
+    await tester.pump();
+    final field = tester.widget<GlassTextField>(firstField);
+    expect(
+      field.controller!.selection,
+      const TextSelection(baseOffset: 0, extentOffset: 1),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+
   testWidgets('answer key editor discards stale answers and keeps progress accurate', (tester) async {
     Map<int, int>? savedAnswers;
     await tester.pumpWidget(
