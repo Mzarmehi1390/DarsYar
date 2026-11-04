@@ -4,6 +4,41 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'design_system/glass_surface.dart';
 
+class ExamPercentageResult {
+  const ExamPercentageResult({
+    required this.withoutPenalty,
+    required this.withPenalty,
+    required this.ifWrongWereSkipped,
+  });
+
+  final double? withoutPenalty;
+  final double? withPenalty;
+  final double? ifWrongWereSkipped;
+}
+
+ExamPercentageResult calculateExamPercentages({
+  required int correct,
+  required int wrong,
+  required int unanswered,
+}) {
+  final total = correct + wrong + unanswered;
+  if (correct < 0 || wrong < 0 || unanswered < 0 || total < 1 || total > 200) {
+    return const ExamPercentageResult(
+      withoutPenalty: null,
+      withPenalty: null,
+      ifWrongWereSkipped: null,
+    );
+  }
+  final plain = correct * 100 / total;
+  final penalized = ((correct - wrong / 3) * 100 / total)
+      .clamp(0.0, 100.0).toDouble();
+  return ExamPercentageResult(
+    withoutPenalty: plain,
+    withPenalty: penalized,
+    ifWrongWereSkipped: plain,
+  );
+}
+
 /// Standalone what-if calculator for exam percentages.
 /// The three counts are user-entered; wrong answers cost one third of a
 /// correct answer in the negative-marking scenario.
@@ -39,24 +74,11 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
   int _read(TextEditingController controller) =>
       int.tryParse(controller.text.trim()) ?? 0;
 
-  double? get _plainPercentage {
-    final correct = _read(_correct);
-    final wrong = _read(_wrong);
-    final unanswered = _read(_unanswered);
-    final total = correct + wrong + unanswered;
-    if (correct < 0 || wrong < 0 || unanswered < 0 || total == 0 || total > 200) {
-      return null;
-    }
-    return correct * 100 / total;
-  }
-
-  double? get _negativePercentage {
-    final plain = _plainPercentage;
-    if (plain == null) return null;
-    final total = _read(_correct) + _read(_wrong) + _read(_unanswered);
-    final score = _read(_correct) - _read(_wrong) / 3;
-    return (score * 100 / total).clamp(0.0, 100.0).toDouble();
-  }
+  ExamPercentageResult get _result => calculateExamPercentages(
+        correct: _read(_correct),
+        wrong: _read(_wrong),
+        unanswered: _read(_unanswered),
+      );
 
   String _format(double? value) =>
       value == null ? '—' : '${value.toStringAsFixed(1)}٪';
@@ -84,7 +106,8 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final muted = theme.colorScheme.onSurfaceVariant;
-    final valid = _plainPercentage != null;
+    final result = _result;
+    final valid = result.withoutPenalty != null;
     return DarsYarContentSurface(
       radius: 22,
       padding: const EdgeInsets.all(16),
@@ -129,21 +152,21 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
           _resultRow(
             context,
             'بدون نمره منفی',
-            _format(_plainPercentage),
+            _format(result.withoutPenalty),
             Icons.check_circle_outline_rounded,
           ),
           const SizedBox(height: 8),
           _resultRow(
             context,
             'با نمره منفی (هر ۳ غلط = ۱ درست)',
-            _format(_negativePercentage),
+            _format(result.withPenalty),
             Icons.remove_circle_outline_rounded,
           ),
           const SizedBox(height: 8),
           _resultRow(
             context,
             'اگر پاسخ‌های غلط را سفید می‌گذاشتی',
-            _format(_plainPercentage),
+            _format(result.ifWrongWereSkipped),
             Icons.lightbulb_outline_rounded,
           ),
           const SizedBox(height: 8),
