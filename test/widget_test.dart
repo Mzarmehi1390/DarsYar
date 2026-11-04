@@ -7,6 +7,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:dars_yar/backup_codec.dart';
 import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
+import 'package:dars_yar/design_system/glass_dialog.dart';
 import 'package:dars_yar/design_system/glass_tokens.dart';
 import 'package:dars_yar/design_system/glass_modal_sheet.dart';
 import 'package:dars_yar/design_system/modal_content.dart';
@@ -70,6 +71,42 @@ void main() {
       CupertinoTheme.of(tester.element(find.text('جلسه مطالعه'))).brightness,
       Brightness.light,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass dialog preserves dark Material and Cupertino themes on its route', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDarsYarGlassDialog<void>(
+                context: context,
+                title: 'دیالوگ آزمایشی',
+                actions: [
+                  GlassDialogAction(
+                    label: 'بستن',
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              child: const Text('بازکردن'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('بازکردن'));
+    await tester.pumpAndSettle();
+
+    final dialogTitle = find.text('دیالوگ آزمایشی');
+    expect(dialogTitle, findsOneWidget);
+    final dialogContext = tester.element(dialogTitle);
+    expect(Theme.of(dialogContext).brightness, Brightness.dark);
+    expect(CupertinoTheme.of(dialogContext).brightness, Brightness.dark);
+    expect(find.text('بستن'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
