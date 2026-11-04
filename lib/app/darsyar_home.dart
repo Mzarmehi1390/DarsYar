@@ -58,6 +58,17 @@ class DarsYarHome extends StatefulWidget {
 
 class _DarsYarHomeState extends State<DarsYarHome> {
   late int tab;
+  Widget? _cachedAmbientBackground;
+  bool? _cachedAmbientBrightness;
+
+  Widget _ambientBackgroundFor(bool isDark) {
+    if (_cachedAmbientBackground == null ||
+        _cachedAmbientBrightness != isDark) {
+      _cachedAmbientBrightness = isDark;
+      _cachedAmbientBackground = GlassAmbientBackground(isDark: isDark);
+    }
+    return _cachedAmbientBackground!;
+  }
   @override
   void initState() {
     super.initState();
@@ -311,7 +322,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         // paint layer. Frequent page-state updates (including exam timer
         // ticks) should repaint the active content without repainting these
         // static glass-atmosphere layers.
-        background: GlassAmbientBackground(isDark: isDark),
+        background: _ambientBackgroundFor(isDark),
         body: SafeArea(
           bottom: false,
           child: loading
