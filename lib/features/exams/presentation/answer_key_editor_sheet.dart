@@ -25,6 +25,8 @@ class AnswerKeyEditorSheet extends StatefulWidget {
 
 class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   late final Map<int, int> _draft;
+  late final Map<int, ValueNotifier<int?>> _selectedByQuestion;
+  late final ValueNotifier<int> _answeredCount;
 
   static const _options = ['الف', 'ب', 'ج', 'د'];
 
@@ -32,11 +34,51 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   void initState() {
     super.initState();
     _draft = Map<int, int>.from(widget.initialAnswers);
+    final questionCount = widget.questionCount.clamp(0, 200);
+    _selectedByQuestion = {
+      for (var question = 1; question <= questionCount; question++)
+        question: ValueNotifier<int?>(_draft[question]),
+    };
+    _answeredCount = ValueNotifier<int>(_draft.length);
+  }
+
+  @override
+  void dispose() {
+    for (final selected in _selectedByQuestion.values) {
+      selected.dispose();
+    }
+    _answeredCount.dispose();
+    super.dispose();
+  }
+
+  void _selectAnswer(int question, int option) {
+    final selected = _selectedByQuestion[question];
+    if (selected == null) return;
+    if (selected.value == option) {
+      _draft.remove(question);
+      selected.value = null;
+      _answeredCount.value = _draft.length;
+      return;
+    }
+    _draft[question] = option;
+    selected.value = option;
+    _answeredCount.value = _draft.length;
+  }
+
+  void _clearAnswers() {
+    _draft.clear();
+    for (final selected in _selectedByQuestion.values) {
+      selected.value = null;
+    }
+    _answeredCount.value = 0;
   }
 
   Widget _questionRow(int question) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
+    return ValueListenableBuilder<int?>(
+      valueListenable: _selectedByQuestion[question]!,
+      builder: (context, selectedOption, _) {
+        final scheme = Theme.of(context).colorScheme;
+        return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -58,12 +100,19 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
               runSpacing: 6,
               children: [
                 for (var option = 0; option < _options.length; option++)
-                  _answerOption(question, option, scheme),
+                  _answerOption(
+                    question,
+                    option,
+                    selected: selectedOption == option,
+                    scheme: scheme,
+                  ),
               ],
             ),
           ),
         ],
-      ),
+        ),
+      );
+      },
     );
   }
 
@@ -72,10 +121,10 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   /// work and make the editor feel sluggish while scrolling.
   Widget _answerOption(
     int question,
-    int option,
-    ColorScheme scheme,
-  ) {
-    final selected = _draft[question] == option;
+    int option, {
+    required bool selected,
+    required ColorScheme scheme,
+  }) {
     return Semantics(
       container: true,
       button: true,
@@ -86,13 +135,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
           color: Colors.transparent,
           child: InkWell(
           borderRadius: BorderRadius.circular(11),
-          onTap: () => setState(() {
-            if (selected) {
-              _draft.remove(question);
-            } else {
-              _draft[question] = option;
-            }
-          }),
+          onTap: () => _selectAnswer(question, option),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             curve: Curves.easeOut,
@@ -138,7 +181,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
           height: 44,
           shape: const LiquidRoundedSuperellipse(borderRadius: 15),
           quality: GlassQuality.standard,
-          onTap: () => setState(_draft.clear),
+          onTap: _clearAnswers,
           child: Text(widget.clearLabel),
         ),
         GlassButton.custom(
@@ -192,8 +235,15 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              '${_draft.length} از $questionCount سؤال دارای کلید پاسخ است.',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              child: ValueListenableBuilder<int>(
+                valueListenable: _answeredCount,
+                builder: (context, answeredCount, _) => Text(
+                  '$answeredCount از $questionCount سؤال دارای کلید پاسخ است.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             ),
           );
         }
@@ -205,9 +255,7 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
               child: GlassProgressIndicator.linear(
                 height: 5,
                 minWidth: 0,
-                value: questionCount == 0
-                    ? 0
-                    : (_draft.length / questionCount).clamp(0.0, 1.0).toDouble(),
+                value: questionCount == 0 ? 0 : _answeredCount.value / questionCount,
                 color: DarsYarTokens.accent,
                 backgroundColor:
                     Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
