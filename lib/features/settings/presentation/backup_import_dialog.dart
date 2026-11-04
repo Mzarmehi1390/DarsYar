@@ -48,7 +48,8 @@ class BackupImportDialogState extends State<BackupImportDialog> {
           'محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.',
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
-            height: 1.5,
+            fontSize: 13,
+            height: 1.45,
           ),
         ),
         const SizedBox(height: 16),
@@ -83,9 +84,9 @@ class BackupImportDialogState extends State<BackupImportDialog> {
                 quality: GlassQuality.standard,
                 style: GlassButtonStyle.filled,
                 onTap: () => Navigator.of(context).pop(_controller.text),
-                child: const Text(
-                  'بررسی نسخه',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                child: const DarsYarModalButtonLabel(
+                  primary: true,
+                  child: Text('بررسی نسخه'),
                 ),
               ),
             ),
