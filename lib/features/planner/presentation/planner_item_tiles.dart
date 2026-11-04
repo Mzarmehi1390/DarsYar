@@ -238,7 +238,6 @@ class _PlannerMetaPill extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.circle, size: 0),
             Icon(icon, size: 13, color: DarsYarTokens.accent),
             const SizedBox(width: 5),
             Flexible(
