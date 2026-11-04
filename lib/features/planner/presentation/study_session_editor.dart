@@ -89,6 +89,7 @@ class TimePickerSheetState extends State<TimePickerSheet> {
 
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
+    super.key,
     required this.initialWeekday,
     required this.weekDays,
     required this.hasOverlap,
