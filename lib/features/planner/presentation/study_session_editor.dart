@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
-import '../../../study_session.dart';
+import '../../../study_session.dart';\nimport '../../../design_system/modal_content.dart';
 
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
@@ -75,7 +75,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
         Text(
           widget.existing == null ? 'جلسه مطالعه جدید' : 'ویرایش جلسه مطالعه',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             height: 1.25,
             fontWeight: FontWeight.w800,
             color: Theme.of(context).colorScheme.onSurface,
@@ -255,7 +255,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                                   _startMinutes.value = _selectedTime.hour * 60 + _selectedTime.minute;
                                   _showTimePicker.value = false;
                                 },
-                                child: const Text('اعمال ساعت انتخاب‌شده'),
+                                child: const DarsYarModalButtonLabel(\n                                  primary: true,\n                                  child: Text('اعمال ساعت انتخاب‌شده'),\n                                ),
                               ),
                             ),
                           ],
@@ -298,7 +298,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                     shape: const LiquidRoundedSuperellipse(borderRadius: 16),
                     quality: GlassQuality.standard,
                     onTap: () => Navigator.of(context).pop(),
-                    child: const Text('انصراف'),
+                    child: const DarsYarModalButtonLabel(child: Text('انصراف')),
                   ),
                 ),
                 const SizedBox(width: 16),
