@@ -89,10 +89,14 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
   @override
   Widget build(BuildContext context) {
     final scrollData = ScrollControllerProvider.of(context);
-    return SingleChildScrollView(
-      controller: scrollData?.controller,
-      physics: scrollData?.physics,
-      child: Column(
+    final scrollData = ScrollControllerProvider.of(context);
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            controller: scrollData?.controller,
+            physics: scrollData?.physics,
+            child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -194,8 +198,16 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
               ),
           ],
         ),
-        const SizedBox(height: 22),
-        Row(
+            ],
+          ),
+        ),
+      ),
+      const Divider(height: 1),
+        SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 10, 0, 8),
+            child: Row(
           children: [
             Expanded(
               child: GlassButton.custom(
@@ -221,9 +233,10 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
               ),
             ),
           ],
+        ),,
+          ),
         ),
-      ],
-    ),
+    ],
   );
   }
 }
