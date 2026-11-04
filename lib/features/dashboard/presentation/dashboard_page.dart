@@ -23,7 +23,8 @@ class DashboardPage extends StatelessWidget {
 
   int get completed => tasks.where((task) => task.done).length;
 
-Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
+@override
+  Widget build(BuildContext context) => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
       subtitle: 'برنامه‌ریزی هوشمند برای یادگیری بهتر',
@@ -322,7 +323,7 @@ Widget dashboard() => ListView(key: const PageStorageKey<String>('dashboard-scro
         ? Color.lerp(tint, const Color(0xFF0B1B14), 0.72)!
         : Color.lerp(tint, const Color(0xFFB5DDC9), 0.30)!;
     final iconColor = isDark
-        ? DarsYarTokens.DarsYarTokens.accentLight
+        ? DarsYarTokens.accentLight
         : const Color(0xFF12664A);
 
     return GlassButton.custom(
