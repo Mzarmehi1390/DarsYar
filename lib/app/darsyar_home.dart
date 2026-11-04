@@ -1700,7 +1700,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       reduceMotion: !widget.animationsEnabled,
       barrierColor: DarsYarGlassTokens.dialogBarrierColor,
       content: StatefulBuilder(
-          builder: (dialogContext, dialogSet) => Column(
+        builder: (dialogContext, dialogSet) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1760,7 +1760,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               ),
             ),
           ],
-          ),
+        ),
       ),
       actions: [
         GlassDialogAction(
