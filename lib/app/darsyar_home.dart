@@ -320,38 +320,38 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                   // Keep page animation and timer-driven page paints isolated
                   // from the persistent glass tab bar and ambient backdrop.
                   child: AnimatedSwitcher(
-                  // Do not keep the previous (potentially expensive) page in
-                  // the render tree while the next page enters. The incoming
-                  // page still gets its glass transition, without compositing
-                  // two complete page trees during navigation.
-                  layoutBuilder: (currentChild, previousChildren) =>
-                      currentChild ?? const SizedBox.shrink(),
-                  // Lite mode keeps a calm fade at the same deliberate pace;
-                  // it removes the slide instead of accelerating the transition.
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    final curved = CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    );
-                    if (liteMotion) {
-                      return FadeTransition(opacity: curved, child: child);
-                    }
-                    final slide = Tween<Offset>(
-                      begin: const Offset(0, 0.012),
-                      end: Offset.zero,
-                    ).animate(curved);
-                    return FadeTransition(
-                      opacity: curved,
-                      child: SlideTransition(position: slide, child: child),
-                    );
-                  },
-                  child: KeyedSubtree(
-                    key: ValueKey<int>(tab),
-                    child: page,
-                  ),
+                    // Do not keep the previous (potentially expensive) page in
+                    // the render tree while the next page enters. The incoming
+                    // page still gets its glass transition, without compositing
+                    // two complete page trees during navigation.
+                    layoutBuilder: (currentChild, previousChildren) =>
+                        currentChild ?? const SizedBox.shrink(),
+                    // Lite mode keeps a calm fade at the same deliberate pace;
+                    // it removes the slide instead of accelerating the transition.
+                    duration: const Duration(milliseconds: 220),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final curved = CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.easeOutCubic,
+                      );
+                      if (liteMotion) {
+                        return FadeTransition(opacity: curved, child: child);
+                      }
+                      final slide = Tween<Offset>(
+                        begin: const Offset(0, 0.012),
+                        end: Offset.zero,
+                      ).animate(curved);
+                      return FadeTransition(
+                        opacity: curved,
+                        child: SlideTransition(position: slide, child: child),
+                      );
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(tab),
+                      child: page,
+                    ),
                   ),
                 ),
         ),
