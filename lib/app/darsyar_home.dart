@@ -14,6 +14,7 @@ import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/exam_setup_widgets.dart';
 import '../features/exams/presentation/exam_page.dart';
+import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
 import '../features/settings/presentation/settings_page.dart';
@@ -1298,111 +1299,22 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         myExamsBuilder: _myExamsView,
       );
 
-  Widget _savedExamCard(ExamSheet exam) => Card(
-    margin: const EdgeInsets.only(bottom: 10),
-    color: Colors.transparent,
-    elevation: 0,
-    surfaceTintColor: Colors.transparent,
-    child: _glassSurface(
-      radius: 22,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    exam.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                GlassPullDownButton(
-                  icon: const Icon(Icons.more_horiz_rounded),
-                  semanticLabel: 'مدیریت آزمون ${exam.name}',
-                  quality: GlassQuality.standard,
-                  menuWidth: 220,
-                  items: [
-                    GlassMenuItem(
-                      title: 'تغییر نام',
-                      icon: const Icon(Icons.edit_rounded),
-                      onTap: () {
-                        setState(() => activeExamId = exam.id);
-                        renameExam();
-                      },
-                    ),
-                    GlassMenuItem(
-                      title: 'ویرایش کلید پاسخ',
-                      icon: const Icon(Icons.key_rounded),
-                      onTap: () {
-                        setState(() => activeExamId = exam.id);
-                        editAnswerKey();
-                      },
-                    ),
-                    GlassMenuItem(
-                      title: 'حذف آزمون',
-                      icon: const Icon(Icons.delete_outline_rounded),
-                      isDestructive: true,
-                      onTap: () {
-                        setState(() => activeExamId = exam.id);
-                        deleteExam();
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${exam.questionCount} سؤال  •  ${_formatDuration(exam.durationSeconds)}  •  ${exam.answers.length} پاسخ',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: exam.isCompleted
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 17, color: accent),
-                        const SizedBox(width: 6),
-                        Text(
-                          'آزمون پایان یافته',
-                          style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    )
-                  : GlassButton.custom(
-                      width: 142,
-                      height: 44,
-                      shape: const LiquidRoundedSuperellipse(borderRadius: 15),
-                      quality: GlassQuality.standard,
-                      style: GlassButtonStyle.filled,
-                      onTap: () => _beginExam(exam),
-                      child: Text(
-                        exam.answers.isEmpty ? 'شروع آزمون' : 'ادامه آزمون',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    ),
+  Widget _savedExamCard(ExamSheet exam) => SavedExamCard(
+    exam: exam,
+    durationLabel: _formatDuration(exam.durationSeconds),
+    onRename: () {
+      setState(() => activeExamId = exam.id);
+      renameExam();
+    },
+    onEditAnswerKey: () {
+      setState(() => activeExamId = exam.id);
+      editAnswerKey();
+    },
+    onDelete: () {
+      setState(() => activeExamId = exam.id);
+      deleteExam();
+    },
+    onBegin: () => _beginExam(exam),
   );
 
   Widget _myExamsView() {
