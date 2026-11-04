@@ -20,7 +20,7 @@ Future<T?> showDarsYarGlassSheet<T>({
   GlassFillTransition fillTransition = DarsYarGlassTokens.sheetFillTransition,
   bool maintainContentGlass = DarsYarGlassTokens.maintainSheetContentGlass,
   EdgeInsetsGeometry? padding,
-  Color barrierColor = DarsYarGlassTokens.sheetBarrierColor,
+  Color? barrierColor,
 }) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
   // GlassModalSheet.show pushes a RawDialogRoute and, unlike showDialog,
@@ -42,6 +42,8 @@ Future<T?> showDarsYarGlassSheet<T>({
   final themedSettings = GlassThemeData.of(context).settingsFor(context);
   final resolvedFullSettings =
       fullSettings ?? themedSettings?.applyTo(themedGlassBase) ?? themedGlassBase;
+  final resolvedBarrierColor = barrierColor ??
+      Colors.black.withValues(alpha: isDark ? 0.72 : 0.56);
 
   return GlassModalSheet.show<T>(
     context: context,
@@ -75,6 +77,6 @@ Future<T?> showDarsYarGlassSheet<T>({
             reverseDuration: Duration(milliseconds: 200),
           ),
     padding: padding,
-    barrierColor: barrierColor,
+    barrierColor: resolvedBarrierColor,
   );
 }
