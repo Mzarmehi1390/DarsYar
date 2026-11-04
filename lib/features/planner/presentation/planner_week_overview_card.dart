@@ -8,7 +8,6 @@ import '../../../study_session.dart';
 /// A lightweight, stateless summary card for one weekday in the planner.
 class PlannerWeekOverviewCard extends StatelessWidget {
   const PlannerWeekOverviewCard({
-    required this.day,
     required this.dayLabel,
     required this.sessions,
     required this.selected,
@@ -17,7 +16,6 @@ class PlannerWeekOverviewCard extends StatelessWidget {
     super.key,
   });
 
-  final int day;
   final String dayLabel;
   final List<StudySession> sessions;
   final bool selected;
