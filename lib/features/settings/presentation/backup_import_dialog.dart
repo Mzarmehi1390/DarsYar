@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 class BackupImportDialog extends StatefulWidget {
-  const BackupImportDialog();
+  const BackupImportDialog({super.key});
 
   @override
   State<BackupImportDialog> createState() => BackupImportDialogState();
