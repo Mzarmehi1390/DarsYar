@@ -34,8 +34,11 @@ Future<T?> showDarsYarGlassSheet<T>({
         ? GlassSheetState.half
         : initialState,
     detents: const {GlassSheetDetent.medium},
+    // DarsYar intentionally offers one tall, refractive medium detent.
+    // fullSize belongs to the package's separate large detent; forwarding the
+    // same value for both creates a zero-length half-to-full geometry range.
     halfSize: fullSize ?? halfSize,
-    fullSize: fullSize,
+    fullSize: null,
     quality: quality,
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
