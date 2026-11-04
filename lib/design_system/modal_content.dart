@@ -34,6 +34,20 @@ class DarsYarModalContent extends StatelessWidget {
           data: CupertinoThemeData(
             brightness: theme.brightness,
             primaryColor: scheme.primary,
+            // Cupertino-backed glass inputs inherit this style. Explicitly
+            // bind their text to the active Material color scheme so neither
+            // theme can fall back to low-contrast platform defaults.
+            textTheme: CupertinoTextThemeData(
+              textStyle: TextStyle(
+                color: scheme.onSurface,
+                fontSize: 16,
+                fontFamily: theme.textTheme.bodyLarge?.fontFamily,
+              ),
+              actionTextStyle: TextStyle(
+                color: scheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
           // Force the modal's readable foreground through nested package
           // defaults as well; GlassButton/GlassChip may otherwise reintroduce
