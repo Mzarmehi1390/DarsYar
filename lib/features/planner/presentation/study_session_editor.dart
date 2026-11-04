@@ -144,7 +144,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
         ),
         const SizedBox(height: 8),
         GlassButton.custom(
-          width: 250,
+          width: double.infinity,
           height: 50,
           shape: const LiquidRoundedSuperellipse(borderRadius: 16),
           quality: GlassQuality.standard,
