@@ -609,6 +609,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
         maxWidth: 360,
         quality: GlassQuality.standard,
+        reduceMotion: !widget.animationsEnabled,
         barrierColor: Colors.black.withValues(alpha: 0.30),
         content: DarsYarModalContent(
           child: Column(
@@ -2370,6 +2371,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       title: 'سؤال $number',
       maxWidth: 360,
       quality: GlassQuality.standard,
+      reduceMotion: !widget.animationsEnabled,
       barrierColor: Colors.black.withValues(alpha: 0.30),
       content: DarsYarModalContent(
         child: StatefulBuilder(
