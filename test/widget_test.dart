@@ -1651,7 +1651,10 @@ void main() {
 
     await tester.pumpWidget(const DarsYarApp(initialTab: 2));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('تغییر زمان'));
+    final changeTime = find.text('تغییر زمان');
+    await tester.ensureVisible(changeTime);
+    await tester.pumpAndSettle();
+    await tester.tap(changeTime);
     await tester.pumpAndSettle();
 
     final save = find.text('ذخیره زمان');
