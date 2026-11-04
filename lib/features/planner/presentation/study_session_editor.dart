@@ -107,8 +107,10 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        GlassSegmentedControl.scrollable(
-          segments: [
+        SizedBox(
+          width: double.infinity,
+          child: GlassSegmentedControl.scrollable(
+            segments: [
             for (final day in weekDayOrder)
               GlassSegment(
                 label: widget.weekDays[day],
@@ -125,10 +127,11 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
             fontWeight: FontWeight.w800,
             fontSize: 12,
           ),
-          unselectedTextStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
+            unselectedTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
           ),
         ),
         const SizedBox(height: 16),
