@@ -19,10 +19,13 @@ Future<T?> showDarsYarGlassDialog<T>({
   GlassQuality quality = DarsYarGlassTokens.quality,
   bool barrierDismissible = false,
   bool reduceMotion = false,
-  Color barrierColor = DarsYarGlassTokens.dialogBarrierColor,
+  Color? barrierColor,
   double maxWidth = 280,
 }) {
   final liteMotion = reduceMotion || MediaQuery.of(context).disableAnimations;
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  final resolvedBarrierColor = barrierColor ??
+      Colors.black.withValues(alpha: isDark ? 0.72 : 0.56);
   // showGeneralDialog does not capture inherited themes like showDialog does.
   // Capture them explicitly so Material/Cupertino brightness, colors and text
   // styles remain identical inside the root-navigator overlay.
@@ -34,7 +37,7 @@ Future<T?> showDarsYarGlassDialog<T>({
     context: context,
     barrierDismissible: barrierDismissible,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: barrierColor,
+    barrierColor: resolvedBarrierColor,
     transitionDuration: DarsYarGlassTokens.modalTransitionDuration,
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
       return capturedThemes.wrap(
