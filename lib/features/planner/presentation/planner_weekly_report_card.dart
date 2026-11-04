@@ -58,7 +58,7 @@ class PlannerWeeklyReportCard extends StatelessWidget {
       radius: 24,
       tint: isDark ? const Color(0xFF20392D) : const Color(0xFFF1FAF4),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,6 +94,7 @@ class PlannerWeeklyReportCard extends StatelessWidget {
                   );
                 }
                 return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     for (final metric in metrics) Expanded(child: metric),
                   ],
