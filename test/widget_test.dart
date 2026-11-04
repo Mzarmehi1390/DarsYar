@@ -308,10 +308,14 @@ void main() {
     expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
 
     // The tall medium detent must keep the form scrollable without forcing
-    // the sheet into the package's opaque large detent.
-    await tester.drag(find.byType(ListView).last, const Offset(0, -1200));
+    // the sheet into the package's opaque large detent. Verify the actual
+    // scroll extent, then move to the end without assuming a pixel-to-row
+    // mapping that changes with device density and viewport height.
+    final scrollController = list.controller!;
+    expect(scrollController.position.maxScrollExtent, greaterThan(0));
+    scrollController.jumpTo(scrollController.position.maxScrollExtent);
     await tester.pumpAndSettle();
-    expect(find.text('سؤال 30'), findsOneWidget);
+    expect(find.text('سؤال 200'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
