@@ -41,7 +41,6 @@ class DarsYarModalContent extends StatelessWidget {
           child: IconTheme(
             data: IconThemeData(color: scheme.onSurface),
             child: DefaultTextStyle.merge(
-              force: true,
               style: TextStyle(
                 color: scheme.onSurface,
                 decoration: TextDecoration.none,
