@@ -110,6 +110,35 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('glass sheet preserves dark Material and Cupertino themes on its route', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDarsYarGlassSheet<void>(
+                context: context,
+                builder: (_) => const Center(child: Text('محتوای شیت آزمایشی')),
+              ),
+              child: const Text('بازکردن شیت'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('بازکردن شیت'));
+    await tester.pumpAndSettle();
+
+    final sheetContent = find.text('محتوای شیت آزمایشی');
+    expect(sheetContent, findsOneWidget);
+    final sheetContext = tester.element(sheetContent);
+    expect(Theme.of(sheetContext).brightness, Brightness.dark);
+    expect(CupertinoTheme.of(sheetContext).brightness, Brightness.dark);
+    expect(tester.takeException(), isNull);
+  });
+
   test('study task model round-trips without changing persisted fields', () {
     final task = StudyTask('task-1', 'مرور فصل دوم', 'ریاضی', done: true);
     final restored = StudyTask.fromJson(task.toJson());
