@@ -89,10 +89,20 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
       builder: (context, selectedOption, _) {
         final scheme = Theme.of(context).colorScheme;
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 5),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+          padding: const EdgeInsets.symmetric(vertical: 7),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.24),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: scheme.outlineVariant.withValues(alpha: 0.34),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
               SizedBox(
                 width: 64,
                 child: Text(
@@ -119,7 +129,9 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
                   ],
                 ),
               ),
-            ],
+                ],
+              ),
+            ),
           ),
         );
       },
