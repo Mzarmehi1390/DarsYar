@@ -28,7 +28,6 @@ class BackupImportDialogState extends State<BackupImportDialog> {
   @override
   Widget build(BuildContext context) {
     final scrollData = ScrollControllerProvider.of(context);
-    final scrollData = ScrollControllerProvider.of(context);
     return Column(
       children: [
         Expanded(

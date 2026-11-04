@@ -66,7 +66,6 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
   @override
   Widget build(BuildContext context) {
     final scrollData = ScrollControllerProvider.of(context);
-    final scrollData = ScrollControllerProvider.of(context);
     return Column(
       children: [
         Expanded(
