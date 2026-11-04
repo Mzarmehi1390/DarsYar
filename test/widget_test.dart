@@ -306,6 +306,12 @@ void main() {
     expect(list.controller, isNotNull);
     expect(list.controller!.hasClients, isTrue);
     expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
+
+    // The tall medium detent must keep the form scrollable without forcing
+    // the sheet into the package's opaque large detent.
+    await tester.drag(find.byType(ListView).last, const Offset(0, -1200));
+    await tester.pumpAndSettle();
+    expect(find.text('سؤال 30'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
