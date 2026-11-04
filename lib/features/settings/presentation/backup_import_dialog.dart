@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';\n\nimport '../../../design_system/modal_content.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
+import '../../../design_system/modal_content.dart';
 
 class BackupImportDialog extends StatefulWidget {
   const BackupImportDialog({super.key});
