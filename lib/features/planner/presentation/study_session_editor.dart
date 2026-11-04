@@ -29,10 +29,10 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
   static const weekDayOrder = [6, 0, 1, 2, 3, 4, 5];
   late final TextEditingController _titleController;
   late final TextEditingController _subjectController;
-  late int _weekday;
-  late int _startMinutes;
+  late final ValueNotifier<int> _weekday;
+  late final ValueNotifier<int> _startMinutes;
+  late final ValueNotifier<bool> _showTimePicker;
   late DateTime _selectedTime;
-  bool _showTimePicker = false;
   late int _durationMinutes;
   late final TextEditingController _durationController;
   String? _lastError;
@@ -43,9 +43,10 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
     super.initState();
     _titleController = TextEditingController(text: widget.existing?.title ?? '');
     _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
-    _weekday = widget.existing?.weekday ?? widget.initialWeekday;
-    _startMinutes = widget.existing?.startMinutes ?? 16 * 60;
-    _selectedTime = DateTime(2026, 1, 1, _startMinutes ~/ 60, _startMinutes % 60);
+    _weekday = ValueNotifier<int>(widget.existing?.weekday ?? widget.initialWeekday);
+    _startMinutes = ValueNotifier<int>(widget.existing?.startMinutes ?? 16 * 60);
+    _showTimePicker = ValueNotifier<bool>(false);
+    _selectedTime = DateTime(2026, 1, 1, _startMinutes.value ~/ 60, _startMinutes.value % 60);
     _durationMinutes = widget.existing?.durationMinutes ?? 55;
     _durationController = TextEditingController(text: _durationMinutes.toString());
   }
@@ -55,6 +56,9 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
     _titleController.dispose();
     _subjectController.dispose();
     _durationController.dispose();
+    _weekday.dispose();
+    _startMinutes.dispose();
+    _showTimePicker.dispose();
     super.dispose();
   }
 
@@ -107,30 +111,32 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: GlassSegmentedControl.scrollable(
-            segments: [
-              for (final day in weekDayOrder)
-                GlassSegment(
-                  label: widget.weekDays[day],
-                  semanticLabel: widget.weekDays[day],
-                ),
-            ],
-            selectedIndex: weekDayOrder.indexOf(_weekday),
-            onSegmentSelected: (index) =>
-                setState(() => _weekday = weekDayOrder[index]),
-            height: 44,
-            quality: GlassQuality.standard,
-            selectedTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.w800,
-              fontSize: 12,
-            ),
-            unselectedTextStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
+        ValueListenableBuilder<int>(
+          valueListenable: _weekday,
+          builder: (context, weekday, _) => SizedBox(
+            width: double.infinity,
+            child: GlassSegmentedControl.scrollable(
+              segments: [
+                for (final day in weekDayOrder)
+                  GlassSegment(
+                    label: widget.weekDays[day],
+                    semanticLabel: widget.weekDays[day],
+                  ),
+              ],
+              selectedIndex: weekDayOrder.indexOf(weekday),
+              onSegmentSelected: (index) => _weekday.value = weekDayOrder[index],
+              height: 44,
+              quality: GlassQuality.standard,
+              selectedTextStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+              unselectedTextStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
             ),
           ),
         ),
@@ -143,73 +149,87 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           ),
         ),
         const SizedBox(height: 8),
-        GlassButton.custom(
-          width: double.infinity,
-          height: 50,
-          shape: const LiquidRoundedSuperellipse(borderRadius: 16),
-          quality: GlassQuality.standard,
-          onTap: () => setState(() => _showTimePicker = !_showTimePicker),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+        ValueListenableBuilder<int>(
+          valueListenable: _startMinutes,
+          builder: (context, startMinutes, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.schedule_rounded, size: 19),
-              const SizedBox(width: 10),
-              Text(_formatTime(_startMinutes)),
-              const SizedBox(width: 8),
-              Icon(
-                _showTimePicker ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                size: 18,
+              GlassButton.custom(
+                width: double.infinity,
+                height: 50,
+                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                quality: GlassQuality.standard,
+                onTap: () => _showTimePicker.value = !_showTimePicker.value,
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: _showTimePicker,
+                  builder: (context, showPicker, _) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.schedule_rounded, size: 19),
+                      const SizedBox(width: 10),
+                      Text(_formatTime(startMinutes)),
+                      const SizedBox(width: 8),
+                      Icon(showPicker ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: _showTimePicker,
+                builder: (context, showPicker, _) {
+                  if (!showPicker) return const SizedBox.shrink();
+                  return Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.42)),
+                        ),
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 178,
+                              child: CupertinoTheme(
+                                data: CupertinoThemeData(
+                                  brightness: Theme.of(context).brightness,
+                                  primaryColor: Theme.of(context).colorScheme.primary,
+                                ),
+                                child: CupertinoDatePicker(
+                                  mode: CupertinoDatePickerMode.time,
+                                  initialDateTime: _selectedTime,
+                                  use24hFormat: true,
+                                  onDateTimeChanged: (value) => _selectedTime = value,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: AlignmentDirectional.centerEnd,
+                              child: GlassButton.custom(
+                                height: 40,
+                                shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                                quality: GlassQuality.standard,
+                                style: GlassButtonStyle.filled,
+                                onTap: () {
+                                  _startMinutes.value = _selectedTime.hour * 60 + _selectedTime.minute;
+                                  _showTimePicker.value = false;
+                                },
+                                child: const Text('اعمال ساعت انتخاب‌شده'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
         ),
-        if (_showTimePicker) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.42),
-              ),
-            ),
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 178,
-                  child: CupertinoTheme(
-                    data: CupertinoThemeData(
-                      brightness: Theme.of(context).brightness,
-                      primaryColor: Theme.of(context).colorScheme.primary,
-                    ),
-                    child: CupertinoDatePicker(
-                      mode: CupertinoDatePickerMode.time,
-                      initialDateTime: _selectedTime,
-                      use24hFormat: true,
-                      onDateTimeChanged: (value) => _selectedTime = value,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: GlassButton.custom(
-                    height: 40,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 13),
-                    quality: GlassQuality.standard,
-                    style: GlassButtonStyle.filled,
-                    onTap: () => setState(() {
-                      _startMinutes = _selectedTime.hour * 60 + _selectedTime.minute;
-                      _showTimePicker = false;
-                    }),
-                    child: const Text('اعمال ساعت انتخاب‌شده'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
         const SizedBox(height: 16),
         GlassFormField(
           label: 'مدت جلسه (دقیقه)',
@@ -281,8 +301,8 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
       subject: _subjectController.text.trim().isEmpty
           ? 'عمومی'
           : _subjectController.text.trim(),
-      weekday: _weekday,
-      startMinutes: _startMinutes,
+      weekday: _weekday.value,
+      startMinutes: _startMinutes.value,
       durationMinutes: _durationMinutes,
       completed: widget.existing?.completed ?? false,
     );
