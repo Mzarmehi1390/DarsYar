@@ -377,7 +377,7 @@ class DashboardPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _quickActionIcon(icon, iconTop, iconBottom, iconColor, isDark),
+            _quickActionIcon(context, icon, iconTop, iconBottom, iconColor, isDark),
             const SizedBox(height: 12),
             Text(
               title,
