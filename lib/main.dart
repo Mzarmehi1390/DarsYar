@@ -1216,10 +1216,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget planner() {
-    final summary = PlannerSummary.fromSessions(studySessions);
-    final daySessions = summary.sessionsForDay(selectedStudyDay);
-    final completedSessions = summary.completedSessionCount;
-    final totalMinutes = summary.minutesForDay(selectedStudyDay);
+    final plannerSummary = PlannerSummary.fromSessions(studySessions);
+    final daySessions = plannerSummary.sessionsForDay(selectedStudyDay);
+    final completedSessions = plannerSummary.completedSessionCount;
+    final totalMinutes = plannerSummary.minutesForDay(selectedStudyDay);
     return ListView(key: const PageStorageKey<String>('planner-scroll'), padding: const EdgeInsets.fromLTRB(20, 22, 20, DarsYarTokens.pageBottomClearance), children: [
       const DarsYarPageHeader(
         title: 'برنامه‌ریزی درسی',
