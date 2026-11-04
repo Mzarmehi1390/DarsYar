@@ -92,7 +92,6 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
             keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(3),
