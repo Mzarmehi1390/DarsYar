@@ -40,10 +40,8 @@ Future<T?> showDarsYarGlassSheet<T>({
       ? LiquidGlassSettings.ios27Dark
       : LiquidGlassSettings.ios27Light;
   final themedSettings = GlassThemeData.of(context).settingsFor(context);
-  final resolvedFullSettings = fullSettings ??
-      settings ??
-      themedSettings?.applyTo(themedGlassBase) ??
-      themedGlassBase;
+  final resolvedFullSettings =
+      fullSettings ?? themedSettings?.applyTo(themedGlassBase) ?? themedGlassBase;
 
   return GlassModalSheet.show<T>(
     context: context,
