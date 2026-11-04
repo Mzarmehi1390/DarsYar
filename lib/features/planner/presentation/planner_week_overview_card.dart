@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/glass_surface.dart';
-import '../../../design_system/glass_tokens.dart';
+import '../../../design_system/darsyar_theme.dart';
 import '../../../study_session.dart';
 
 /// A lightweight, stateless summary card for one weekday in the planner.
