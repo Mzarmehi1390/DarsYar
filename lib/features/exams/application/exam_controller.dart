@@ -7,6 +7,35 @@ import '../../../exam_sheet.dart';
 class ExamController {
   const ExamController();
 
+
+  ExamResult createResult({
+    required ExamSheet exam,
+    required String id,
+    required DateTime completedAt,
+  }) {
+    final score = calculateAnswerScore(
+      answers: exam.answers,
+      answerKey: exam.answerKey,
+      questionCount: exam.questionCount,
+      negativeMarking: exam.negativeMarking,
+    );
+    return ExamResult(
+      id: id,
+      examId: exam.id,
+      examName: exam.name,
+      completedAt: completedAt.toUtc().toIso8601String(),
+      questionCount: exam.questionCount,
+      correct: score.correct,
+      wrong: score.wrong,
+      unanswered: score.unanswered,
+      keyedQuestions: score.keyedQuestions,
+      percentage: score.percentage,
+      negativeMarking: exam.negativeMarking,
+      answers: Map<int, int>.from(exam.answers),
+      answerKey: Map<int, int>.from(exam.answerKey),
+    );
+  }
+
   ExamResult recalculateResult(ExamResult result, Map<int, int> key) {
     final score = calculateAnswerScore(
       answers: result.answers,
