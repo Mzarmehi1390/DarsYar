@@ -22,12 +22,20 @@ Future<T?> showDarsYarGlassSheet<T>({
   Color barrierColor = DarsYarGlassTokens.sheetBarrierColor,
 }) {
   final reduceMotion = MediaQuery.of(context).disableAnimations;
+  // GlassModalSheet.show pushes a RawDialogRoute and, unlike showDialog,
+  // does not capture inherited themes. Preserve the presenting Navigator's
+  // theme so dark/light Cupertino and Material styling survives the route.
+  final capturedThemes = InheritedTheme.capture(
+    from: context,
+    to: Navigator.of(context).context,
+  );
   return GlassModalSheet.show<T>(
     context: context,
     // Every sheet gets the same RTL, typography and Cupertino contrast contract.
     // Call sites may still wrap specialized content without changing behaviour.
-    builder: (sheetContext) =>
-        DarsYarModalContent(child: builder(sheetContext)),
+    builder: (sheetContext) => capturedThemes.wrap(
+      DarsYarModalContent(child: builder(sheetContext)),
+    ),
     // GlassSheetDetent.large is intentionally opaque in liquid_glass_widgets.
     // Use a tall medium detent instead so editors remain refractive at rest.
     initialState: initialState == GlassSheetState.full
