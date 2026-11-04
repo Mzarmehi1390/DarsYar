@@ -24,6 +24,7 @@ import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
 import '../features/planner/presentation/planner_week_overview_card.dart';
+import '../features/planner/presentation/planner_weekly_report_card.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
@@ -663,90 +664,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         onCopySelectedDayTo: copySelectedDayTo,
       );
 
-  Widget weeklyReportCard({required PlannerSummary summary}) {
-    final plannedMinutes = summary.plannedMinutes;
-    final completedMinutes = summary.completedMinutes;
-    final completion = summary.completion;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return _glassSurface(
-      radius: 24,
-      tint: isDark
-          ? const Color(0xFF20392D)
-          : const Color(0xFFF1FAF4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.insights_rounded, color: accent),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'گزارش هفتگی مطالعه',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final metrics = [
-                  _weeklyMetric('برنامه‌ریزی‌شده', plannedMinutes, 'دقیقه'),
-                  _weeklyMetric('مطالعه تکمیل‌شده', completedMinutes, 'دقیقه'),
-                  _weeklyMetric('پیشرفت', (completion * 100).round(), '٪'),
-                ];
-                if (constraints.maxWidth < 340) {
-                  final itemWidth = (constraints.maxWidth - 12) / 2;
-                  return Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      for (final metric in metrics)
-                        SizedBox(width: itemWidth, child: metric),
-                    ],
-                  );
-                }
-                return Row(
-                  children: [
-                    for (final metric in metrics) Expanded(child: metric),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: GlassProgressIndicator.linear(
-                height: 7,
-                minWidth: 0,
-                value: completion,
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
-                color: accent,
-                quality: GlassQuality.standard,
-                semanticLabel: 'پیشرفت هفتگی مطالعه',
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              studySessions.isEmpty
-                  ? 'با افزودن جلسه‌ها، گزارش اینجا نمایش داده می‌شود.'
-                  : '${studySessions.where((session) => session.completed).length} از ${studySessions.length} جلسه تکمیل شده است.',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  Widget weeklyReportCard({required PlannerSummary summary}) =>
+      PlannerWeeklyReportCard(summary: summary, sessions: studySessions);
   Widget _glassSurface({
     required Widget child,
     double radius = 20,
@@ -757,16 +676,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         tint: tint,
         child: child,
       );
-
-  Widget _weeklyMetric(String label, int value, String unit) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text('$value', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: accent)),
-      Text(unit, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-      SizedBox(height: 3),
-      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-    ],
-  );
 
   Future<void> copySelectedDayTo(int targetDay) async {
     if (targetDay == selectedStudyDay) return;
