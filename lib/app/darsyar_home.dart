@@ -1936,26 +1936,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> saveExamResult() async {
     if (_savingExamResult) return;
     final exam = activeExam;
-    final score = calculateAnswerScore(
-      answers: exam.answers,
-      answerKey: exam.answerKey,
-      questionCount: exam.questionCount,
-      negativeMarking: exam.negativeMarking,
-    );
-    final result = ExamResult(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      examId: exam.id,
-      examName: exam.name,
-      completedAt: DateTime.now().toUtc().toIso8601String(),
-      questionCount: exam.questionCount,
-      correct: score.correct,
-      wrong: score.wrong,
-      unanswered: score.unanswered,
-      keyedQuestions: score.keyedQuestions,
-      percentage: score.percentage,
-      negativeMarking: exam.negativeMarking,
-      answers: Map<int, int>.from(exam.answers),
-      answerKey: Map<int, int>.from(exam.answerKey),
+    final completedAt = DateTime.now();
+    final result = _examController.createResult(
+      exam: exam,
+      id: completedAt.microsecondsSinceEpoch.toString(),
+      completedAt: completedAt,
     );
     setState(() {
       _savingExamResult = true;
@@ -1966,7 +1951,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() => _savingExamResult = false);
     if (saved) {
       _showSnackBar(SnackBar(
-        content: Text(score.percentage == null
+        content: Text(result.percentage == null
           ? 'پاسخ‌ها ذخیره شدند؛ برای محاسبه درصد بعداً کلید را وارد کن.'
           : 'نتیجه آزمون در تاریخچه ذخیره شد.'),
       ));
