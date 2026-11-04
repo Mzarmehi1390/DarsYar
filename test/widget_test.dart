@@ -157,15 +157,16 @@ void main() {
 
   testWidgets('glass sheet adds the system navigation inset to its entire content', (tester) async {
     await tester.pumpWidget(
-      MediaQuery(
-        data: const MediaQueryData(
-          viewPadding: EdgeInsets.only(bottom: 24),
-        ),
-        child: MaterialApp(
-          theme: DarsYarTheme.light,
-          home: const Scaffold(
-            body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            viewPadding: const EdgeInsets.only(bottom: 24),
           ),
+          child: child!,
+        ),
+        home: const Scaffold(
+          body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
         ),
       ),
     );
