@@ -18,10 +18,11 @@ Future<T?> showDarsYarGlassDialog<T>({
   LiquidGlassSettings? settings,
   GlassQuality quality = DarsYarGlassTokens.quality,
   bool barrierDismissible = false,
+  bool reduceMotion = false,
   Color barrierColor = DarsYarGlassTokens.dialogBarrierColor,
   double maxWidth = 280,
 }) {
-  final liteMotion = MediaQuery.of(context).disableAnimations;
+  final liteMotion = reduceMotion || MediaQuery.of(context).disableAnimations;
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
