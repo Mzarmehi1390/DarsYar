@@ -1354,6 +1354,49 @@ void main() {
 
 
 
+  testWidgets('study session editor shares the glass sheet scroll controller', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  await showDarsYarGlassSheet<Object?>(
+                    context: context,
+                    initialState: GlassSheetState.full,
+                    fullSize: 0.9,
+                    builder: (_) => StudySessionEditorDialog(
+                      initialWeekday: 1,
+                      weekDays: const [
+                        'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه',
+                        'پنجشنبه', 'جمعه', 'شنبه',
+                      ],
+                      hasOverlap: (_) => false,
+                      onMessage: (_) {},
+                    ),
+                  );
+                },
+                child: const Text('جلسه جدید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('جلسه جدید'));
+    await tester.pumpAndSettle();
+
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byType(SingleChildScrollView).last,
+    );
+    expect(scrollView.controller, isNotNull);
+    expect(scrollView.controller!.hasClients, isTrue);
+    expect(find.text('جلسه مطالعه جدید'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   test('glass modal backdrops stay light enough to preserve the refractive context', () {
     expect(DarsYarGlassTokens.dialogBarrierColor.a, lessThan(0.20));
     expect(DarsYarGlassTokens.sheetBarrierColor.a, lessThan(0.16));
