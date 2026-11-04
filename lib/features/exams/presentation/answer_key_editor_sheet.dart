@@ -221,9 +221,9 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
               quality: GlassQuality.standard,
               style: GlassButtonStyle.filled,
               onTap: () => Navigator.of(context).pop(Map<int, int>.from(_draft)),
-              child: Text(
-                widget.saveLabel,
-                style: const TextStyle(fontWeight: FontWeight.w800),
+              child: DarsYarModalButtonLabel(
+                primary: true,
+                child: Text(widget.saveLabel),
               ),
             ),
           ],
