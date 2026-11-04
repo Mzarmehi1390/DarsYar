@@ -170,7 +170,10 @@ class AnswerKeyEditorSheetState extends State<AnswerKeyEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final questionCount = widget.questionCount.clamp(0, 200);
+    final scrollData = ScrollControllerProvider.of(context);
     return ListView.builder(
+      controller: scrollData?.controller,
+      physics: scrollData?.physics,
       padding: EdgeInsets.zero,
       itemCount: questionCount + 4,
       itemBuilder: (context, index) {
