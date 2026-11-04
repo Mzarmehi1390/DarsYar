@@ -19,6 +19,7 @@ import '../features/settings/presentation/settings_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/planner/presentation/planner_page.dart';
 import '../features/planner/application/planner_controller.dart';
+import '../features/planner/application/task_controller.dart';
 import '../answer_scoring.dart';
 import '../backup_codec.dart';
 import '../darsyar_storage.dart';
@@ -62,6 +63,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Future<void> _saveQueue = Future<void>.value();
   final DarsYarStorage _storage = DarsYarStorage();
   const PlannerController _plannerController = PlannerController();
+  const TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
@@ -272,7 +274,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  int get completed => tasks.where((e) => e.done).length;
+  int get completed => _taskController.completedCount(tasks);
 
   @override
   Widget build(BuildContext context) {
@@ -1209,7 +1211,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   onPressed: () async {
-                    setState(() => task.done = !task.done);
+                    setState(() => _taskController.toggleCompletion(task));
                     await save(sections: {'tasks'});
                   },
                   size: 38,
@@ -1268,7 +1270,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       destructive: true,
                     );
                     if (!confirmed || !mounted) return;
-                    setState(() => tasks.removeWhere((item) => item.id == task.id));
+                    setState(() => _taskController.removeById(tasks, task.id));
                     await save(sections: {'tasks'});
                   },
                   size: 36,
@@ -2831,15 +2833,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final result = await _requestTaskDetails(existing);
     if (result == null || !mounted) return;
     setState(() {
-      final subject = result.$2.isEmpty ? 'عمومی' : result.$2;
-      if (existing == null) {
-        tasks.add(StudyTask(DateTime.now().microsecondsSinceEpoch.toString(), result.$1, subject));
-      } else {
-        final index = tasks.indexWhere((task) => task.id == existing.id);
-        if (index >= 0) {
-          tasks[index] = StudyTask(existing.id, result.$1, subject, done: existing.done);
-        }
-      }
+      _taskController.upsert(
+        tasks: tasks,
+        title: result.$1,
+        subject: result.$2,
+        existing: existing,
+        createId: () => DateTime.now().microsecondsSinceEpoch.toString(),
+      );
     });
     await save(sections: {'tasks'});
   }
