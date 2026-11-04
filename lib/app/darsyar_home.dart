@@ -429,18 +429,17 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   void _revealSelectedDay() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || tab != 1) return;
-      for (final target in [
-        _plannerDayKeys[selectedStudyDay]?.currentContext,
-        _plannerWeekKeys[selectedStudyDay]?.currentContext,
-      ]) {
-        if (target != null) {
-          Scrollable.ensureVisible(
-            target,
-            duration: const Duration(milliseconds: 160),
-            alignment: 0.5,
-          );
-        }
-      }
+      // Reveal the selected weekday chip once. Calling ensureVisible for
+      // both the chip and the week card starts two competing animations on
+      // their shared vertical scrollable, which can cause a visible scroll
+      // hitch when changing days.
+      final target = _plannerDayKeys[selectedStudyDay]?.currentContext;
+      if (target == null) return;
+      Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 160),
+        alignment: 0.5,
+      );
     });
   }
   void _showSnackBar(SnackBar snackBar) {
