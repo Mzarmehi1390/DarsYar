@@ -62,8 +62,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
   final DarsYarStorage _storage = DarsYarStorage();
-  const PlannerController _plannerController = PlannerController();
-  const TaskController _taskController = TaskController();
+  final PlannerController _plannerController = PlannerController();
+  final TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
