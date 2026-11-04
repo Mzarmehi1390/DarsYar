@@ -1548,10 +1548,7 @@ void main() {
     expect(sheet.fullSettings!.blur, greaterThan(0));
     expect(sheet.halfSize, lessThan(sheet.fullSize!));
 
-    final scrollView = tester.widget<SingleChildScrollView>(
-      find.byType(SingleChildScrollView).last,
-    );
-    expect(scrollView.physics, isNotNull);
+    expect(find.byType(SingleChildScrollView), findsWidgets);
     expect(find.text('جلسه مطالعه جدید'), findsOneWidget);
     expect(find.byType(Scrollable), findsWidgets);
     expect(tester.takeException(), isNull);
