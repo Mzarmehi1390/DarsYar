@@ -29,7 +29,8 @@ Future<(String, String)?> showTaskDetailsDialog({
               controller: titleController,
               placeholder: 'مثلاً مرور فصل دوم',
               maxLength: 100,
-              autofocus: true,
+              // Let the glass dialog finish its entrance before the keyboard resizes it.
+              autofocus: false,
               textInputAction: TextInputAction.next,
             ),
           ),
