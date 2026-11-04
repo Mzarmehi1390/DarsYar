@@ -29,6 +29,8 @@ Future<T?> showDarsYarGlassSheet<T>({
     quality: quality,
     fillThreshold: fillThreshold,
     fillTransition: fillTransition,
+    expandedColor: Colors.transparent,
+    fullSettings: DarsYarGlassTokens.fullSheetSettings,
     maintainContentGlass: maintainContentGlass,
     padding: padding,
     barrierColor: barrierColor,
