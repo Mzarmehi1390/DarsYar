@@ -59,6 +59,13 @@ void main() {
     );
     expect(textStyle.decoration, TextDecoration.none);
     expect(
+      find.descendant(
+        of: find.byType(DarsYarModalContent),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsOneWidget,
+    );
+    expect(
       CupertinoTheme.of(tester.element(find.text('جلسه مطالعه'))).brightness,
       Brightness.light,
     );
