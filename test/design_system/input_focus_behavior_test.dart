@@ -23,6 +23,9 @@ void main() {
     await tester.pump();
 
     expect(controller.selection, const TextSelection(baseOffset: 0, extentOffset: 1));
+
+    await tester.enterText(find.byType(TextField), '7');
+    expect(controller.text, '7');
   });
 
   testWidgets('does not select a value that the user has already changed',
