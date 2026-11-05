@@ -3,6 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
+import '../../../design_system/glass_menu.dart';
 import '../../../design_system/glass_selector.dart';
 import '../../../design_system/page_header.dart';
 import '../../../models/study_task.dart';
@@ -172,7 +173,7 @@ class PlannerPage extends StatelessWidget {
                     onTap: onAddStudySession,
                     child: const Text('جلسه جدید', style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
-                  GlassPullDownButton(
+                  DarsYarGlassMenuButton(
                     icon: const Icon(Icons.copy_all_rounded),
                     semanticLabel: 'کپی برنامه این روز',
                     quality: GlassQuality.standard,
