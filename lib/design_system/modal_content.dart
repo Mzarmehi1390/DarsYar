@@ -1,12 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// Re-establishes DarsYar's typography, contrast and RTL contract inside
 /// overlay routes, including Cupertino-based Liquid Glass controls.
-/// A predictable label style for actions rendered inside Liquid Glass sheets.
-/// GlassButton's internal surface must not decide text contrast or typography.
 class DarsYarModalButtonLabel extends StatelessWidget {
   const DarsYarModalButtonLabel({
     required this.child,
@@ -70,9 +66,6 @@ class DarsYarModalContent extends StatelessWidget {
           data: CupertinoThemeData(
             brightness: theme.brightness,
             primaryColor: scheme.primary,
-            // Cupertino-backed glass inputs inherit this style. Explicitly
-            // bind their text to the active Material color scheme so neither
-            // theme can fall back to low-contrast platform defaults.
             textTheme: CupertinoTextThemeData(
               textStyle: TextStyle(
                 color: scheme.onSurface,
@@ -88,9 +81,6 @@ class DarsYarModalContent extends StatelessWidget {
               ),
             ),
           ),
-          // Force the modal's readable foreground through nested package
-          // defaults as well; GlassButton/GlassChip may otherwise reintroduce
-          // a low-contrast default text style inside an overlay.
           child: IconTheme(
             data: IconThemeData(color: scheme.onSurface),
             child: DefaultTextStyle.merge(
@@ -102,8 +92,6 @@ class DarsYarModalContent extends StatelessWidget {
                 decoration: TextDecoration.none,
                 decorationColor: Colors.transparent,
               ),
-              // Keep dynamic form/list repaints inside the modal content
-              // layer instead of invalidating the surrounding glass surface.
               child: RepaintBoundary(child: child),
             ),
           ),
@@ -113,26 +101,28 @@ class DarsYarModalContent extends StatelessWidget {
   }
 }
 
-
-/// Keeps every glass sheet's complete content above Android/iOS system
-/// navigation areas. The inset belongs to the sheet as a whole, not only to
-/// its action row, so scrolling content and fixed actions share one safe edge.
+/// Shared safe-area contract for every glass sheet.
+///
+/// The bottom inset is supplied by the presenting route because some
+/// edge-to-edge Android configurations report zero in the sheet route even
+/// while the gesture/navigation region is still reserved by the system.
 class DarsYarModalSheetContent extends StatelessWidget {
-  const DarsYarModalSheetContent({required this.child, super.key});
+  const DarsYarModalSheetContent({
+    required this.child,
+    this.bottomInset = 0,
+    super.key,
+  });
 
   final Widget child;
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    // Some Android edge-to-edge configurations report the gesture-navigation
-    // region through systemGestureInsets while viewPadding.bottom is zero.
-    // Keep a minimum footer clearance as a final fallback for those devices.
-    final systemBottomInset = math.max(
-      media.viewPadding.bottom,
-      math.max(media.systemGestureInsets.bottom, media.padding.bottom),
-    );
-    final bottomClearance = math.max(24.0, systemBottomInset + 8);
+    // Reserve the greater of the real system inset and a small visual gap.
+    // This padding wraps the complete Column, keeping fixed actions above
+    // navigation while leaving only the question list scrollable.
+    final double bottomClearance =
+        (bottomInset + 12).clamp(24.0, 64.0).toDouble();
     return DarsYarModalContent(
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomClearance),
