@@ -36,6 +36,7 @@ import '../features/planner/domain/models/study_task.dart';
 import '../features/planner/domain/models/planner_summary.dart';
 import 'data/darsyar_repository.dart';
 import '../design_system/input_focus_behavior.dart';
+import 'presentation/home_shell.dart';
 
 const accent = DarsYarTokens.accent;
 
@@ -221,109 +222,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final liteMotion = !widget.animationsEnabled ||
         MediaQuery.of(context).disableAnimations;
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GlassScaffold(
-        // Keep the decorative radial-gradient backdrop in its own
-        // paint layer. Frequent page-state updates (including exam timer
-        // ticks) should repaint the active content without repainting these
-        // static glass-atmosphere layers.
-        background: _ambientBackgroundFor(isDark),
-        body: SafeArea(
-          bottom: false,
-          child: loading
-              ? const Center(child: CircularProgressIndicator())
-              : RepaintBoundary(
-                  // Keep page animation and timer-driven page paints isolated
-                  // from the persistent glass tab bar and ambient backdrop.
-                  child: AnimatedSwitcher(
-                    // Do not keep the previous (potentially expensive) page in
-                    // the render tree while the next page enters. The incoming
-                    // page still gets its glass transition, without compositing
-                    // two complete page trees during navigation.
-                    layoutBuilder: (currentChild, previousChildren) =>
-                        currentChild ?? const SizedBox.shrink(),
-                    // Lite mode keeps a calm fade at the same deliberate pace;
-                    // it removes the slide instead of accelerating the transition.
-                    duration: const Duration(milliseconds: 220),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final curved = CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      );
-                      if (liteMotion) {
-                        return FadeTransition(opacity: curved, child: child);
-                      }
-                      final slide = Tween<Offset>(
-                        begin: const Offset(0, 0.012),
-                        end: Offset.zero,
-                      ).animate(curved);
-                      return FadeTransition(
-                        opacity: curved,
-                        child: SlideTransition(position: slide, child: child),
-                      );
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey<int>(tab),
-                      child: page,
-                    ),
-                  ),
-                ),
-        ),
-        bottomBar: loading
-            ? null
-            : GlassTabBar.bottom(
-                tabs: const [
-                  GlassTab(
-                    icon: Icon(Icons.grid_view_rounded),
-                    activeIcon: Icon(Icons.grid_view_rounded),
-                    label: 'خانه',
-                    semanticLabel: 'خانه',
-                    glowColor: accent,
-                  ),
-                  GlassTab(
-                    icon: Icon(Icons.calendar_month_outlined),
-                    activeIcon: Icon(Icons.calendar_month_rounded),
-                    label: 'برنامه‌ریزی',
-                    semanticLabel: 'برنامه‌ریزی',
-                    glowColor: accent,
-                  ),
-                  GlassTab(
-                    icon: Icon(Icons.fact_check_outlined),
-                    activeIcon: Icon(Icons.fact_check_rounded),
-                    label: 'پاسخ‌برگ',
-                    semanticLabel: 'پاسخ‌برگ',
-                    glowColor: accent,
-                  ),
-                  GlassTab(
-                    icon: Icon(Icons.tune_outlined),
-                    activeIcon: Icon(Icons.tune_rounded),
-                    label: 'تنظیمات',
-                    semanticLabel: 'تنظیمات',
-                    glowColor: accent,
-                  ),
-                ],
-                selectedIndex: tab,
-                onTabSelected: (index) {
-                  if (index == 1) {
-                    _openPlanner();
-                  } else {
-                    setState(() => tab = index);
-                  }
-                },
-                selectedIconColor: isDark
-                    ? DarsYarTokens.accentLight
-                    : DarsYarTokens.accent,
-                unselectedIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                selectedLabelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                iconSize: 23,
-                labelFontSize: 10.5,
-                magnification: 1.12,
-              ),
-      ),
+
+    return DarsYarHomeShell(
+      page: page,
+      loading: loading,
+      background: _ambientBackgroundFor(isDark),
+      selectedIndex: tab,
+      liteMotion: liteMotion,
+      onTabSelected: (index) {
+        if (index == 1) {
+          _openPlanner();
+        } else {
+          setState(() => tab = index);
+        }
+      },
     );
   }
 
