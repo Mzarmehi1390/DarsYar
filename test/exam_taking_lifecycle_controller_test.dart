@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:darsyar/features/exams/application/exam_taking_lifecycle_controller.dart';
+import 'package:dars_yar/features/exams/application/exam_taking_lifecycle_controller.dart';
 
 void main() {
   group('ExamTakingLifecycleController', () {
