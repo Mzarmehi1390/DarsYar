@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
-import '../../../design_system/glass_tokens.dart';
 import '../domain/models/exam_sheet.dart';
 
 /// Glass header and progress summary for an active exam.
