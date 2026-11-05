@@ -11,6 +11,7 @@ import '../design_system/glass_tokens.dart';
 import '../design_system/glass_selector.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
+import '../features/exams/application/exam_taking_session_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
