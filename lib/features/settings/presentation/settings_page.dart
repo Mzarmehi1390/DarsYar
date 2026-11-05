@@ -181,9 +181,9 @@ class SettingsPage extends StatelessWidget {
         SizedBox(height: 12),
         SizedBox(
           width: double.infinity,
-          child: GlassButton.custom(
+          child: DarsYarGlassButton(
             height: 48,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+            radius: 16,
             quality: GlassQuality.standard,
             style: GlassButtonStyle.prominent,
             onTap: onExportBackup,
@@ -200,9 +200,9 @@ class SettingsPage extends StatelessWidget {
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
-          child: GlassButton.custom(
+          child: DarsYarGlassButton(
             height: 48,
-            shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+            radius: 16,
             quality: GlassQuality.standard,
             style: GlassButtonStyle.filled,
             onTap: onImportBackup,

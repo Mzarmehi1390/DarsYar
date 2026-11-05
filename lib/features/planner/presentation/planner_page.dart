@@ -161,10 +161,10 @@ class PlannerPage extends StatelessWidget {
                     dayLabels[selectedDay],
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
-                  GlassButton.custom(
+                  DarsYarGlassButton(
                     width: 132,
                     height: 44,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                    radius: 15,
                     quality: GlassQuality.standard,
                     style: GlassButtonStyle.filled,
                     onTap: onAddStudySession,
@@ -228,10 +228,10 @@ class PlannerPage extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  GlassButton.custom(
+                  DarsYarGlassButton(
                     width: 126,
                     height: 44,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                    radius: 15,
                     quality: GlassQuality.standard,
                     style: GlassButtonStyle.filled,
                     onTap: onAddTask,

@@ -33,7 +33,7 @@ class DashboardPage extends StatelessWidget {
     SizedBox(height: 24),
     GlassContainer.card(
       padding: EdgeInsets.zero,
-      shape: const LiquidRoundedSuperellipse(borderRadius: 30),
+      radius: 30,
       useOwnLayer: true,
       quality: GlassQuality.standard,
       clipBehavior: Clip.antiAlias,
@@ -295,9 +295,9 @@ class DashboardPage extends StatelessWidget {
     ),
     SizedBox(height: 14),
     Row(children: [Expanded(child: Text('وظایف پیش رو', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface))),
-      GlassButton.custom(
+      DarsYarGlassButton(
         height: 36,
-        shape: const LiquidRoundedSuperellipse(borderRadius: 12),
+        radius: 12,
         quality: GlassQuality.standard,
         style: GlassButtonStyle.transparent,
         onTap: onOpenPlanner,
@@ -329,10 +329,10 @@ class DashboardPage extends StatelessWidget {
         ? DarsYarTokens.accentLight
         : const Color(0xFF12664A);
 
-    return GlassButton.custom(
+    return DarsYarGlassButton(
       width: double.infinity,
       height: height,
-      shape: const LiquidRoundedSuperellipse(borderRadius: 23),
+      radius: 23,
       quality: GlassQuality.standard,
       style: GlassButtonStyle.filled,
       onTap: action,
