@@ -28,7 +28,6 @@ void main() {
     expect(taps, 1);
     expect(tester.takeException(), isNull);
   });
-}
 
   testWidgets('shared glass icon button forwards tap and semantics',
       (tester) async {
