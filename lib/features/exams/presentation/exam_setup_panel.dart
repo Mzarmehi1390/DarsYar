@@ -94,6 +94,10 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
       initialState: GlassSheetState.full,
       fullSize: 0.90,
       quality: GlassQuality.standard,
+      // Match the answer-key editor used for existing exams: keep the
+      // full-height sheet refractive instead of transitioning to an opaque fill.
+      fillThreshold: 1.0,
+      maintainContentGlass: true,
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
       barrierColor: DarsYarGlassTokens.sheetBarrierColor,
     );
