@@ -142,7 +142,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
   }
 
-  static const _allStorageSections  static const _allStorageSections = <String>{
+  static const _allStorageSections = <String>{
     'tasks',
     'exams',
     'activeExam',
@@ -1395,16 +1395,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
     SizedBox(width: 5), Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
   ]);
-
-  Map<int, int> _readIntMap(String? raw) {
-    if (raw == null) return <int, int>{};
-    try {
-      final map = Map<String, dynamic>.from(jsonDecode(raw) as Map);
-      return map.map((key, value) => MapEntry(int.parse(key), (value as num).toInt()));
-    } catch (_) {
-      return <int, int>{};
-    }
-  }
 
   void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking, Map<int, int> answerKey) {
     final exam = ExamSheet(
