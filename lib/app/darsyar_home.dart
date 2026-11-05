@@ -29,11 +29,11 @@ import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
-import '../exam_result.dart';
-import '../exam_sheet.dart';
-import '../study_session.dart';
-import '../models/study_task.dart';
-import '../planner_summary.dart';
+import '../features/exams/domain/models/exam_result.dart';
+import '../features/exams/domain/models/exam_sheet.dart';
+import '../features/planner/domain/models/study_session.dart';
+import '../features/planner/domain/models/study_task.dart';
+import '../features/planner/domain/models/planner_summary.dart';
 import 'data/darsyar_repository.dart';
 
 const accent = DarsYarTokens.accent;

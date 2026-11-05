@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import '../../darsyar_storage.dart';
-import '../../exam_result.dart';
-import '../../exam_sheet.dart';
-import '../../models/study_task.dart';
-import '../../study_session.dart';
+import '../../features/exams/domain/models/exam_result.dart';
+import '../../features/exams/domain/models/exam_sheet.dart';
+import '../../features/planner/domain/models/study_task.dart';
+import '../../features/planner/domain/models/study_session.dart';
 
 /// Immutable result of restoring the app's persisted feature collections.
 class DarsYarAppSnapshot {
