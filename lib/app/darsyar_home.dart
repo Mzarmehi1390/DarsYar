@@ -797,7 +797,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return Column(
       children: [
         GlassContainer.card(
-          radius: 22,
+          shape: const LiquidRoundedSuperellipse(borderRadius: 22),
           useOwnLayer: true,
           quality: GlassQuality.standard,
           clipBehavior: Clip.antiAlias,

@@ -5,7 +5,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 void main() {
   testWidgets('shared glass button forwards tap and visual hierarchy',
-      (tester) async {
+      (WidgetTester tester) async {
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(
@@ -30,7 +30,7 @@ void main() {
   });
 
   testWidgets('shared glass icon button forwards tap and semantics',
-      (tester) async {
+      (WidgetTester tester) async {
     var taps = 0;
     await tester.pumpWidget(
       MaterialApp(
