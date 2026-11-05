@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/modal_content.dart';
+import '../../../design_system/input_focus_behavior.dart';
 
 class BackupImportDialog extends StatefulWidget {
   const BackupImportDialog({super.key});
@@ -58,14 +59,16 @@ class BackupImportDialogState extends State<BackupImportDialog> {
         const SizedBox(height: 16),
         GlassFormField(
           label: 'محتوای نسخه پشتیبان',
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: _controller,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _controller,
             minLines: 4,
             maxLines: 4,
             keyboardType: TextInputType.multiline,
             placeholder: 'محتوای نسخه پشتیبان…',
-          ),
+          )),
         ),
             ],
           ),

@@ -8,6 +8,7 @@ import 'exam_duration_dialog.dart';
 import '../../../design_system/glass_modal_sheet.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../design_system/glass_tokens.dart';
+import '../../../design_system/input_focus_behavior.dart';
 
 class ExamSetupPanel extends StatefulWidget {
   const ExamSetupPanel({super.key, required this.onCreate, required this.onMessage});
@@ -115,19 +116,23 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
           SizedBox(height: 14),
           GlassFormField(
             label: 'نام آزمون',
-            child: GlassTextField(
+            child: DarsYarInputFocusBehavior(
+              controller: _name,
+              child: GlassTextField(
               surfaceStyle: GlassSurfaceStyle.solid,
               controller: _name,
               maxLength: 60,
               placeholder: 'مثلاً آزمون فصل اول ریاضی',
               quality: GlassQuality.standard,
               textInputAction: TextInputAction.next,
-            ),
+            )),
           ),
           const SizedBox(height: 12),
           GlassFormField(
             label: 'تعداد سؤال (۱ تا ۲۰۰)',
-            child: GlassTextField(
+            child: DarsYarInputFocusBehavior(
+              controller: _count,
+              child: GlassTextField(
               surfaceStyle: GlassSurfaceStyle.solid,
               controller: _count,
               keyboardType: TextInputType.number,
@@ -135,7 +140,7 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
               maxLength: 3,
               quality: GlassQuality.standard,
               textInputAction: TextInputAction.next,
-            ),
+            )),
           ),
           SizedBox(height: 14),
           Text('زمان دلخواه آزمون', style: TextStyle(fontWeight: FontWeight.w700)),

@@ -5,6 +5,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../study_session.dart';
 import '../../../design_system/modal_content.dart';
+import '../../../design_system/input_focus_behavior.dart';
 
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
@@ -88,24 +89,28 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
         const SizedBox(height: 16),
         GlassFormField(
           label: 'عنوان جلسه',
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: _titleController,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _titleController,
             // Let the glass sheet settle before the keyboard changes its viewport.
             autofocus: false,
             placeholder: 'مثلاً حل تمرین فصل اول',
             textInputAction: TextInputAction.next,
-          ),
+          )),
         ),
         const SizedBox(height: 14),
         GlassFormField(
           label: 'درس',
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: _subjectController,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _subjectController,
             placeholder: 'مثلاً ریاضی',
             textInputAction: TextInputAction.next,
-          ),
+          )),
         ),
         const SizedBox(height: 16),
         Text(
@@ -279,7 +284,9 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
         GlassFormField(
           label: 'مدت جلسه (دقیقه)',
           helperText: 'مدت دلخواهت را از ۱ تا ۱۴۴۰ دقیقه وارد کن.',
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: _durationController,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: _durationController,
             keyboardType: TextInputType.number,
@@ -290,7 +297,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
             maxLength: 4,
             onChanged: (value) => _durationMinutes = int.tryParse(value) ?? 0,
             textInputAction: TextInputAction.done,
-          ),
+          )),
         ),
             ],
           ),

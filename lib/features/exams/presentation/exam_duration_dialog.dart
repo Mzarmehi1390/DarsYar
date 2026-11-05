@@ -4,6 +4,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/modal_content.dart';
+import '../../../design_system/input_focus_behavior.dart';
 
 class ExamDurationDialog extends StatefulWidget {
   const ExamDurationDialog({super.key, required this.initialDuration, required this.onMessage});
@@ -71,7 +72,9 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
       Expanded(
         child: GlassFormField(
           label: label,
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: controller,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
             keyboardType: TextInputType.number,
@@ -82,7 +85,7 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
             maxLength: 2,
             onChanged: (_) => setState(() {}),
             textInputAction: TextInputAction.next,
-          ),
+          )),
         ),
       );
 
@@ -118,7 +121,9 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
             children: [
               GlassFormField(
                 label: 'ساعت',
-                child: GlassTextField(
+                child: DarsYarInputFocusBehavior(
+                  controller: _hours,
+                  child: GlassTextField(
                   surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _hours,
                   keyboardType: TextInputType.number,
@@ -128,12 +133,14 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
                   ],
                   maxLength: 2,
                   onChanged: (_) => setState(() {}),
-                ),
+                )),
               ),
               const SizedBox(height: 12),
               GlassFormField(
                 label: 'دقیقه',
-                child: GlassTextField(
+                child: DarsYarInputFocusBehavior(
+                  controller: _minutes,
+                  child: GlassTextField(
                   surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _minutes,
                   keyboardType: TextInputType.number,
@@ -143,12 +150,14 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
                   ],
                   maxLength: 2,
                   onChanged: (_) => setState(() {}),
-                ),
+                )),
               ),
               const SizedBox(height: 12),
               GlassFormField(
                 label: 'ثانیه',
-                child: GlassTextField(
+                child: DarsYarInputFocusBehavior(
+                  controller: _seconds,
+                  child: GlassTextField(
                   surfaceStyle: GlassSurfaceStyle.solid,
                   controller: _seconds,
                   keyboardType: TextInputType.number,
@@ -158,7 +167,7 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
                   ],
                   maxLength: 2,
                   onChanged: (_) => setState(() {}),
-                ),
+                )),
               ),
             ],
           )
