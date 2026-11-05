@@ -6,6 +6,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../study_session.dart';
 import '../../../design_system/modal_content.dart';
 import '../../../design_system/glass_button.dart';
+import '../../../design_system/glass_selector.dart';
 import '../../../design_system/input_focus_behavior.dart';
 
 class StudySessionEditorDialog extends StatefulWidget {
@@ -137,47 +138,12 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                       padding: const EdgeInsetsDirectional.only(end: 9),
                       child: Tooltip(
                         message: widget.weekDays[day],
-                        child: Semantics(
-                          button: true,
+                        child: DarsYarGlassCircularChoice(
+                          key: ValueKey<String>('study-session-day-$day'),
+                          label: widget.weekDays[day].substring(0, 1),
+                          semanticLabel: widget.weekDays[day],
                           selected: weekday == day,
-                          label: widget.weekDays[day],
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              key: ValueKey<String>('study-session-day-$day'),
-                              customBorder: const CircleBorder(),
-                              onTap: () => _weekday.value = day,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 150),
-                                curve: Curves.easeOutCubic,
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: weekday == day
-                                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
-                                      : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
-                                  border: Border.all(
-                                    color: weekday == day
-                                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.78)
-                                        : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.62),
-                                    width: weekday == day ? 1.4 : 0.8,
-                                  ),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  widget.weekDays[day].substring(0, 1),
-                                  style: TextStyle(
-                                    color: weekday == day
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                          onTap: () => _weekday.value = day,
                         ),
                       ),
                     ),

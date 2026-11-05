@@ -30,4 +30,30 @@ void main() {
     expect(taps, 1);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('shared circular choice preserves selection semantics and tap',
+      (tester) async {
+    var taps = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: DarsYarGlassCircularChoice(
+              label: 'ش',
+              semanticLabel: 'شنبه',
+              selected: true,
+              onTap: () => taps++,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('ش'), findsOneWidget);
+    expect(find.bySemanticsLabel('شنبه'), findsOneWidget);
+    await tester.tap(find.text('ش'));
+    expect(taps, 1);
+    expect(tester.takeException(), isNull);
+  });
+
 }

@@ -82,3 +82,72 @@ class DarsYarGlassChoiceChip extends StatelessWidget {
         onTap: onTap,
       );
 }
+
+
+/// Shared circular choice used for compact selectors such as weekdays.
+/// Keeps tap semantics, selection contrast and motion consistent.
+class DarsYarGlassCircularChoice extends StatelessWidget {
+  const DarsYarGlassCircularChoice({
+    required this.label,
+    required this.semanticLabel,
+    required this.selected,
+    required this.onTap,
+    this.size = 42,
+    this.animationDuration = const Duration(milliseconds: 150),
+    super.key,
+  });
+
+  final String label;
+  final String semanticLabel;
+  final bool selected;
+  final VoidCallback onTap;
+  final double size;
+  final Duration animationDuration;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      container: true,
+      button: true,
+      selected: selected,
+      label: semanticLabel,
+      child: ExcludeSemantics(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: animationDuration,
+              curve: Curves.easeOutCubic,
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected
+                    ? scheme.primary.withValues(alpha: 0.18)
+                    : scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+                border: Border.all(
+                  color: selected
+                      ? scheme.primary.withValues(alpha: 0.78)
+                      : scheme.outlineVariant.withValues(alpha: 0.62),
+                  width: selected ? 1.4 : 0.8,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: selected ? scheme.primary : scheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
