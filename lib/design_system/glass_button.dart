@@ -7,7 +7,7 @@ class DarsYarGlassButton extends StatelessWidget {
   const DarsYarGlassButton({
     required this.onTap,
     required this.child,
-    required this.style,
+    this.style = GlassButtonStyle.filled,
     this.width,
     this.height = 48,
     this.radius = 16,

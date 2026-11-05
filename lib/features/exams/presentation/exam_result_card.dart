@@ -130,9 +130,9 @@ class ExamResultCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Align(
                   alignment: AlignmentDirectional.centerStart,
-                  child: GlassButton.custom(
+                  child: DarsYarGlassButton(
                     height: 40,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                    radius: 13,
                     quality: GlassQuality.standard,
                     style: GlassButtonStyle.transparent,
                     onTap: onAddAnswerKey,

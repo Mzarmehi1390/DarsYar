@@ -201,10 +201,10 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
           builder: (context, startMinutes, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              GlassButton.custom(
+              DarsYarGlassButton(
                 width: double.infinity,
                 height: 50,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                radius: 16,
                 quality: GlassQuality.standard,
                 onTap: () => _showTimePicker.value = !_showTimePicker.value,
                 child: ValueListenableBuilder<bool>(
@@ -255,9 +255,9 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                             const SizedBox(height: 8),
                             Align(
                               alignment: AlignmentDirectional.centerEnd,
-                              child: GlassButton.custom(
+                              child: DarsYarGlassButton(
                                 height: 40,
-                                shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                                radius: 13,
                                 quality: GlassQuality.standard,
                                 style: GlassButtonStyle.filled,
                                 onTap: () {
@@ -311,9 +311,9 @@ SafeArea(
             child: Row(
               children: [
                 Expanded(
-                  child: GlassButton.custom(
+                  child: DarsYarGlassButton(
                     height: 48,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                    radius: 16,
                     quality: GlassQuality.standard,
                     onTap: () => Navigator.of(context).pop(),
                     child: const DarsYarModalButtonLabel(child: Text('انصراف')),
@@ -321,9 +321,9 @@ SafeArea(
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: GlassButton.custom(
+                  child: DarsYarGlassButton(
                     height: 48,
-                    shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                    radius: 16,
                     quality: GlassQuality.standard,
                     style: GlassButtonStyle.filled,
                     onTap: _submit,

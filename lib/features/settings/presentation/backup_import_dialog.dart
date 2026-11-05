@@ -82,9 +82,9 @@ class BackupImportDialogState extends State<BackupImportDialog> {
             child: Row(
           children: [
             Expanded(
-              child: GlassButton.custom(
+              child: DarsYarGlassButton(
                 height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                radius: 16,
                 quality: GlassQuality.standard,
                 onTap: () => Navigator.of(context).pop(),
                 child: const DarsYarModalButtonLabel(child: Text('انصراف')),
@@ -92,9 +92,9 @@ class BackupImportDialogState extends State<BackupImportDialog> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: GlassButton.custom(
+              child: DarsYarGlassButton(
                 height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                radius: 16,
                 quality: GlassQuality.standard,
                 style: GlassButtonStyle.filled,
                 onTap: () => Navigator.of(context).pop(_controller.text),

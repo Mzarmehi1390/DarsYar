@@ -103,10 +103,10 @@ class SavedExamCard extends StatelessWidget {
                         ),
                       ],
                     )
-                  : GlassButton.custom(
+                  : DarsYarGlassButton(
                       width: 142,
                       height: 44,
-                      shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                      radius: 15,
                       quality: GlassQuality.standard,
                       style: GlassButtonStyle.filled,
                       onTap: onBegin,
