@@ -26,7 +26,7 @@ void main() {
 
     expect(find.text('صفحه فعال'), findsOneWidget);
     expect(find.byType(GlassTabBar), findsOneWidget);
-    await tester.tap(find.text('برنامه‌ریزی'));
+    await tester.tap(find.text('برنامه‌ریزی').last);
     expect(selectedTab, 1);
     expect(tester.takeException(), isNull);
   });
