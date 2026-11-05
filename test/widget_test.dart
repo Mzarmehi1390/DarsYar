@@ -159,14 +159,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: DarsYarTheme.light,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            viewPadding: const EdgeInsets.only(bottom: 24),
+        home: Scaffold(
+          body: MediaQuery(
+            data: const MediaQueryData(
+              viewPadding: EdgeInsets.only(bottom: 24),
+            ),
+            child: const DarsYarModalSheetContent(
+              child: Text('محتوای شیت'),
+            ),
           ),
-          child: child!,
-        ),
-        home: const Scaffold(
-          body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
         ),
       ),
     );
@@ -188,16 +189,17 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: DarsYarTheme.light,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            viewPadding: EdgeInsets.zero,
-            padding: EdgeInsets.zero,
-            systemGestureInsets: const EdgeInsets.only(bottom: 28),
+        home: Scaffold(
+          body: MediaQuery(
+            data: const MediaQueryData(
+              viewPadding: EdgeInsets.zero,
+              padding: EdgeInsets.zero,
+              systemGestureInsets: EdgeInsets.only(bottom: 28),
+            ),
+            child: const DarsYarModalSheetContent(
+              child: Text('محتوای شیت'),
+            ),
           ),
-          child: child!,
-        ),
-        home: const Scaffold(
-          body: DarsYarModalSheetContent(child: Text('محتوای شیت')),
         ),
       ),
     );
