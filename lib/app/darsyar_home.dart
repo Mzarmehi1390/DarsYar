@@ -17,6 +17,7 @@ import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_history_page.dart';
+import '../features/exams/presentation/saved_exams_view.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
 import '../features/planner/presentation/task_details_dialog.dart';
@@ -614,82 +615,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     onBegin: () => _beginExam(exam),
   );
 
-  Widget _myExamsView() {
-    final savedExams = exams.reversed.toList(growable: false);
-    final empty = savedExams.isEmpty;
-    final itemCount = empty ? 7 : savedExams.length + 6;
-
-    return CustomScrollView(
-      key: const PageStorageKey<String>('my-exams-scroll'),
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            DarsYarTokens.pageBottomClearance,
-          ),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                if (index == 0) {
-                  return const Text(
-                    'پاسخ‌برگ‌های ذخیره‌شده',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-                  );
-                }
-                if (index == 1) return const SizedBox(height: 10);
-
-                if (empty) {
-                  switch (index) {
-                    case 2:
-                      return emptyState(
-                        Icons.assignment_outlined,
-                        'هنوز آزمونی نساخته‌ای',
-                        'از بخش ساخت آزمون جدید، اولین پاسخ‌برگت را ایجاد کن.',
-                      );
-                    case 3:
-                      return const SizedBox(height: 14);
-                    case 4:
-                      return const Text(
-                        'نتایج آزمون‌ها',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                      );
-                    case 5:
-                      return const SizedBox(height: 8);
-                    case 6:
-                      return resultsHistory();
-                  }
-                } else {
-                  final examIndex = index - 2;
-                  if (examIndex < savedExams.length) {
-                    return _savedExamCard(savedExams[examIndex]);
-                  }
-                  switch (examIndex - savedExams.length) {
-                    case 0:
-                      return const SizedBox(height: 14);
-                    case 1:
-                      return const Text(
-                        'نتایج آزمون‌ها',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                      );
-                    case 2:
-                      return const SizedBox(height: 8);
-                    case 3:
-                      return resultsHistory();
-                  }
-                }
-                return const SizedBox.shrink();
-              },
-              childCount: itemCount,
-              addAutomaticKeepAlives: false,
-              addRepaintBoundaries: true,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _myExamsView() => SavedExamsView(
+        exams: exams,
+        savedExamCardBuilder: _savedExamCard,
+        emptyStateBuilder: emptyState,
+        resultsHistoryBuilder: resultsHistory,
+      );
 
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
