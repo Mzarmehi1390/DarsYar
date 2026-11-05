@@ -13,7 +13,7 @@ void main() {
           body: SavedExamsView(
             exams: const [],
             savedExamCardBuilder: (exam) => Text(exam.name),
-            emptyStateBuilder: (_, title, __) => Text(title),
+            emptyStateBuilder: (_, title, _) => Text(title),
             resultsHistoryBuilder: () => const Text('تاریخچه نتایج'),
           ),
         ),
@@ -39,7 +39,7 @@ void main() {
           body: SavedExamsView(
             exams: exams,
             savedExamCardBuilder: (exam) => Text(exam.name),
-            emptyStateBuilder: (_, title, __) => Text(title),
+            emptyStateBuilder: (_, title, _) => Text(title),
             resultsHistoryBuilder: () => const Text('تاریخچه نتایج'),
           ),
         ),
