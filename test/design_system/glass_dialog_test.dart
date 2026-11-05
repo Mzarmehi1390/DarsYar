@@ -11,37 +11,40 @@ void main() {
     late StateSetter updateMedia;
 
     await tester.pumpWidget(
-      StatefulBuilder(
-        builder: (context, setState) {
-          updateMedia = setState;
-          return MediaQuery(
-            data: MediaQueryData(
-              size: const Size(400, 800),
-              viewInsets: EdgeInsets.only(
-                bottom: keyboardVisible ? 260 : 0,
-              ),
-            ),
-            child: MaterialApp(
-              home: Scaffold(
-                body: Center(
-                  child: ElevatedButton(
-                    onPressed: () => showDarsYarGlassDialog<void>(
-                      context: context,
-                      title: 'آزمایش',
-                      actions: [
-                        GlassDialogAction(
-                          label: 'بستن',
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    child: const Text('باز کردن'),
-                  ),
+      MaterialApp(
+        builder: (context, child) => StatefulBuilder(
+          builder: (context, setState) {
+            updateMedia = setState;
+            return MediaQuery(
+              data: MediaQueryData(
+                size: const Size(400, 800),
+                viewInsets: EdgeInsets.only(
+                  bottom: keyboardVisible ? 260 : 0,
                 ),
               ),
+              child: child!,
+            );
+          },
+        ),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => showDarsYarGlassDialog<void>(
+                  context: context,
+                  title: 'آزمایش',
+                  actions: [
+                    GlassDialogAction(
+                      label: 'بستن',
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+                child: const Text('باز کردن'),
+              ),
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
 
