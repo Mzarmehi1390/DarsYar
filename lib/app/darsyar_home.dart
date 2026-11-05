@@ -768,14 +768,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> saveExamResult() async {
     if (!_examTakingLifecycleController.beginSaveResult()) return;
-    final exam = activeExam;
-    final completedAt = DateTime.now();
-    final result = _examController.createResult(
-      exam: exam,
-      id: completedAt.microsecondsSinceEpoch.toString(),
-      completedAt: completedAt,
-    );
     try {
+      final exam = activeExam;
+      final completedAt = DateTime.now();
+      final result = _examController.createResult(
+        exam: exam,
+        id: completedAt.microsecondsSinceEpoch.toString(),
+        completedAt: completedAt,
+      );
       if (!mounted) return;
       setState(() {
         results.add(result);
@@ -969,8 +969,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       confirmLabel: 'حذف',
       destructive: true,
     );
-    if (!confirmed) return;
+    if (!confirmed || !mounted) return;
     final deletedExam = activeExam;
+    // A timer must never outlive the answer sheet it belongs to.
+    _examTimerController.stop();
+    _examTimerController.isRunning = false;
+    _examTimerController.deadline = null;
+    _examTimerController.setRemaining(0);
+    _examTimerController.examId = null;
     setState(() {
       final index = exams.indexWhere((exam) => exam.id == activeExamId);
       exams.removeWhere((exam) => exam.id == activeExamId);
