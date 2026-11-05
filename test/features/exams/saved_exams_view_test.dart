@@ -48,6 +48,10 @@ void main() {
 
     expect(find.text('آزمون دوم'), findsOneWidget);
     expect(find.text('آزمون اول'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('آزمون دوم')).dy,
+      lessThan(tester.getTopLeft(find.text('آزمون اول')).dy),
+    );
     expect(find.text('هنوز آزمونی نساخته‌ای'), findsNothing);
     expect(find.text('تاریخچه نتایج'), findsOneWidget);
     expect(tester.takeException(), isNull);
