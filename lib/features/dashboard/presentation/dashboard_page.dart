@@ -22,10 +22,13 @@ class DashboardPage extends StatelessWidget {
   final Widget Function(StudyTask task) taskTileBuilder;
   final Widget Function(IconData icon, String title, String subtitle) emptyStateBuilder;
 
-  int get completed => tasks.where((task) => task.done).length;
-
 @override
-  Widget build(BuildContext context) => ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
+  Widget build(BuildContext context) {
+    // Compute task aggregates once per build instead of repeatedly scanning
+    // the same collection for each dashboard label and progress indicator.
+    final completedCount = tasks.where((task) => task.done).length;
+    final pendingTasks = tasks.where((task) => !task.done).take(3).toList(growable: false);
+    return ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
       subtitle: 'برنامه‌ریزی هوشمند برای یادگیری بهتر',
@@ -211,7 +214,7 @@ class DashboardPage extends StatelessWidget {
                       child: Text(
                         tasks.isEmpty
                             ? 'هنوز وظیفه‌ای ثبت نشده است'
-                            : 'وظایف انجام‌شده: $completed از ${tasks.length}',
+                            : 'وظایف انجام‌شده: $completedCount از ${tasks.length}',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w700,
@@ -219,7 +222,7 @@ class DashboardPage extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      tasks.isEmpty ? '۰٪' : '${(completed / tasks.length * 100).round()}٪',
+                      tasks.isEmpty ? '۰٪' : '${(completedCount / tasks.length * 100).round()}٪',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w800,
@@ -304,10 +307,11 @@ class DashboardPage extends StatelessWidget {
         onTap: onOpenPlanner,
         child: const Text('مشاهده همه'),
       )]),
-    if (tasks.where((e) => !e.done).isEmpty)
+    if (pendingTasks.isEmpty)
       emptyStateBuilder(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
-    else ...tasks.where((e) => !e.done).take(3).map(taskTileBuilder),
+    else ...pendingTasks.map(taskTileBuilder),
   ]);
+  }
 
   Widget quickAction(
     BuildContext context,
