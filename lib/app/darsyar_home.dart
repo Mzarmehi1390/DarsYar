@@ -17,6 +17,7 @@ import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_history_page.dart';
+import '../features/exams/presentation/exam_question_navigator.dart';
 import '../features/exams/presentation/saved_exams_view.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
@@ -821,96 +822,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (_showQuestionNavigator)
-                SizedBox(
-                  width: (MediaQuery.of(context).size.width * 0.34)
-                      .clamp(112.0, 190.0)
-                      .toDouble(),
-                  child: _glassSurface(
-                    radius: 18,
-                    child: ListView.builder(
-                      key: const PageStorageKey<String>('exam-question-navigator'),
-                      // The floating tab bar overlays the lower edge of the
-                      // exam workspace. Reserve the same dock clearance as
-                      // the question body so the final question shortcuts can
-                      // always scroll fully above it.
-                      padding: const EdgeInsets.fromLTRB(
-                        8,
-                        8,
-                        8,
-                        DarsYarTokens.pageBottomClearance,
-                      ),
-                      itemCount: exam.questionCount,
-                      itemBuilder: (context, index) {
-                        final number = index + 1;
-                        final current = number == q;
-                        final markedQuestion = exam.marked.contains(number);
-                        final hasAnswer = exam.answers.containsKey(number);
-                        final itemColor = markedQuestion
-                            ? markerBackground
-                            : current
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withValues(alpha: isDark ? 0.22 : 0.13)
-                                : hasAnswer
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest
-                                    : Theme.of(context).colorScheme.surface;
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Material(
-                            color: itemColor,
-                            borderRadius: BorderRadius.circular(12),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () => setState(
-                                () => currentQuestionNumber = number,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 11,
-                                  horizontal: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'سؤال $number',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: current || markedQuestion
-                                              ? FontWeight.w800
-                                              : FontWeight.w500,
-                                          color: markedQuestion
-                                              ? markerForeground
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                    if (markedQuestion)
-                                      Icon(
-                                        Icons.flag_rounded,
-                                        size: 15,
-                                        color: markerForeground,
-                                      )
-                                    else if (hasAnswer)
-                                      Icon(
-                                        Icons.check_circle_rounded,
-                                        size: 14,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                ExamQuestionNavigator(
+                  exam: exam,
+                  currentQuestion: q,
+                  onQuestionSelected: (number) =>
+                      setState(() => currentQuestionNumber = number),
                 ),
+
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(14, 18, 14, DarsYarTokens.pageBottomClearance),
