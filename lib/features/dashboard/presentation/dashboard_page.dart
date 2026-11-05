@@ -235,7 +235,7 @@ class DashboardPage extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completed / tasks.length),
+                    tween: Tween(begin: 0, end: tasks.isEmpty ? 0 : completedCount / tasks.length),
                     duration: const Duration(milliseconds: 150),
                     curve: Curves.easeOutCubic,
                     builder: (context, progress, _) => LinearProgressIndicator(
