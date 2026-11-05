@@ -15,6 +15,14 @@ void main() {
       expect(controller.isTaking, isFalse);
       expect(controller.beginFinish(), isFalse);
     });
+    test('automatic expiry takes precedence over pending manual confirmation', () {
+      controller.begin();
+      expect(controller.beginFinish(), isTrue);
+      expect(controller.beginFinish(automatic: true), isTrue);
+      controller.complete();
+      expect(controller.isTaking, isFalse);
+    });
+
     test('leaving clears active and finishing states', () {
       controller.begin();
       expect(controller.beginFinish(), isTrue);

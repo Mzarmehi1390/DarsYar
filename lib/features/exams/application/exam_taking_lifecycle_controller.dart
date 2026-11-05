@@ -7,8 +7,8 @@ class ExamTakingLifecycleController {
 
   void begin() { isTaking = true; isFinishing = false; }
   void leave() { isTaking = false; isFinishing = false; }
-  bool beginFinish() {
-    if (!isTaking || isFinishing) return false;
+  bool beginFinish({bool automatic = false}) {
+    if (!isTaking || (isFinishing && !automatic)) return false;
     isFinishing = true;
     return true;
   }

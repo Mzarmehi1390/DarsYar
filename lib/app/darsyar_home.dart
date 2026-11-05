@@ -727,7 +727,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> _finishExam({bool automatic = false}) async {
-    if (!_examTakingLifecycleController.beginFinish()) return;
+    if (!_examTakingLifecycleController.beginFinish(automatic: automatic)) return;
     if (!automatic) {
       final ok = await _confirmGlass(
         title: 'پایان آزمون؟',
