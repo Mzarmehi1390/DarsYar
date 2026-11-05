@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
@@ -99,8 +100,8 @@ class ExamQuestionWorkspace extends StatelessWidget {
                   children: [
                     for (var option = 0; option < 4; option++)
                       DarsYarGlassChoiceChip(
-                        label: 'گزینه \${option + 1}',
-                        semanticLabel: 'سؤال $currentQuestion، گزینه \${option + 1}',
+                        label: 'گزینه ${option + 1}',
+                        semanticLabel: 'سؤال $currentQuestion، گزینه ${option + 1}',
                         selected: selectedAnswer == option,
                         selectedColor: markerBackground,
                         labelStyle: TextStyle(
