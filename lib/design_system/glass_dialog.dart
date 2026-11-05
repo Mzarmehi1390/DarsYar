@@ -40,17 +40,25 @@ Future<T?> showDarsYarGlassDialog<T>({
     barrierColor: resolvedBarrierColor,
     transitionDuration: DarsYarGlassTokens.modalTransitionDuration,
     pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      // Unlike showDialog, showGeneralDialog does not add keyboard-aware
+      // inset animation. Keep the dialog and its actions above the IME.
+      final keyboardInset = MediaQuery.viewInsetsOf(dialogContext).bottom;
       return capturedThemes.wrap(
-        SafeArea(
-          child: DarsYarModalContent(
-            child: GlassDialog(
-              title: title,
-              message: message,
-              content: content,
-              actions: actions,
-              settings: settings,
-              quality: quality,
-              maxWidth: maxWidth,
+        AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          padding: EdgeInsets.only(bottom: keyboardInset),
+          child: SafeArea(
+            child: DarsYarModalContent(
+              child: GlassDialog(
+                title: title,
+                message: message,
+                content: content,
+                actions: actions,
+                settings: settings,
+                quality: quality,
+                maxWidth: maxWidth,
+              ),
             ),
           ),
         ),
