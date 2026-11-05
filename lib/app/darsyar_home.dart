@@ -33,6 +33,7 @@ import '../features/planner/domain/models/study_session.dart';
 import '../features/planner/domain/models/study_task.dart';
 import '../features/planner/domain/models/planner_summary.dart';
 import 'data/darsyar_repository.dart';
+import '../design_system/input_focus_behavior.dart';
 
 const accent = DarsYarTokens.accent;
 
@@ -409,7 +410,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         barrierColor: DarsYarGlassTokens.dialogBarrierColor,
         content: GlassFormField(
           label: 'نام آزمون',
-          child: GlassTextField(
+          child: DarsYarInputFocusBehavior(
+            controller: controller,
+            child: GlassTextField(
             surfaceStyle: GlassSurfaceStyle.solid,
             controller: controller,
             placeholder: isRename ? 'نام جدید آزمون' : 'مثلاً آزمون ریاضی فصل اول',
@@ -418,6 +421,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             // focus remains available on the first tap and the sheet stays stable.
             autofocus: false,
             textInputAction: TextInputAction.done,
+            ),
           ),
         ),
         actions: [
