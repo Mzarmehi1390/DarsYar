@@ -3,6 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
+import '../../../design_system/glass_selector.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../design_system/page_header.dart';
 
@@ -34,7 +35,7 @@ class SettingsPage extends StatelessWidget {
     SizedBox(height: 18),
     DarsYarContentSurface(child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: EdgeInsets.all(8), child: Text('پوسته برنامه', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
-      GlassSegmentedControl(
+      DarsYarGlassSegmentedControl(
         segments: const [
           GlassSegment(label: 'سیستم', semanticLabel: 'مطابق دستگاه'),
           GlassSegment(label: 'روشن', semanticLabel: 'پوسته روشن'),

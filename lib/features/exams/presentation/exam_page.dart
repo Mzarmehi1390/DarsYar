@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import '../../../design_system/glass_selector.dart';
 import '../../../design_system/page_header.dart';
 import 'exam_setup_panel.dart';
 import '../../../exam_percentage_calculator.dart';
@@ -38,7 +38,7 @@ class ExamPage extends StatelessWidget {
             icon: Icons.fact_check_rounded,
           ),
           const SizedBox(height: 14),
-          GlassSegmentedControl(
+          DarsYarGlassSegmentedControl(
             segments: const [
               GlassSegment(
                 label: 'ساخت آزمون جدید',
@@ -57,7 +57,6 @@ class ExamPage extends StatelessWidget {
             onSegmentSelected: onExamSectionChanged,
             height: 46,
             borderRadius: 20,
-            useOwnLayer: true,
             quality: GlassQuality.standard,
             selectedTextStyle: TextStyle(
               color: Theme.of(context).colorScheme.onSurface,
