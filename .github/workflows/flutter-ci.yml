@@ -7,6 +7,8 @@ on:
       - main
       - feat/darsyar-foundation
       - feat/darsyar-ux-refinement
+  # The redesign branch is validated by its pull_request run; omitting it
+  # here avoids running the same full Android build twice for every commit.
   pull_request:
     branches:
       - main
@@ -18,49 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate Android launcher icon densities
-        shell: bash
-        run: |
-          python3 -m pip install --disable-pip-version-check pillow
-          python3 - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-
-          source = Image.open("assets/branding/darsyar_launcher.png").convert("RGBA")
-          targets = {
-              "mipmap-mdpi": 48,
-              "mipmap-hdpi": 72,
-              "mipmap-xhdpi": 96,
-              "mipmap-xxhdpi": 144,
-              "mipmap-xxxhdpi": 192,
-          }
-          for folder, size in targets.items():
-              output = Path("android/app/src/main/res") / folder / "ic_launcher.png"
-              output.parent.mkdir(parents=True, exist_ok=True)
-              source.resize((size, size), Image.Resampling.LANCZOS).save(output, optimize=True)
-          PY
-
-      - name: Configure Android release signing
-        shell: bash
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          if [[ -z "$KEYSTORE_BASE64" || -z "$STORE_PASSWORD" || -z "$KEY_PASSWORD" || -z "$KEY_ALIAS" ]]; then
-            echo "Release signing secrets are missing."
-            exit 1
-          fi
-          mkdir -p android/app
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/app/darsyar-release.jks
-          cat > android/key.properties <<EOF
-          storePassword=$STORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=app/darsyar-release.jks
-          EOF
-
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -70,12 +29,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate platform app icons
+        run: dart run flutter_launcher_icons
+
       - name: Analyze
         run: flutter analyze
 
       - name: Run tests
         run: flutter test
 
+      # Local/CI fallback signing uses the Android debug keystore. These artifacts
+      # validate compilation only and must not be distributed to users.
       - name: Build Android APK release
         run: flutter build apk --release
 
@@ -85,14 +49,9 @@ jobs:
       - name: Upload Android release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: darsyar-android-release
+          name: darsyar-android-ci-validation
           path: |
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/bundle/release/*.aab
           if-no-files-found: error
 
-      - name: Remove temporary signing files
-        if: always()
-        shell: bash
-        run: |
-          rm -f android/key.properties android/app/darsyar-release.jks

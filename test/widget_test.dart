@@ -1,10 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:dars_yar/backup_codec.dart';
+import 'package:dars_yar/design_system/darsyar_theme.dart';
+import 'package:dars_yar/design_system/glass_surface.dart';
+import 'package:dars_yar/design_system/glass_dialog.dart';
+import 'package:dars_yar/design_system/glass_tokens.dart';
+import 'package:dars_yar/design_system/glass_modal_sheet.dart';
+import 'package:dars_yar/design_system/modal_content.dart';
 
-import 'package:dars_yar/main.dart';
+import 'package:dars_yar/app/darsyar_app.dart';
+import 'package:dars_yar/app/darsyar_home.dart';
+import 'package:dars_yar/models/study_task.dart';
+import 'package:dars_yar/features/planner/presentation/study_session_editor.dart';
+import 'package:dars_yar/features/planner/presentation/task_details_dialog.dart';
+import 'package:dars_yar/features/exams/presentation/answer_key_editor_sheet.dart';
+import 'package:dars_yar/features/settings/presentation/backup_import_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -13,19 +27,368 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  test('glass overlay themes leave the native glass surface unobstructed', () {
+    for (final theme in [DarsYarTheme.light, DarsYarTheme.dark]) {
+      expect(theme.dialogTheme.backgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.backgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.modalBackgroundColor, Colors.transparent);
+      expect(theme.bottomSheetTheme.surfaceTintColor, Colors.transparent);
+    }
+  });
+
+  testWidgets('modal content restores Persian RTL and removes inherited underline decoration', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const DarsYarModalContent(
+          child: Text('جلسه مطالعه'),
+        ),
+      ),
+    );
+
+    final directionality = tester.widget<Directionality>(
+      find.descendant(
+        of: find.byType(DarsYarModalContent),
+        matching: find.byType(Directionality),
+      ),
+    );
+    final textStyle = DefaultTextStyle.of(tester.element(find.text('جلسه مطالعه'))).style;
+
+    expect(directionality.textDirection, TextDirection.rtl);
+    expect(textStyle.color, DarsYarTheme.light.colorScheme.onSurface);
+    expect(
+      IconTheme.of(tester.element(find.text('جلسه مطالعه'))).color,
+      DarsYarTheme.light.colorScheme.onSurface,
+    );
+    expect(textStyle.decoration, TextDecoration.none);
+    expect(
+      find.descendant(
+        of: find.byType(DarsYarModalContent),
+        matching: find.byType(RepaintBoundary),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      CupertinoTheme.of(tester.element(find.text('جلسه مطالعه'))).brightness,
+      Brightness.light,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('modal action labels enforce readable shared typography', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarModalContent(
+            child: DarsYarModalButtonLabel(
+              primary: true,
+              child: Text('ذخیره'),
+            ),
+          ),
+        ),
+      ),
+    );
+    final style = DefaultTextStyle.of(tester.element(find.text('ذخیره'))).style;
+    expect(style.color, DarsYarTheme.light.colorScheme.onPrimary);
+    expect(style.fontSize, 14);
+    expect(style.fontWeight, FontWeight.w700);
+    expect(style.fontFamily, DarsYarTheme.light.textTheme.labelLarge?.fontFamily);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('backup restore sheet keeps explanatory copy compact and actions legible', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: Padding(
+            padding: EdgeInsets.all(20),
+            child: DarsYarModalContent(child: BackupImportDialog()),
+          ),
+        ),
+      ),
+    );
+    final description = tester.widget<Text>(
+      find.text('محتوای فایل پشتیبان را اینجا جای‌گذاری کن. اطلاعات فعلی پس از تأیید جایگزین می‌شوند.'),
+    );
+    expect(description.style?.fontSize, 13);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(find.text('بررسی نسخه'), findsOneWidget);
+    expect(find.byType(DarsYarModalButtonLabel), findsNWidgets(2));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass dialog preserves dark Material and Cupertino themes on its route', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDarsYarGlassDialog<void>(
+                context: context,
+                title: 'دیالوگ آزمایشی',
+                actions: [
+                  GlassDialogAction(
+                    label: 'بستن',
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              child: const Text('بازکردن'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('بازکردن'));
+    await tester.pumpAndSettle();
+
+    final dialogTitle = find.text('دیالوگ آزمایشی');
+    expect(dialogTitle, findsOneWidget);
+    final dialogContext = tester.element(dialogTitle);
+    expect(Theme.of(dialogContext).brightness, Brightness.dark);
+    expect(CupertinoTheme.of(dialogContext).brightness, Brightness.dark);
+    expect(find.text('بستن'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass sheet adds the system navigation inset to its entire content', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarModalSheetContent(
+            bottomInset: 20,
+            child: Text('محتوای شیت'),
+          ),
+        ),
+      ),
+    );
+
+    final safePadding = tester.widget<Padding>(
+      find.ancestor(
+        of: find.text('محتوای شیت'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Padding &&
+              widget.padding == const EdgeInsets.only(bottom: 32),
+        ),
+      ).first,
+    );
+    expect(safePadding.padding, const EdgeInsets.only(bottom: 32));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass sheet reserves Android gesture-navigation clearance when viewPadding is zero', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarModalSheetContent(
+            bottomInset: 24,
+            child: Text('محتوای شیت'),
+          ),
+        ),
+      ),
+    );
+
+    final safePadding = tester.widget<Padding>(
+      find.ancestor(
+        of: find.text('محتوای شیت'),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is Padding &&
+              widget.padding == const EdgeInsets.only(bottom: 36),
+        ),
+      ).first,
+    );
+    expect(safePadding.padding, const EdgeInsets.only(bottom: 36));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('glass sheet preserves dark Material and Cupertino themes on its route', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.dark,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDarsYarGlassSheet<void>(
+                context: context,
+                initialState: GlassSheetState.full,
+                fullSize: 0.9,
+                builder: (_) => const Center(child: Text('محتوای شیت آزمایشی')),
+              ),
+              child: const Text('بازکردن شیت'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('بازکردن شیت'));
+    await tester.pumpAndSettle();
+
+    final sheetContent = find.text('محتوای شیت آزمایشی');
+    expect(sheetContent, findsOneWidget);
+    final sheetContext = tester.element(sheetContent);
+    expect(Theme.of(sheetContext).brightness, Brightness.dark);
+    expect(CupertinoTheme.of(sheetContext).brightness, Brightness.dark);
+    final scaffold = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(scaffold.initialState, GlassSheetState.full);
+    expect(scaffold.detents, contains(GlassSheetDetent.large));
+    expect(scaffold.fullSettings, isNotNull);
+    expect(scaffold.fullSettings!.blur, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
+  test('study task model round-trips without changing persisted fields', () {
+    final task = StudyTask('task-1', 'مرور فصل دوم', 'ریاضی', done: true);
+    final restored = StudyTask.fromJson(task.toJson());
+
+    expect(restored.id, 'task-1');
+    expect(restored.title, 'مرور فصل دوم');
+    expect(restored.subject, 'ریاضی');
+    expect(restored.done, isTrue);
+    expect(task.toJson().keys, containsAll(['id', 'title', 'subject', 'done']));
+  });
+
   testWidgets('DarsYar dashboard opens', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp());
     await tester.pumpAndSettle();
 
     expect(find.text('درس‌یار'), findsOneWidget);
-    expect(find.text('برنامه‌ریزی'), findsOneWidget);
-    expect(find.text('پاسخ‌برگ'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'برنامه‌ریزی درسی'), findsOneWidget);
+    expect(find.widgetWithText(GlassButton, 'پاسخ‌برگ آزمون'), findsOneWidget);
 
     await tester.tap(find.text('برنامه‌ریزی').last);
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('جلسه جدید'), 250, scrollable: find.byType(Scrollable).first);
     expect(find.text('جلسه جدید'), findsOneWidget);
+  });
+
+  testWidgets('app shell uses iOS 27 shader glass navigation and focal surfaces', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GlassScaffold), findsOneWidget);
+    expect(find.byType(GlassTabBar), findsOneWidget);
+    expect(find.byType(GlassContainer), findsWidgets);
+    expect(find.byType(LinearProgressIndicator), findsWidgets);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('dashboard glass quick actions fit a compact phone width', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('برنامه‌ریزی'), findsOneWidget);
+    expect(find.text('پاسخ‌برگ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('planner keeps its final controls clear of the floating glass dock', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final planner = tester.widget<CustomScrollView>(
+      find.byKey(const PageStorageKey<String>('planner-scroll')),
+    );
+    expect(planner.slivers, isNotEmpty);
+    expect(DarsYarTokens.pageBottomClearance, 152);
+    final bottomSpacer = planner.slivers.last as SliverToBoxAdapter;
+    expect(bottomSpacer.child, isA<SizedBox>());
+    expect((bottomSpacer.child! as SizedBox).height, 152);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shared content surfaces use a unified layered fill', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: DarsYarContentSurface(child: Text('خوانایی محتوا')),
+        ),
+      ),
+    );
+
+    final surface = tester.widget<Container>(
+      find.descendant(
+        of: find.byType(DarsYarContentSurface),
+        matching: find.byType(Container),
+      ).first,
+    );
+    expect(surface.decoration, isA<BoxDecoration>());
+    expect((surface.decoration! as BoxDecoration).gradient, isA<LinearGradient>());
+    expect(find.text('خوانایی محتوا'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('animation preference disables motion and persists across launches', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.animationsEnabled': false,
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 3));
+    await tester.pumpAndSettle();
+
+    expect(find.text('انیمیشن‌های برنامه'), findsOneWidget);
+    expect(
+      MediaQuery.of(tester.element(find.byType(DarsYarHome))).disableAnimations,
+      isTrue,
+    );
+    expect(tester.widget<GlassSwitch>(find.byType(GlassSwitch).first).value, isFalse);
+
+    // The complete settings surface, not only the small switch thumb,
+    // must toggle the preference.
+    await tester.tap(find.text('انیمیشن‌های برنامه'));
+    await tester.pumpAndSettle();
+
+    expect(
+      MediaQuery.of(tester.element(find.byType(DarsYarHome))).disableAnimations,
+      isFalse,
+    );
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.getBool('darsyar.animationsEnabled'), isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('application shell expands to the available display width', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(tester.getSize(find.byType(DarsYarHome)), const Size(360, 780));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('primary destinations use the shared Persian page header', (WidgetTester tester) async {
+    for (final destination in const [
+      (tab: 0, title: 'درس‌یار'),
+      (tab: 1, title: 'برنامه‌ریزی درسی'),
+      (tab: 2, title: 'پاسخ‌برگ آزمون'),
+      (tab: 3, title: 'تنظیمات'),
+    ]) {
+      await tester.pumpWidget(DarsYarApp(initialTab: destination.tab));
+      await tester.pumpAndSettle();
+      expect(find.text(destination.title), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets('tap feedback is disabled and card elevation stays fixed', (WidgetTester tester) async {
@@ -40,6 +403,169 @@ void main() {
       expect(theme.hoverColor, Colors.transparent);
       expect(theme.cardTheme.elevation, 0);
     }
+  });
+
+  testWidgets('large answer key uses readable lightweight selectable options', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: const Scaffold(
+          body: AnswerKeyEditorSheet(
+            title: 'کلید پاسخ آزمون',
+            questionCount: 200,
+            initialAnswers: {},
+            clearLabel: 'پاک‌کردن',
+            saveLabel: 'ذخیره کلید',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('0 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    final firstOption = find.text('الف').first;
+    await tester.tap(firstOption);
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 از 200 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    expect(find.bySemanticsLabel('سؤال 1، گزینه الف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    semantics.dispose();
+  });
+
+  testWidgets('answer key list shares the glass sheet scroll controller', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  await showDarsYarGlassSheet<void>(
+                    context: context,
+                    initialState: GlassSheetState.full,
+                    fullSize: 0.9,
+                    builder: (_) => const AnswerKeyEditorSheet(
+                      title: 'کلید پاسخ آزمون',
+                      questionCount: 200,
+                      initialAnswers: {},
+                      clearLabel: 'پاک‌کردن',
+                      saveLabel: 'ذخیره کلید',
+                    ),
+                  );
+                },
+                child: const Text('بازکردن کلید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('بازکردن کلید'));
+    await tester.pumpAndSettle();
+
+    final sheet = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(sheet.detents, {GlassSheetDetent.medium, GlassSheetDetent.large});
+    expect(sheet.initialState, GlassSheetState.full);
+    expect(sheet.halfSize, DarsYarGlassTokens.defaultHalfSheetSize);
+    expect(sheet.fullSize, 0.9);
+    expect(sheet.fullSettings, isNotNull);
+    expect(sheet.fullSettings!.blur, greaterThan(0));
+    expect(sheet.fillThreshold, 1.0);
+    expect(sheet.maintainContentGlass, isTrue);
+
+    final list = tester.widget<ListView>(find.byType(ListView).last);
+    expect(list.controller, isNotNull);
+    expect(list.controller!.hasClients, isTrue);
+    expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
+
+    // The true full-height detent must keep the form scrollable while
+    // retaining its explicit refractive full-state material. Verify the
+    // actual scroll extent rather than assuming a pixel-to-row mapping.
+    final scrollController = list.controller!;
+    expect(scrollController.position.maxScrollExtent, greaterThan(0));
+    final maxScrollExtent = scrollController.position.maxScrollExtent;
+    scrollController.jumpTo(maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(scrollController.offset, maxScrollExtent);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('exam setup answer-key editor adapts to a compact screen', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    final keyButton = find.text('ورود کلید');
+    await tester.ensureVisible(keyButton);
+    await tester.pumpAndSettle();
+    await tester.tap(keyButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('کلید پاسخ آزمون'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('both themes provide consistent Liquid Glass modal surfaces', () {
+    for (final theme in [DarsYarTheme.light, DarsYarTheme.dark]) {
+      expect(theme.dialogTheme.backgroundColor, isNotNull);
+      expect(theme.dialogTheme.surfaceTintColor, Colors.transparent);
+      expect(theme.dialogTheme.elevation, greaterThan(0));
+      expect(theme.dialogTheme.shape, isA<RoundedRectangleBorder>());
+      expect(theme.popupMenuTheme.shape, isA<RoundedRectangleBorder>());
+      expect(theme.bottomSheetTheme.showDragHandle, isTrue);
+      expect(theme.timePickerTheme.dialHandColor, theme.colorScheme.primary);
+      expect(theme.datePickerTheme.surfaceTintColor, Colors.transparent);
+    }
+  });
+
+  testWidgets('bottom navigation exposes selected destination semantics', (WidgetTester tester) async {
+    final semantics = tester.ensureSemantics();
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    final home = find.bySemanticsLabel('خانه');
+    expect(home, findsOneWidget);
+    expect(
+      tester.getSemantics(home),
+      isSemantics(
+        label: 'خانه',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
+
+    await tester.tap(find.text('برنامه‌ریزی').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSemantics(home),
+      isSemantics(hasSelectedState: true, isSelected: false),
+    );
+    final planner = find.bySemanticsLabel('برنامه‌ریزی');
+    expect(planner, findsOneWidget);
+    expect(
+      tester.getSemantics(planner),
+      isSemantics(
+        label: 'برنامه‌ریزی',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
+    semantics.dispose();
   });
 
   testWidgets('page and bottom navigation transitions stay lightweight', (WidgetTester tester) async {
@@ -66,10 +592,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
     expect(find.text('90 دقیقه'), findsOneWidget);
-    expect(find.byType(BackdropFilter), findsWidgets);
 
-    await tester.enterText(find.widgetWithText(TextField, 'دقیقه'), '45');
-    await tester.tap(find.text('ذخیره زمان'));
+    await tester.enterText(find.byType(GlassTextField).at(3), '45');
+    final saveDurationButton = find.text('ذخیره زمان');
+    await tester.ensureVisible(saveDurationButton);
+    await tester.pumpAndSettle();
+    await tester.tap(saveDurationButton);
     await tester.pumpAndSettle();
 
     expect(find.text('00:45:00'), findsOneWidget);
@@ -90,9 +618,8 @@ void main() {
     await tester.tap(changeDurationButton);
     await tester.pumpAndSettle();
 
-    final dialog = tester.getSize(find.byType(AlertDialog));
-    expect(dialog.width, lessThanOrEqualTo(320));
-    expect(dialog.height, lessThanOrEqualTo(640));
+    expect(find.text('تنظیم زمان آزمون'), findsOneWidget);
+    expect(find.byType(GlassTextField), findsNWidgets(5));
     expect(tester.takeException(), isNull);
   });
 
@@ -102,7 +629,7 @@ void main() {
     await tester.tap(find.text('پاسخ‌برگ'));
     await tester.pumpAndSettle();
 
-    final fields = find.byType(TextField);
+    final fields = find.byType(GlassTextField);
     await tester.enterText(fields.at(0), 'آزمون آزمایشی');
     await tester.enterText(fields.at(1), '3');
     await tester.drag(find.byType(ListView).first, const Offset(0, -320));
@@ -114,6 +641,30 @@ void main() {
 
     expect(find.text('آزمون آزمایشی'), findsOneWidget);
     expect(find.text('سؤال 1 از 3'), findsOneWidget);
+    expect(
+      tester.widget<GlassIconButton>(find.widgetWithIcon(GlassIconButton, Icons.arrow_forward)).semanticLabel,
+      'بازگشت به پاسخ‌برگ',
+    );
+    expect(
+      tester.widget<GlassIconButton>(find.widgetWithIcon(GlassIconButton, Icons.pause)).semanticLabel,
+      'توقف زمان‌سنج',
+    );
+    final questionNavigatorButton = find.widgetWithIcon(
+      GlassIconButton,
+      Icons.format_list_numbered_rounded,
+    );
+    await tester.tap(questionNavigatorButton);
+    await tester.pumpAndSettle();
+
+    final questionNavigator = tester.widget<ListView>(
+      find.byKey(const PageStorageKey<String>('exam-question-navigator')),
+    );
+    expect(
+      questionNavigator.padding,
+      EdgeInsets.fromLTRB(8, 8, 8, DarsYarTokens.pageBottomClearance),
+    );
+    expect(tester.takeException(), isNull);
+
     await tester.tap(find.text('گزینه 2'));
     await tester.pump();
     expect(find.text('سؤال 2 از 3'), findsOneWidget);
@@ -125,13 +676,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('نمای کلی هفته'), findsOneWidget);
 
-    final plannerList = find.byType(ListView).first;
+    final plannerScroll = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    ).first;
 
-    // ListView builds children lazily, so scroll until the target has been
-    // built before trying to locate/tap it.
+    // The planner uses slivers; scroll its own viewport until lazy content
+    // has been built before trying to locate or tap it.
     Future<void> revealByScrolling(Finder target) async {
       for (var attempt = 0; attempt < 8 && target.evaluate().isEmpty; attempt++) {
-        await tester.drag(plannerList, const Offset(0, -420));
+        await tester.drag(plannerScroll, const Offset(0, -420));
         await tester.pumpAndSettle();
       }
       expect(target, findsWidgets);
@@ -144,8 +698,8 @@ void main() {
     await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'مرور ریاضی');
-    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'مرور ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(1), 'ریاضی');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
@@ -156,10 +710,10 @@ void main() {
     final createdTask = find.text('مرور ریاضی');
     await revealByScrolling(createdTask);
     expect(createdTask, findsOneWidget);
-    await tester.tap(find.byTooltip('ویرایش وظیفه').first);
+    await tester.tap(find.bySemanticsLabel('ویرایش وظیفه').first);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'تمرین ریاضی');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'تمرین ریاضی');
     await tester.tap(find.text('ذخیره').last);
     await tester.pumpAndSettle();
 
@@ -169,6 +723,34 @@ void main() {
     final savedTasksAfterEdit = jsonDecode(prefsAfterEdit.getString('darsyar.tasks')!) as List;
     expect(savedTasksAfterEdit.single['title'], 'تمرین ریاضی');
   });
+  testWidgets('task editor remains usable on a compact phone viewport', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final addTask = find.text('ثبت وظیفه');
+    await tester.scrollUntilVisible(
+      addTask,
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(addTask);
+    await tester.pumpAndSettle();
+
+    expect(find.text('وظیفه جدید'), findsOneWidget);
+    expect(find.byType(GlassTextField), findsNWidgets(2));
+    expect(
+      tester.widget<GlassTextField>(find.byType(GlassTextField).first).autofocus,
+      isFalse,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('saving a task leaves unrelated exam storage untouched', (WidgetTester tester) async {
     final storedExam = jsonEncode([
       {
@@ -189,18 +771,21 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final plannerList = find.byType(ListView).first;
+    final plannerScroll = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    ).first;
     final addTaskButton = find.text('ثبت وظیفه');
     for (var attempt = 0; attempt < 8 && addTaskButton.evaluate().isEmpty; attempt++) {
-      await tester.drag(plannerList, const Offset(0, -420));
+      await tester.drag(plannerScroll, const Offset(0, -420));
       await tester.pumpAndSettle();
     }
     await tester.ensureVisible(addTaskButton.last);
     await tester.pumpAndSettle();
     await tester.tap(addTaskButton.last);
     await tester.pumpAndSettle();
-    await tester.enterText(find.widgetWithText(TextField, 'عنوان وظیفه'), 'ذخیره مستقل');
-    await tester.enterText(find.widgetWithText(TextField, 'درس'), 'علوم');
+    await tester.enterText(find.byType(GlassTextField).at(0), 'ذخیره مستقل');
+    await tester.enterText(find.byType(GlassTextField).at(1), 'علوم');
     await tester.tap(find.text('افزودن').last);
     await tester.pumpAndSettle();
 
@@ -332,7 +917,7 @@ void main() {
     ).first;
     await tester.tap(find.descendant(
       of: examCard,
-      matching: find.byType(PopupMenuButton<String>),
+      matching: find.byType(GlassPullDownButton),
     ));
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف آزمون'));
@@ -349,13 +934,14 @@ void main() {
   });
 
 
-  testWidgets('planner day chips do not display a selection checkmark', (WidgetTester tester) async {
+  testWidgets('planner day glass chips expose one selected day', (WidgetTester tester) async {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    final chips = tester.widgetList<ChoiceChip>(find.byType(ChoiceChip));
-    expect(chips, isNotEmpty);
-    expect(chips.every((chip) => chip.showCheckmark == false), isTrue);
+    final chips = tester.widgetList<GlassChip>(find.byType(GlassChip)).toList();
+    expect(chips, hasLength(7));
+    expect(chips.where((chip) => chip.selected), hasLength(1));
+    expect(chips.every((chip) => chip.onTap != null), isTrue);
   });
 
   testWidgets('my exams results are laid out in the same scrollable page', (WidgetTester tester) async {
@@ -396,9 +982,31 @@ void main() {
     await tester.tap(find.text('آزمون‌های من'));
     await tester.pumpAndSettle();
 
+    expect(find.byType(CustomScrollView), findsOneWidget);
+    expect(find.byType(SliverList), findsOneWidget);
     expect(find.text('آزمون چیدمان'), findsOneWidget);
     expect(find.text('نتیجه قابل مشاهده'), findsOneWidget);
     expect(find.text('75%'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('planner week selection uses a subtle indicator instead of a checkmark', (WidgetTester tester) async {
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final selectedIndicator = find.byKey(
+      const ValueKey<String>('planner-week-selected-indicator'),
+    );
+    expect(selectedIndicator, findsOneWidget);
+    await tester.ensureVisible(selectedIndicator);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey<String>('planner-week-selected-indicator')),
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsNothing,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -408,10 +1016,10 @@ void main() {
 
     const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     final today = DateTime.now().weekday % 7;
-    final todayChip = find.widgetWithText(ChoiceChip, weekDays[today]);
+    final todayChip = find.widgetWithText(GlassChip, weekDays[today]);
 
     expect(todayChip, findsOneWidget);
-    expect(tester.widget<ChoiceChip>(todayChip).selected, isTrue);
+    expect(tester.widget<GlassChip>(todayChip).selected, isTrue);
     expect(find.text(weekDays[today]), findsWidgets);
   });
 
@@ -470,7 +1078,7 @@ void main() {
     ).first;
     await tester.tap(find.descendant(
       of: examCard,
-      matching: find.byType(PopupMenuButton<String>),
+      matching: find.byType(GlassPullDownButton),
     ));
     await tester.pumpAndSettle();
     await tester.tap(find.text('ویرایش کلید پاسخ'));
@@ -540,6 +1148,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('active exam answer selection persists and remains visible when revisiting a question', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'darsyar.exams': jsonEncode([
+        {
+          'id': 'answer-selection-exam',
+          'name': 'آزمون انتخاب پاسخ',
+          'questionCount': 3,
+          'durationSeconds': 1800,
+          'answers': <String, int>{},
+          'answerKey': <String, int>{},
+          'marked': <int>[],
+        },
+      ]),
+      'darsyar.activeExamId': 'answer-selection-exam',
+    });
+
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('شروع آزمون'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('گزینه 3'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    var savedExams = jsonDecode(prefs.getString('darsyar.exams')!) as List;
+    expect((savedExams.single['answers'] as Map)['1'], 2);
+    expect(find.text('سؤال 2'), findsWidgets);
+
+    await tester.tap(find.text('قبلی'));
+    await tester.pumpAndSettle();
+    final selectedOption = tester.widget<GlassChip>(
+      find.widgetWithText(GlassChip, 'گزینه 3'),
+    );
+    expect(selectedOption.selected, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('finishing an exam persists completion and its result together', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
       'darsyar.exams': jsonEncode([
@@ -574,7 +1227,7 @@ void main() {
 
     await tester.tap(find.text('گزینه 1'));
     await tester.pumpAndSettle();
-    final finishButton = find.widgetWithText(FilledButton, 'پایان آزمون');
+    final finishButton = find.text('پایان آزمون').last;
     await tester.ensureVisible(finishButton);
     await tester.pumpAndSettle();
     await tester.tap(finishButton);
@@ -684,10 +1337,16 @@ void main() {
     await tester.tap(restoreButton);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField).last, backup);
-    await tester.tap(find.text('بررسی نسخه'));
+    await tester.enterText(find.byType(GlassTextField).last, backup);
+    final reviewButton = find.text('بررسی نسخه');
+    expect(tester.getRect(reviewButton).bottom,
+        lessThan(tester.view.physicalSize.height));
+    await tester.tap(reviewButton);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بازیابی').last);
+    final confirmRestore = find.text('بازیابی').last;
+    await tester.ensureVisible(confirmRestore);
+    await tester.pumpAndSettle();
+    await tester.tap(confirmRestore);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
@@ -705,5 +1364,404 @@ void main() {
     expect(prefs.getString('darsyar.activeExamId'), 'restored-exam');
     expect(tester.takeException(), isNull);
   });
+
+
+  testWidgets('dashboard quick actions adapt to compact widths without overflow', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('برنامه‌ریزی درسی'), findsOneWidget);
+    expect(find.text('پاسخ‌برگ آزمون'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('برنامه‌ریزی درسی'));
+    await tester.pumpAndSettle();
+    expect(find.text('انتخاب روز'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('planner summary metrics and weekly overview render without layout errors', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('جلسه‌ها'), findsOneWidget);
+    expect(find.text('انجام‌شده'), findsOneWidget);
+    expect(find.text('دقیقه امروز'), findsOneWidget);
+    expect(find.text('نمای کلی هفته'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('planner-week-selected-indicator')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('planner session and task cards keep clear hierarchy on compact screens', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'darsyar.studySessions': jsonEncode([
+        {
+          'id': 'compact-session',
+          'title': 'مرور فصل‌های مهم زیست‌شناسی',
+          'subject': 'زیست‌شناسی',
+          // Keep this fixture independent of the runner's local date.
+          'weekday': 3,
+          'startMinutes': 600,
+          'durationMinutes': 50,
+          'completed': false,
+        },
+      ]),
+      'darsyar.tasks': jsonEncode([
+        {
+          'id': 'compact-task',
+          'title': 'حل تمرین‌های تکمیلی ریاضی',
+          'subject': 'ریاضی',
+          'done': false,
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 1));
+    await tester.pumpAndSettle();
+
+    final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
+    // Select the fixture's fixed weekday through its stable chip identity.
+    await tester.tap(find.byKey(const ValueKey<String>('planner-day-3')));
+    await tester.pumpAndSettle();
+    final plannerScrollable = find.descendant(
+      of: find.byKey(const PageStorageKey<String>('planner-scroll')),
+      matching: find.byType(Scrollable),
+    ).first;
+    // The planner is a lazy ListView: scroll its parent until the session
+    // card is built before asking the tester to reveal the card itself.
+    await tester.scrollUntilVisible(
+      sessionTitle,
+      240,
+      scrollable: plannerScrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(sessionTitle, findsOneWidget);
+    expect(find.text('زیست‌شناسی'), findsWidgets);
+    expect(find.text('10:00'), findsOneWidget);
+    expect(find.text('50 دقیقه'), findsOneWidget);
+
+    final completeSession = find.bySemanticsLabel('علامت‌گذاری جلسه به‌عنوان انجام‌شده');
+    expect(completeSession, findsOneWidget);
+    await tester.tap(completeSession);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final savedSessions = jsonDecode(prefs.getString('darsyar.studySessions')!) as List;
+    expect(savedSessions.single['completed'], isTrue);
+
+    final taskTitle = find.text('حل تمرین‌های تکمیلی ریاضی');
+    await tester.scrollUntilVisible(
+      taskTitle,
+      240,
+      scrollable: plannerScrollable,
+    );
+    await tester.pumpAndSettle();
+    expect(taskTitle, findsOneWidget);
+    expect(find.text('ریاضی'), findsWidgets);
+    expect(find.bySemanticsLabel('ویرایش وظیفه'), findsOneWidget);
+    expect(find.bySemanticsLabel('حذف وظیفه'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('exam result history cards remain readable on compact screens', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({
+      'darsyar.results': jsonEncode([
+        {
+          'id': 'compact-result',
+          'examId': 'compact-exam',
+          'examName': 'آزمون جامع پایان فصل زیست‌شناسی',
+          'completedAt': '2026-10-30T10:00:00.000Z',
+          'questionCount': 30,
+          'correct': 24,
+          'wrong': 3,
+          'unanswered': 3,
+          'keyedQuestions': 30,
+          'percentage': 80.0,
+          'negativeMarking': false,
+          'answers': {'1': 0},
+          'answerKey': {'1': 0},
+        },
+      ]),
+    });
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('آزمون‌های من'));
+    await tester.pumpAndSettle();
+
+    final resultTitle = find.text('آزمون جامع پایان فصل زیست‌شناسی');
+    await tester.ensureVisible(resultTitle);
+    expect(resultTitle, findsOneWidget);
+    expect(find.text('80%'), findsOneWidget);
+    expect(find.text('30 سؤال'), findsOneWidget);
+    expect(find.text('درست: 24'), findsOneWidget);
+    expect(find.text('غلط: 3'), findsOneWidget);
+    expect(find.text('بی‌پاسخ: 3'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('task details glass dialog keeps actions visible on a compact screen', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () => showTaskDetailsDialog(
+                  context: context,
+                  reduceMotion: true,
+                ),
+                child: const Text('وظیفه آزمایشی'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('وظیفه آزمایشی'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('وظیفه جدید'), findsOneWidget);
+    expect(find.text('عنوان وظیفه'), findsOneWidget);
+    expect(find.text('درس'), findsOneWidget);
+    expect(find.text('افزودن'), findsOneWidget);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('study session time picker expands inline without opening a nested sheet', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: StudySessionEditorDialog(
+            initialWeekday: 1,
+            weekDays: const ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
+            hasOverlap: (_) => false,
+            onMessage: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('16:00'), findsOneWidget);
+    expect(find.byType(CupertinoDatePicker), findsNothing);
+    for (final day in [6, 0, 1, 2, 3, 4, 5]) {
+      expect(find.byKey(ValueKey<String>('study-session-day-$day')), findsOneWidget);
+    }
+    expect(find.text('روز هفته'), findsOneWidget);
+    expect(find.text('ساعت شروع'), findsOneWidget);
+
+    await tester.tap(find.text('16:00'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CupertinoDatePicker), findsOneWidget);
+    expect(find.text('اعمال ساعت انتخاب‌شده'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final applyTime = find.text('اعمال ساعت انتخاب‌شده');
+    await tester.ensureVisible(applyTime);
+    await tester.pumpAndSettle();
+    await tester.tap(applyTime);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CupertinoDatePicker), findsNothing);
+    expect(find.text('16:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+
+  testWidgets('study session editor remains scrollable inside the glass sheet', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  await showDarsYarGlassSheet<Object?>(
+                    context: context,
+                    initialState: GlassSheetState.full,
+                    fullSize: 0.9,
+                    builder: (_) => StudySessionEditorDialog(
+                      initialWeekday: 1,
+                      weekDays: const [
+                        'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه',
+                        'پنجشنبه', 'جمعه', 'شنبه',
+                      ],
+                      hasOverlap: (_) => false,
+                      onMessage: (_) {},
+                    ),
+                  );
+                },
+                child: const Text('جلسه جدید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('جلسه جدید'));
+    await tester.pumpAndSettle();
+
+    final sheet = tester.widget<GlassModalSheetScaffold>(
+      find.byType(GlassModalSheetScaffold),
+    );
+    expect(sheet.initialState, GlassSheetState.full);
+    expect(sheet.detents, contains(GlassSheetDetent.large));
+    expect(sheet.fullSettings, isNotNull);
+    expect(sheet.fullSettings!.blur, greaterThan(0));
+    expect(sheet.halfSize, lessThan(sheet.fullSize!));
+
+    expect(find.byType(SingleChildScrollView), findsWidgets);
+    expect(find.text('جلسه مطالعه جدید'), findsOneWidget);
+    expect(find.byType(Scrollable), findsWidgets);
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(find.text('افزودن'), findsOneWidget);
+    expect(tester.getRect(find.text('افزودن')).bottom,
+        lessThan(tester.view.physicalSize.height));
+    expect(tester.takeException(), isNull);
+  });
+
+
+  test('glass modal backdrops provide clear separation from the page', () {
+    expect(DarsYarGlassTokens.dialogBarrierColor.a, greaterThan(0.5));
+    expect(DarsYarGlassTokens.sheetBarrierColor.a, greaterThan(0.5));
+  });
+
+
+  testWidgets('percentage calculator is a top-level answer sheet section and replaces the default zero on focus', (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ساخت آزمون جدید'), findsOneWidget);
+    expect(find.text('آزمون‌های من'), findsOneWidget);
+    expect(find.text('محاسبه درصد'), findsOneWidget);
+
+    await tester.tap(find.text('محاسبه درصد'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ماشین‌حساب درصد آزمون'), findsOneWidget);
+    expect(find.text('اگر پاسخ‌های غلط را سفید می‌گذاشتی'), findsNothing);
+
+    final firstField = find.byType(GlassTextField).first;
+    await tester.tap(firstField);
+    await tester.pump();
+    final field = tester.widget<GlassTextField>(firstField);
+    expect(
+      field.controller!.selection,
+      const TextSelection(baseOffset: 0, extentOffset: 1),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('exam duration sheet keeps save actions visible outside its scroll area', (tester) async {
+    tester.view.physicalSize = const Size(320, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const DarsYarApp(initialTab: 2));
+    await tester.pumpAndSettle();
+    final changeTime = find.text('تغییر زمان');
+    await tester.ensureVisible(changeTime);
+    await tester.pumpAndSettle();
+    await tester.tap(changeTime);
+    await tester.pumpAndSettle();
+
+    final save = find.text('ذخیره زمان');
+    expect(save, findsOneWidget);
+    expect(tester.getRect(save).bottom,
+        lessThan(tester.view.physicalSize.height));
+    expect(find.text('انصراف'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('answer key editor discards stale answers and keeps progress accurate', (tester) async {
+    Map<int, int>? savedAnswers;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: DarsYarTheme.light,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: ElevatedButton(
+                onPressed: () async {
+                  savedAnswers = await Navigator.of(context).push<Map<int, int>>(
+                    MaterialPageRoute(
+                      builder: (_) => Scaffold(
+                        body: AnswerKeyEditorSheet(
+                          title: 'کلید آزمایشی',
+                          questionCount: 3,
+                          initialAnswers: const {1: 2, 2: 8, 4: 1},
+                          clearLabel: 'پاک‌کردن',
+                          saveLabel: 'ثبت',
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('باز کردن کلید'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('باز کردن کلید'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 از 3 سؤال دارای کلید پاسخ است.'), findsOneWidget);
+    expect(tester.getRect(find.text('ثبت')).bottom,
+        lessThan(tester.view.physicalSize.height));
+    await tester.tap(find.text('ثبت'));
+    await tester.pumpAndSettle();
+
+    expect(savedAnswers, equals(const {1: 2}));
+    expect(tester.takeException(), isNull);
+  });
+
 
 }
