@@ -130,8 +130,9 @@ class DarsYarModalSheetContent extends StatelessWidget {
         math.max(media.systemGestureInsets.bottom, media.padding.bottom),
       ),
     );
-    final double bottomClearance =
-        (effectiveInset + 12).clamp(24.0, 64.0).toDouble();
+    // Never cap a real system inset: large Android navigation areas and
+    // edge-to-edge gesture regions must remain fully clear of fixed actions.
+    final double bottomClearance = math.max(24.0, effectiveInset + 12);
     return DarsYarModalContent(
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomClearance),

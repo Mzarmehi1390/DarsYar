@@ -39,6 +39,26 @@ void main() {
       expect(find.text('fixed actions'), findsOneWidget);
     });
 
+    testWidgets('preserves large Android navigation insets without capping',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DarsYarModalSheetContent(
+            bottomInset: 80,
+            child: Text('fixed actions'),
+          ),
+        ),
+      );
+
+      final padding = tester.widget<Padding>(
+        find.ancestor(
+          of: find.text('fixed actions'),
+          matching: find.byType(Padding),
+        ).first,
+      );
+      expect(padding.padding, const EdgeInsets.only(bottom: 92));
+    });
+
     testWidgets('keeps minimum clearance when system inset is unavailable',
         (tester) async {
       await tester.pumpWidget(
