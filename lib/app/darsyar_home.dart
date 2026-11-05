@@ -19,6 +19,7 @@ import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_history_page.dart';
 import '../features/exams/presentation/exam_question_navigator.dart';
 import '../features/exams/presentation/exam_taking_header.dart';
+import '../features/exams/presentation/exam_question_workspace.dart';
 import '../features/exams/presentation/saved_exams_view.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
@@ -631,15 +632,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final remaining =
         _examTimerController.examId == activeExamId ? _examTimerController.remainingSeconds : exam.durationSeconds;
     final answered = exam.answers.length;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final markerBackground = isDark
-        ? const Color(0xFF244D39)
-        : const Color(0xFFB8EBD2);
-    final markerForeground = isDark
-        ? DarsYarTokens.accentLight
-        : const Color(0xFF155C3D);
-    final selectedAnswerBackground = markerBackground;
-
     return Column(
       children: [
         ExamTakingHeader(
@@ -671,182 +663,20 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 ),
 
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 18, 14, DarsYarTokens.pageBottomClearance),
-                  children: [
-                    _glassSurface(
-                      radius: 24,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(13),
-                                  ),
-                                  child: Icon(
-                                    Icons.quiz_outlined,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'سؤال $q',
-                                    style: const TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
-                                if (exam.marked.contains(q))
-                                  Icon(
-                                    Icons.flag_rounded,
-                                    color: markerForeground,
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'گزینه پاسخ را انتخاب کن',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                for (var option = 0; option < 4; option++)
-                                  DarsYarGlassChoiceChip(
-                                    label: 'گزینه ${option + 1}',
-                                    semanticLabel: 'سؤال $q، گزینه ${option + 1}',
-                                    selected: exam.answers[q] == option,
-                                    selectedColor: selectedAnswerBackground,
-                                    labelStyle: TextStyle(
-                                      color: exam.answers[q] == option
-                                          ? markerForeground
-                                          : Theme.of(context).colorScheme.onSurfaceVariant,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                                    quality: GlassQuality.standard,
-                                    onTap: () => _answerQuestion(option),
-                                  ),
-                              ],
-                            ),
-                            DarsYarGlassButton(
-                              height: 42,
-                              radius: 14,
-                              quality: GlassQuality.standard,
-                              style: GlassButtonStyle.transparent,
-                              onTap: () => _toggleQuestionMarked(q),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    exam.marked.contains(q)
-                                        ? Icons.flag_rounded
-                                        : Icons.flag_outlined,
-                                    size: 18,
-                                    color: exam.marked.contains(q)
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(width: 7),
-                                  Flexible(
-                                    child: Text(
-                                      exam.marked.contains(q)
-                                          ? 'حذف علامت مرور'
-                                          : 'علامت برای مرور',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final previousButton = DarsYarGlassButton(
-                          width: double.infinity,
-                          height: 48,
-                          radius: 15,
-                          quality: GlassQuality.standard,
-                          style: GlassButtonStyle.filled,
-                          onTap: () {
-                            if (q > 1) {
-                              setState(() => currentQuestionNumber--);
-                            }
-                          },
-                          child: const Text('قبلی'),
-                        );
-                        final nextButton = DarsYarGlassButton(
-                          width: double.infinity,
-                          height: 48,
-                          radius: 15,
-                          quality: GlassQuality.standard,
-                          style: GlassButtonStyle.prominent,
-                          onTap: q < exam.questionCount
-                              ? () => setState(() => currentQuestionNumber++)
-                              : _finishExam,
-                          child: Text(
-                            q == exam.questionCount ? 'پایان آزمون' : 'بعدی',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        );
-
-                        // GlassButton has a comfortable intrinsic width. Stack
-                        // the controls when the question pane is narrowed by
-                        // a compact viewport or the open question navigator.
-                        if (constraints.maxWidth < 340) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              previousButton,
-                              const SizedBox(height: 8),
-                              nextButton,
-                            ],
-                          );
-                        }
-
-                        return Row(
-                          children: [
-                            Expanded(child: previousButton),
-                            const SizedBox(width: 8),
-                            Expanded(child: nextButton),
-                          ],
-                        );
-                      },
-                    ),
-                    Center(
-                      child: DarsYarGlassButton(
-                        height: 42,
-                        radius: 13,
-                        quality: GlassQuality.standard,
-                        style: GlassButtonStyle.transparent,
-                        onTap: _finishExam,
-                        child: const Text('ثبت پایان آزمون'),
-                      ),
-                    ),
-                  ],
+                child: ExamQuestionWorkspace(
+                  exam: exam,
+                  currentQuestion: q,
+                  onAnswerSelected: _answerQuestion,
+                  onToggleMarked: () => _toggleQuestionMarked(q),
+                  onPrevious: () {
+                    if (q > 1) {
+                      setState(() => currentQuestionNumber--);
+                    }
+                  },
+                  onNext: q < exam.questionCount
+                      ? () => setState(() => currentQuestionNumber++)
+                      : _finishExam,
+                  onFinish: _finishExam,
                 ),
               ),
             ],
