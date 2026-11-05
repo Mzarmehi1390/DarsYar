@@ -9,6 +9,7 @@ import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
 import '../design_system/glass_button.dart';
+import '../design_system/glass_selector.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
@@ -1126,7 +1127,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                               runSpacing: 8,
                               children: [
                                 for (var option = 0; option < 4; option++)
-                                  GlassChip(
+                                  DarsYarGlassChoiceChip(
                                     label: 'گزینه ${option + 1}',
                                     semanticLabel: 'سؤال $q، گزینه ${option + 1}',
                                     selected: exam.answers[q] == option,
@@ -1565,11 +1566,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
               runSpacing: 8,
               children: [
                 for (var i = 0; i < 4; i++)
-                  GlassChip(
+                  DarsYarGlassChoiceChip(
                     label: ['الف', 'ب', 'ج', 'د'][i],
                     semanticLabel: 'سؤال $number، گزینه ${['الف', 'ب', 'ج', 'د'][i]}',
                     selected: answer == i,
                     selectedColor: accent.withValues(alpha: 0.18),
+                    labelStyle: TextStyle(
+                      color: Theme.of(dialogContext).colorScheme.onSurface,
+                      fontWeight: FontWeight.w700,
+                    ),
                     quality: GlassQuality.standard,
                     onTap: () => dialogSet(
                       () => answer = answer == i ? null : i,
@@ -1600,9 +1605,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
             ),
             Align(
               alignment: Alignment.centerRight,
-              child: GlassChip(
+              child: DarsYarGlassChoiceChip(
                 label: 'پاک کردن پاسخ',
+                semanticLabel: 'پاک کردن پاسخ سؤال $number',
                 selected: false,
+                selectedColor: accent.withValues(alpha: 0.16),
+                labelStyle: TextStyle(
+                  color: Theme.of(dialogContext).colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
                 quality: GlassQuality.standard,
                 onTap: () => dialogSet(() => answer = null),
               ),

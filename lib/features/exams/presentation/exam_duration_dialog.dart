@@ -4,6 +4,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
+import '../../../design_system/glass_selector.dart';
 import '../../../design_system/modal_content.dart';
 import '../../../design_system/input_focus_behavior.dart';
 
@@ -196,12 +197,18 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
           runSpacing: 8,
           children: [
             for (final preset in [15, 30, 45, 60, 90, 120])
-              GlassChip(
+              DarsYarGlassChoiceChip(
                 label: '$preset دقیقه',
+                semanticLabel: 'تنظیم زمان آزمون روی $preset دقیقه',
                 selected: _hours.text == (preset ~/ 60).toString() &&
                     _minutes.text == (preset % 60).toString() &&
                     _seconds.text == '0',
                 selectedColor: DarsYarTokens.accent.withValues(alpha: 0.16),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
                 quality: GlassQuality.standard,
                 onTap: () => _setPreset(preset),
               ),
