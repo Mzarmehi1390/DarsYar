@@ -4,18 +4,15 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../planner_summary.dart';
-import '../../../study_session.dart';
 
 /// Self-contained weekly study summary card.
 class PlannerWeeklyReportCard extends StatelessWidget {
   const PlannerWeeklyReportCard({
     super.key,
     required this.summary,
-    required this.sessions,
   });
 
   final PlannerSummary summary;
-  final List<StudySession> sessions;
 
   Widget _metric(BuildContext context, String label, int value, String unit) =>
       Column(
@@ -117,9 +114,9 @@ class PlannerWeeklyReportCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              sessions.isEmpty
+              summary.totalSessionCount == 0
                   ? 'با افزودن جلسه‌ها، گزارش اینجا نمایش داده می‌شود.'
-                  : '${sessions.where((session) => session.completed).length} از ${sessions.length} جلسه تکمیل شده است.',
+                  : '${summary.completedSessionCount} از ${summary.totalSessionCount} جلسه تکمیل شده است.',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

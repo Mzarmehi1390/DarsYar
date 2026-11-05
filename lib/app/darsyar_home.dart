@@ -441,7 +441,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Widget weeklyReportCard({required PlannerSummary summary}) =>
-      PlannerWeeklyReportCard(summary: summary, sessions: studySessions);
+      PlannerWeeklyReportCard(summary: summary);
   Widget _glassSurface({
     required Widget child,
     double radius = 20,

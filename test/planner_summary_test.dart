@@ -11,6 +11,7 @@ void main() {
 
   test('aggregates weekly counts, minutes and completion safely', () {
     final summary = PlannerSummary.fromSessions(sessions);
+    expect(summary.totalSessionCount, 3);
     expect(summary.completedSessionCount, 1);
     expect(summary.plannedMinutes, 90);
     expect(summary.completedMinutes, 30);
@@ -29,6 +30,7 @@ void main() {
     expect(summary.plannedMinutes, 0);
     expect(summary.completedMinutes, 0);
     expect(summary.completion, 0);
+    expect(summary.totalSessionCount, 0);
     expect(summary.completedSessionCount, 0);
   });
 }

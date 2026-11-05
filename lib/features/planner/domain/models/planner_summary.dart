@@ -3,14 +3,13 @@ import 'study_session.dart';
 /// Immutable aggregate calculations shared by the study planner UI.
 class PlannerSummary {
   PlannerSummary._({
-    required List<StudySession> sessions,
+    required this.totalSessionCount,
     required this.completedSessionCount,
     required this.plannedMinutes,
     required this.completedMinutes,
     required Map<int, List<StudySession>> sessionsByDay,
     required Map<int, int> minutesByDay,
-  })  : _sessions = List<StudySession>.unmodifiable(sessions),
-        _sessionsByDay = Map<int, List<StudySession>>.unmodifiable(
+  })  : _sessionsByDay = Map<int, List<StudySession>>.unmodifiable(
           sessionsByDay.map(
             (day, items) => MapEntry(
               day,
@@ -52,7 +51,7 @@ class PlannerSummary {
     }
 
     return PlannerSummary._(
-      sessions: snapshot,
+      totalSessionCount: snapshot.length,
       completedSessionCount: completedCount,
       plannedMinutes: planned,
       completedMinutes: completed,
@@ -61,7 +60,7 @@ class PlannerSummary {
     );
   }
 
-  final List<StudySession> _sessions;
+  final int totalSessionCount;
   final Map<int, List<StudySession>> _sessionsByDay;
   final Map<int, int> _minutesByDay;
   final int completedSessionCount;
