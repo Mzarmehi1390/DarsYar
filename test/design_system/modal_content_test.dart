@@ -17,6 +17,7 @@ void main() {
             child: const Scaffold(
               body: DarsYarModalSheetContent(
                 bottomInset: 28,
+                bottomRadiusCompensation: 28,
                 child: Column(
                   children: [
                     Expanded(child: Text('scrollable content')),
