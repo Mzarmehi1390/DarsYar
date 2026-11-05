@@ -103,7 +103,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final ExamController _examController = ExamController();
   int examSection = 0;
   bool isTakingExam = false;
-  int currentQuestionNumber = 1;
+  final ExamTakingSessionController _examTakingSessionController =
+      ExamTakingSessionController();
   bool _savingExamResult = false;
 
   @override
@@ -622,10 +623,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         resultsHistoryBuilder: resultsHistory,
       );
 
-  bool _showQuestionNavigator = false;
   Widget _takingExamView() {
     final exam = activeExam;
-    final question = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
+    final question = _examTakingSessionController.currentQuestionNumber
+        .clamp(1, exam.questionCount)
+        .toInt();
     final remaining = _examTimerController.examId == activeExamId
         ? _examTimerController.remainingSeconds
         : exam.durationSeconds;
@@ -637,23 +639,36 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       timerDisplay: _examTimerController.displaySeconds,
       timerExamMatches: _examTimerController.examId == activeExamId,
       timerRunning: _examTimerController.isRunning,
-      showQuestionNavigator: _showQuestionNavigator,
+      showQuestionNavigator:
+          _examTakingSessionController.showQuestionNavigator,
       onBack: () => setState(() => isTakingExam = false),
       onToggleNavigator: () => setState(
-        () => _showQuestionNavigator = !_showQuestionNavigator,
+        _examTakingSessionController.toggleQuestionNavigator,
       ),
       onToggleTimer: _toggleExamTimer,
-      onQuestionSelected: (number) =>
-          setState(() => currentQuestionNumber = number),
+      onQuestionSelected: (number) => setState(
+        () => _examTakingSessionController.selectQuestion(
+          number,
+          questionCount: exam.questionCount,
+        ),
+      ),
       onAnswerSelected: _answerQuestion,
       onToggleMarked: () => _toggleQuestionMarked(question),
       onPrevious: () {
         if (question > 1) {
-          setState(() => currentQuestionNumber--);
+          setState(
+            () => _examTakingSessionController.previousQuestion(
+              questionCount: exam.questionCount,
+            ),
+          );
         }
       },
       onNext: question < exam.questionCount
-          ? () => setState(() => currentQuestionNumber++)
+          ? () => setState(
+              () => _examTakingSessionController.nextQuestion(
+                questionCount: exam.questionCount,
+              ),
+            )
           : _finishExam,
       onFinish: _finishExam,
       formatDuration: _formatDuration,
@@ -662,9 +677,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> _answerQuestion(int option) async {
     setState(() {
-      activeExam.answers[currentQuestionNumber] = option;
-      activeExam.marked.remove(currentQuestionNumber);
-      if (currentQuestionNumber < activeExam.questionCount) currentQuestionNumber++;
+      final question = _examTakingSessionController.currentQuestionNumber;
+      activeExam.answers[question] = option;
+      activeExam.marked.remove(question);
+      _examTakingSessionController.nextQuestion(
+        questionCount: activeExam.questionCount,
+      );
     });
     await save(sections: {'exams'});
   }
@@ -696,7 +714,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() {
       activeExamId = exam.id;
       isTakingExam = true;
-      currentQuestionNumber = firstUnansweredQuestion;
+      _examTakingSessionController.selectQuestion(
+        firstUnansweredQuestion,
+        questionCount: exam.questionCount,
+      );
     });
     if (!_examTimerController.isRunning) _toggleExamTimer();
     save(sections: {'exams', 'activeExam'});
