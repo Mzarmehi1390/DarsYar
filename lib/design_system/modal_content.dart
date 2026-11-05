@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -118,11 +120,18 @@ class DarsYarModalSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Reserve the greater of the real system inset and a small visual gap.
-    // This padding wraps the complete Column, keeping fixed actions above
-    // navigation while leaving only the question list scrollable.
+    final media = MediaQuery.of(context);
+    // Keep direct uses and tests safe too, while preferring the presenter's
+    // captured inset when this widget is hosted inside a modal route.
+    final effectiveInset = math.max(
+      bottomInset,
+      math.max(
+        media.viewPadding.bottom,
+        math.max(media.systemGestureInsets.bottom, media.padding.bottom),
+      ),
+    );
     final double bottomClearance =
-        (bottomInset + 12).clamp(24.0, 64.0).toDouble();
+        (effectiveInset + 12).clamp(24.0, 64.0).toDouble();
     return DarsYarModalContent(
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomClearance),
