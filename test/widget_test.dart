@@ -161,7 +161,7 @@ void main() {
         theme: DarsYarTheme.light,
         home: const Scaffold(
           body: DarsYarModalSheetContent(
-            bottomInset: 24,
+            bottomInset: 20,
             child: Text('محتوای شیت'),
           ),
         ),
@@ -187,7 +187,7 @@ void main() {
         theme: DarsYarTheme.light,
         home: const Scaffold(
           body: DarsYarModalSheetContent(
-            bottomInset: 28,
+            bottomInset: 24,
             child: Text('محتوای شیت'),
           ),
         ),
