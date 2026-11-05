@@ -34,3 +34,33 @@ class DarsYarGlassButton extends StatelessWidget {
         child: child,
       );
 }
+
+/// Shared icon action used for navigation, completion and compact controls.
+class DarsYarGlassIconButton extends StatelessWidget {
+  const DarsYarGlassIconButton({
+    required this.icon,
+    required this.onPressed,
+    required this.semanticLabel,
+    this.size = 40,
+    this.shape = GlassIconButtonShape.roundedSquare,
+    this.quality = GlassQuality.standard,
+    super.key,
+  });
+
+  final Widget icon;
+  final VoidCallback onPressed;
+  final String semanticLabel;
+  final double size;
+  final GlassIconButtonShape shape;
+  final GlassQuality quality;
+
+  @override
+  Widget build(BuildContext context) => GlassIconButton(
+        icon: icon,
+        onPressed: onPressed,
+        semanticLabel: semanticLabel,
+        size: size,
+        shape: shape,
+        quality: quality,
+      );
+}

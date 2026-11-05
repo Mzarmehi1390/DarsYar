@@ -29,3 +29,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 }
+
+  testWidgets('shared glass icon button forwards tap and semantics',
+      (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: DarsYarGlassIconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => taps++,
+              semanticLabel: 'ویرایش',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.bySemanticsLabel('ویرایش'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('ویرایش'));
+    expect(taps, 1);
+    expect(tester.takeException(), isNull);
+  });
+}

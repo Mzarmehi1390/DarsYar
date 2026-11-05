@@ -8,6 +8,7 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
+import '../design_system/glass_button.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
@@ -796,7 +797,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     return Column(
       children: [
         GlassContainer.card(
-          shape: const LiquidRoundedSuperellipse(borderRadius: 22),
+          radius: 22,
           useOwnLayer: true,
           quality: GlassQuality.standard,
           clipBehavior: Clip.antiAlias,
@@ -807,7 +808,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final compact = constraints.maxWidth < 430;
-                    final backButton = GlassIconButton(
+                    final backButton = DarsYarGlassIconButton(
                       icon: const Icon(Icons.arrow_forward),
                       onPressed: () => setState(() => isTakingExam = false),
                       size: 40,
@@ -853,7 +854,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                         ],
                       ),
                     );
-                    final navigatorButton = GlassIconButton(
+                    final navigatorButton = DarsYarGlassIconButton(
                       icon: Icon(
                         Icons.format_list_numbered_rounded,
                         color: _showQuestionNavigator
@@ -868,7 +869,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       quality: GlassQuality.standard,
                       semanticLabel: 'فهرست سؤال‌ها',
                     );
-                    final timerButton = GlassIconButton(
+                    final timerButton = DarsYarGlassIconButton(
                       icon: Icon(
                         _examTimerController.isRunning ? Icons.pause : Icons.play_arrow,
                       ),
@@ -1143,9 +1144,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                                   ),
                               ],
                             ),
-                            GlassButton.custom(
+                            DarsYarGlassButton(
                               height: 42,
-                              shape: const LiquidRoundedSuperellipse(borderRadius: 14),
+                              radius: 14,
                               quality: GlassQuality.standard,
                               style: GlassButtonStyle.transparent,
                               onTap: () => _toggleQuestionMarked(q),
@@ -1181,10 +1182,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                     const SizedBox(height: 14),
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final previousButton = GlassButton.custom(
+                        final previousButton = DarsYarGlassButton(
                           width: double.infinity,
                           height: 48,
-                          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                          radius: 15,
                           quality: GlassQuality.standard,
                           style: GlassButtonStyle.filled,
                           onTap: () {
@@ -1194,10 +1195,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                           },
                           child: const Text('قبلی'),
                         );
-                        final nextButton = GlassButton.custom(
+                        final nextButton = DarsYarGlassButton(
                           width: double.infinity,
                           height: 48,
-                          shape: const LiquidRoundedSuperellipse(borderRadius: 15),
+                          radius: 15,
                           quality: GlassQuality.standard,
                           style: GlassButtonStyle.prominent,
                           onTap: q < exam.questionCount
@@ -1233,9 +1234,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
                       },
                     ),
                     Center(
-                      child: GlassButton.custom(
+                      child: DarsYarGlassButton(
                         height: 42,
-                        shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                        radius: 13,
                         quality: GlassQuality.standard,
                         style: GlassButtonStyle.transparent,
                         onTap: _finishExam,

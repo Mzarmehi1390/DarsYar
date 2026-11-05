@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/glass_button.dart';
 import '../../../design_system/glass_surface.dart';
 import '../../../models/study_task.dart';
 import '../../../study_session.dart';
@@ -37,7 +38,7 @@ class StudySessionTile extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: Icon(
                       completed ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
                       color: completed ? DarsYarTokens.accent : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -91,7 +92,7 @@ class StudySessionTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: const Icon(Icons.edit_outlined, color: DarsYarTokens.accent),
                     onPressed: onEdit,
                     size: 36,
@@ -100,7 +101,7 @@ class StudySessionTile extends StatelessWidget {
                     semanticLabel: 'ویرایش جلسه',
                   ),
                   const SizedBox(width: 6),
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     onPressed: onDelete,
                     size: 36,
@@ -149,7 +150,7 @@ class StudyTaskTile extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: Icon(
                       completed ? Icons.check_circle_rounded : Icons.circle_outlined,
                       color: completed ? DarsYarTokens.accent : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -189,7 +190,7 @@ class StudyTaskTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: const Icon(Icons.edit_outlined, color: DarsYarTokens.accent),
                     onPressed: onEdit,
                     size: 36,
@@ -198,7 +199,7 @@ class StudyTaskTile extends StatelessWidget {
                     semanticLabel: 'ویرایش وظیفه',
                   ),
                   const SizedBox(width: 6),
-                  GlassIconButton(
+                  DarsYarGlassIconButton(
                     icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     onPressed: onDelete,
                     size: 36,
