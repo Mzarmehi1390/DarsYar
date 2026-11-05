@@ -29,12 +29,12 @@ import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
-import '../darsyar_storage.dart';
 import '../exam_result.dart';
 import '../exam_sheet.dart';
 import '../study_session.dart';
 import '../models/study_task.dart';
 import '../planner_summary.dart';
+import 'data/darsyar_repository.dart';
 
 const accent = DarsYarTokens.accent;
 
@@ -78,7 +78,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   bool loading = true;
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
-  final DarsYarStorage _storage = DarsYarStorage();
+  final DarsYarRepository _repository = DarsYarRepository();
   final PlannerController _plannerController = PlannerController();
   final TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
@@ -117,118 +117,32 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
-    late final DarsYarStorageSnapshot stored;
     try {
-      stored = await _storage.readSnapshot();
+      final snapshot = await _repository.load();
+      tasks
+        ..clear()
+        ..addAll(snapshot.tasks);
+      studySessions
+        ..clear()
+        ..addAll(snapshot.studySessions);
+      results
+        ..clear()
+        ..addAll(snapshot.results);
+      exams
+        ..clear()
+        ..addAll(snapshot.exams);
+      activeExamId = snapshot.activeExamId;
     } catch (_) {
-      if (mounted) setState(() => loading = false);
-      return;
+      // Keep the app usable with empty in-memory defaults if storage is damaged.
     }
 
-    // Read each storage key independently: one damaged section must not hide
-    // otherwise valid tasks, study sessions, exam sheets, or results.
-    final rawTasks = _readStoredList(stored.stringValue('darsyar.tasks'));
-    if (rawTasks != null) {
-      for (final item in rawTasks) {
-        try {
-          if (item is Map) {
-            tasks.add(StudyTask.fromJson(Map<String, dynamic>.from(item)));
-          }
-        } catch (_) {
-          // Skip only the invalid task entry.
-        }
-      }
-    }
-
-    final rawSessions = _readStoredList(stored.stringValue('darsyar.studySessions'));
-    if (rawSessions != null) {
-      for (final item in rawSessions) {
-        try {
-          if (item is Map) {
-            studySessions.add(StudySession.fromJson(Map<String, dynamic>.from(item)));
-          }
-        } catch (_) {
-          // Skip only the invalid study session.
-        }
-      }
-    }
-
-    final rawResults = _readStoredList(stored.stringValue('darsyar.results'));
-    if (rawResults != null) {
-      for (final item in rawResults) {
-        try {
-          if (item is Map) {
-            results.add(ExamResult.fromJson(Map<String, dynamic>.from(item)));
-          }
-        } catch (_) {
-          // Skip only the invalid exam result.
-        }
-      }
-    }
-
-    final storedExamsJson = stored.stringValue('darsyar.exams');
-    final hasStoredExamsKey = stored.containsKey('darsyar.exams');
-    final rawExams = _readStoredList(storedExamsJson);
-    exams.clear();
-    if (rawExams != null) {
-      for (final item in rawExams) {
-        try {
-          if (item is Map) {
-            exams.add(ExamSheet.fromJson(Map<String, dynamic>.from(item)));
-          }
-        } catch (_) {
-          // Skip only the invalid exam sheet.
-        }
-      }
-    } else if (!hasStoredExamsKey) {
-      // Migrate legacy single-sheet data only when the current-format key
-      // does not exist. Corrupt current data must never resurrect stale
-      // legacy answers over the user's newer exam state.
-      final legacyAnswers = _readIntMap(stored.stringValue('darsyar.answers'));
-      final legacyKey = _readIntMap(stored.stringValue('darsyar.answerKey'));
-      final legacyMarked = <int>{};
-      final legacyMarkedRaw = stored.stringValue('darsyar.marked');
-      final decodedMarked = _readStoredList(legacyMarkedRaw);
-      if (decodedMarked != null) {
-        for (final item in decodedMarked) {
-          if (item is num) legacyMarked.add(item.toInt());
-        }
-      }
-      final legacyCount = (stored.intValue('darsyar.count') ?? 20).clamp(1, 200).toInt();
-      exams.add(ExamSheet(
-        id: 'default',
-        name: 'آزمون اول',
-        questionCount: legacyCount,
-        answers: legacyAnswers,
-        answerKey: legacyKey,
-        marked: legacyMarked,
-      ));
-    }
-
-    if (exams.isEmpty) {
-      exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
-    }
-    activeExamId = stored.stringValue('darsyar.activeExamId') ?? exams.first.id;
-    if (!exams.any((exam) => exam.id == activeExamId)) {
-      activeExamId = exams.first.id;
-    }
     if (mounted) {
       setState(() => loading = false);
       if (tab == 1) _revealSelectedDay();
     }
   }
 
-  List<dynamic>? _readStoredList(String? raw) {
-    if (raw == null) return null;
-    try {
-      final decoded = jsonDecode(raw);
-      return decoded is List ? decoded : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static const _allStorageSections = <String>{
+  static const _allStorageSections  static const _allStorageSections = <String>{
     'tasks',
     'exams',
     'activeExam',
@@ -253,39 +167,30 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<bool> _saveCurrentState(Set<String> sections) async {
-    if (sections.isEmpty) return true;
-    if (!_allStorageSections.containsAll(sections)) {
-      throw ArgumentError.value(sections, 'sections', 'Unknown storage section');
-    }
     try {
-      // Encode only the sections changed by the caller. The storage layer
-      // serializes writes and restores previous values if a write fails.
-      final values = <String, String>{
-        if (sections.contains('tasks'))
-          'darsyar.tasks': jsonEncode(tasks.map((e) => e.toJson()).toList()),
-        if (sections.contains('exams'))
-          'darsyar.exams': jsonEncode(exams.map((exam) => exam.toJson()).toList()),
-        if (sections.contains('activeExam'))
-          'darsyar.activeExamId': activeExamId,
-        if (sections.contains('results'))
-          'darsyar.results': jsonEncode(results.map((result) => result.toJson()).toList()),
-        if (sections.contains('studySessions'))
-          'darsyar.studySessions': jsonEncode(studySessions.map((session) => session.toJson()).toList()),
-      };
-
-      final saved = await _storage.writeStrings(values);
+      final saved = await _repository.save(
+        sections: sections,
+        tasks: tasks,
+        studySessions: studySessions,
+        exams: exams,
+        results: results,
+        activeExamId: activeExamId,
+      );
       if (saved) return true;
-
       if (mounted) {
         _showSnackBar(
-          SnackBar(content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
+          const SnackBar(
+            content: Text('ذخیره‌سازی کامل نشد؛ تلاش شد اطلاعات قبلی حفظ شوند.'),
+          ),
         );
       }
       return false;
     } catch (_) {
       if (mounted) {
         _showSnackBar(
-          SnackBar(content: Text('ذخیره‌سازی با خطا مواجه شد؛ تلاش شد اطلاعات قبلی حفظ شوند.')),
+          const SnackBar(
+            content: Text('ذخیره‌سازی با خطا مواجه شد؛ تلاش شد اطلاعات قبلی حفظ شوند.'),
+          ),
         );
       }
       return false;
