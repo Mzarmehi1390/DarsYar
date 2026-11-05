@@ -49,7 +49,7 @@ void main() {
     await tester.pumpAndSettle();
 
     AnimatedPadding dialogPadding() => tester.widget<AnimatedPadding>(
-          find.descendant(
+          find.ancestor(
             of: find.byType(GlassDialog),
             matching: find.byType(AnimatedPadding),
           ).first,
