@@ -7,7 +7,8 @@ on:
       - main
       - feat/darsyar-foundation
       - feat/darsyar-ux-refinement
-      - feat/darsyar-liquid-glass-redesign
+  # The redesign branch is validated by its pull_request run; omitting it
+  # here avoids running the same full Android build twice for every commit.
   pull_request:
     branches:
       - main
