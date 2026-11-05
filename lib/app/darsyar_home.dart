@@ -138,7 +138,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       exams
         ..clear()
         ..addAll(snapshot.exams);
-      activeExamId = snapshot.activeExamId;
+      if (exams.isEmpty) {
+        exams.add(ExamSheet(id: 'default', name: 'آزمون اول'));
+      }
+      activeExamId = exams.any((exam) => exam.id == snapshot.activeExamId)
+          ? snapshot.activeExamId
+          : exams.first.id;
     } catch (_) {
       // Keep the app usable with empty in-memory defaults if storage is damaged.
     }
@@ -605,15 +610,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     exam: exam,
     durationLabel: _formatDuration(exam.durationSeconds),
     onRename: () {
-      setState(() => activeExamId = exam.id);
+      _selectExam(exam);
       renameExam();
     },
     onEditAnswerKey: () {
-      setState(() => activeExamId = exam.id);
+      _selectExam(exam);
       editAnswerKey();
     },
     onDelete: () {
-      setState(() => activeExamId = exam.id);
+      _selectExam(exam);
       deleteExam();
     },
     onBegin: () => _beginExam(exam),
@@ -697,6 +702,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await save(sections: {'exams'});
   }
 
+  void _selectExam(ExamSheet exam) {
+    if (activeExamId == exam.id) return;
+    _examTimerController.stop();
+    _examTimerController.isRunning = false;
+    _examTimerController.deadline = null;
+    _examTimerController.setRemaining(0);
+    _examTimerController.examId = null;
+    setState(() => activeExamId = exam.id);
+  }
+
   void _beginExam(ExamSheet exam) {
     if (_examTimerController.examId != exam.id) {
       _examTimerController.stop();
@@ -760,18 +775,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       id: completedAt.microsecondsSinceEpoch.toString(),
       completedAt: completedAt,
     );
-    setState(() {
-      results.add(result);
-    });
-    final saved = await save(sections: {'exams', 'results'});
-    if (!mounted) return;
-    _examTakingLifecycleController.endSaveResult();
-    if (saved) {
+    try {
+      if (!mounted) return;
+      setState(() {
+        results.add(result);
+      });
+      final saved = await save(sections: {'exams', 'results'});
+      if (!mounted || !saved) return;
       _showSnackBar(SnackBar(
         content: Text(result.percentage == null
           ? 'پاسخ‌ها ذخیره شدند؛ برای محاسبه درصد بعداً کلید را وارد کن.'
           : 'نتیجه آزمون در تاریخچه ذخیره شد.'),
       ));
+    } finally {
+      // Release the guard on success, failure, and widget disposal alike.
+      _examTakingLifecycleController.endSaveResult();
     }
   }
 
@@ -914,11 +932,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name.trim(),
     );
-    setState(() {
-      exams.add(exam);
-      activeExamId = exam.id;
-      tab = 2;
-    });
+    _selectExam(exam);
+    setState(() => tab = 2);
     await save(sections: {'exams', 'activeExam'});
   }
 
