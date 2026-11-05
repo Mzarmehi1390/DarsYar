@@ -14,11 +14,9 @@ import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
+import '../features/exams/presentation/exam_taking_view.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_history_page.dart';
-import '../features/exams/presentation/exam_question_navigator.dart';
-import '../features/exams/presentation/exam_taking_header.dart';
-import '../features/exams/presentation/exam_question_workspace.dart';
 import '../features/exams/presentation/saved_exams_view.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
@@ -627,61 +625,38 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   bool _showQuestionNavigator = false;
   Widget _takingExamView() {
     final exam = activeExam;
-    final q = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
-    final remaining =
-        _examTimerController.examId == activeExamId ? _examTimerController.remainingSeconds : exam.durationSeconds;
-    final answered = exam.answers.length;
-    return Column(
-      children: [
-        ExamTakingHeader(
-          exam: exam,
-          currentQuestion: q,
-          answeredCount: answered,
-          remainingSeconds: remaining,
-          timerDisplay: _examTimerController.displaySeconds,
-          timerExamMatches: _examTimerController.examId == activeExamId,
-          timerRunning: _examTimerController.isRunning,
-          showQuestionNavigator: _showQuestionNavigator,
-          onBack: () => setState(() => isTakingExam = false),
-          onToggleNavigator: () => setState(
-            () => _showQuestionNavigator = !_showQuestionNavigator,
-          ),
-          onToggleTimer: _toggleExamTimer,
-          formatDuration: _formatDuration,
-        ),
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_showQuestionNavigator)
-                ExamQuestionNavigator(
-                  exam: exam,
-                  currentQuestion: q,
-                  onQuestionSelected: (number) =>
-                      setState(() => currentQuestionNumber = number),
-                ),
+    final question = currentQuestionNumber.clamp(1, exam.questionCount).toInt();
+    final remaining = _examTimerController.examId == activeExamId
+        ? _examTimerController.remainingSeconds
+        : exam.durationSeconds;
 
-              Expanded(
-                child: ExamQuestionWorkspace(
-                  exam: exam,
-                  currentQuestion: q,
-                  onAnswerSelected: _answerQuestion,
-                  onToggleMarked: () => _toggleQuestionMarked(q),
-                  onPrevious: () {
-                    if (q > 1) {
-                      setState(() => currentQuestionNumber--);
-                    }
-                  },
-                  onNext: q < exam.questionCount
-                      ? () => setState(() => currentQuestionNumber++)
-                      : _finishExam,
-                  onFinish: _finishExam,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return ExamTakingView(
+      exam: exam,
+      currentQuestion: question,
+      remainingSeconds: remaining,
+      timerDisplay: _examTimerController.displaySeconds,
+      timerExamMatches: _examTimerController.examId == activeExamId,
+      timerRunning: _examTimerController.isRunning,
+      showQuestionNavigator: _showQuestionNavigator,
+      onBack: () => setState(() => isTakingExam = false),
+      onToggleNavigator: () => setState(
+        () => _showQuestionNavigator = !_showQuestionNavigator,
+      ),
+      onToggleTimer: _toggleExamTimer,
+      onQuestionSelected: (number) =>
+          setState(() => currentQuestionNumber = number),
+      onAnswerSelected: _answerQuestion,
+      onToggleMarked: () => _toggleQuestionMarked(question),
+      onPrevious: () {
+        if (question > 1) {
+          setState(() => currentQuestionNumber--);
+        }
+      },
+      onNext: question < exam.questionCount
+          ? () => setState(() => currentQuestionNumber++)
+          : _finishExam,
+      onFinish: _finishExam,
+      formatDuration: _formatDuration,
     );
   }
 
