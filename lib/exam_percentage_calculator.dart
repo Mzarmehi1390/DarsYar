@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'design_system/glass_surface.dart';
+import 'design_system/input_focus_behavior.dart';
 
 class ExamPercentageResult {
   const ExamPercentageResult({
@@ -36,8 +37,6 @@ ExamPercentageResult calculateExamPercentages({
 }
 
 /// Standalone what-if calculator for exam percentages.
-/// The three counts are user-entered; wrong answers cost one third of a
-/// correct answer in the negative-marking scenario.
 class ExamPercentageCalculator extends StatefulWidget {
   const ExamPercentageCalculator({super.key});
 
@@ -84,23 +83,16 @@ class _ExamPercentageCalculatorState extends State<ExamPercentageCalculator> {
         width: 88,
         child: GlassFormField(
           label: label,
-          child: Focus(
-            onFocusChange: (hasFocus) {
-              if (hasFocus && controller.text == '0') {
-                controller.selection = TextSelection(
-                  baseOffset: 0,
-                  extentOffset: controller.text.length,
-                );
-              }
-            },
+          child: DarsYarInputFocusBehavior(
+            controller: controller,
             child: GlassTextField(
               surfaceStyle: GlassSurfaceStyle.solid,
               controller: controller,
               keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(3),
-            ],
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(3),
+              ],
               onChanged: (_) => setState(() {}),
             ),
           ),
