@@ -137,7 +137,8 @@ class DarsYarModalSheetContent extends StatelessWidget {
     );
     // Never cap a real system inset: large Android navigation areas and
     // edge-to-edge gesture regions must remain fully clear of fixed actions.
-    final double bottomClearance = math.max(24.0, effectiveInset + 12);
+    final double bottomClearance =
+        math.max(24.0, effectiveInset + bottomRadiusCompensation + 12);
     return DarsYarModalContent(
       child: Padding(
         padding: EdgeInsets.only(bottom: bottomClearance),
