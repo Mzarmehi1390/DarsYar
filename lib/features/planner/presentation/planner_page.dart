@@ -3,6 +3,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
+import '../../../design_system/glass_selector.dart';
 import '../../../design_system/page_header.dart';
 import '../../../models/study_task.dart';
 import '../../../planner_summary.dart';
@@ -108,7 +109,7 @@ class PlannerPage extends StatelessWidget {
                     children: daysOrder.map((day) => Padding(
                       key: dayKeys[day],
                       padding: const EdgeInsets.only(left: 8),
-                      child: GlassChip(
+                      child: DarsYarGlassChoiceChip(
                         key: ValueKey<String>('planner-day-$day'),
                         label: dayLabels[day],
                         semanticLabel: dayLabels[day],

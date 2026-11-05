@@ -46,3 +46,39 @@ class DarsYarGlassSegmentedControl extends StatelessWidget {
         indicatorColor: indicatorColor,
       );
 }
+
+/// Shared day/category chip used for compact single-choice navigation.
+class DarsYarGlassChoiceChip extends StatelessWidget {
+  const DarsYarGlassChoiceChip({
+    required this.label,
+    required this.semanticLabel,
+    required this.selected,
+    required this.selectedColor,
+    required this.labelStyle,
+    required this.onTap,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    this.quality = GlassQuality.standard,
+    super.key,
+  });
+
+  final String label;
+  final String semanticLabel;
+  final bool selected;
+  final Color selectedColor;
+  final TextStyle labelStyle;
+  final VoidCallback onTap;
+  final EdgeInsetsGeometry padding;
+  final GlassQuality quality;
+
+  @override
+  Widget build(BuildContext context) => GlassChip(
+        label: label,
+        semanticLabel: semanticLabel,
+        selected: selected,
+        selectedColor: selectedColor,
+        labelStyle: labelStyle,
+        padding: padding,
+        quality: quality,
+        onTap: onTap,
+      );
+}
