@@ -12,6 +12,7 @@ import '../design_system/glass_selector.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_taking_session_controller.dart';
+import '../features/exams/application/exam_taking_lifecycle_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_page.dart';
@@ -103,10 +104,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final ExamTimerController _examTimerController = ExamTimerController();
   final ExamController _examController = ExamController();
   int examSection = 0;
-  bool isTakingExam = false;
+  final ExamTakingLifecycleController _examTakingLifecycleController =
+      ExamTakingLifecycleController();
+  bool get isTakingExam => _examTakingLifecycleController.isTaking;
   final ExamTakingSessionController _examTakingSessionController =
       ExamTakingSessionController();
-  bool _savingExamResult = false;
 
   @override
   void dispose() {
@@ -642,7 +644,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       timerRunning: _examTimerController.isRunning,
       showQuestionNavigator:
           _examTakingSessionController.showQuestionNavigator,
-      onBack: () => setState(() => isTakingExam = false),
+      onBack: () => setState(_examTakingLifecycleController.leave),
       onToggleNavigator: () => setState(
         _examTakingSessionController.toggleQuestionNavigator,
       ),
@@ -714,7 +716,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     }
     setState(() {
       activeExamId = exam.id;
-      isTakingExam = true;
+      _examTakingLifecycleController.begin();
       _examTakingSessionController.selectQuestion(
         firstUnansweredQuestion,
         questionCount: exam.questionCount,
@@ -725,7 +727,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> _finishExam({bool automatic = false}) async {
-    if (!isTakingExam) return;
+    if (!_examTakingLifecycleController.beginFinish()) return;
     if (!automatic) {
       final ok = await _confirmGlass(
         title: 'پایان آزمون؟',
@@ -733,12 +735,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         confirmLabel: 'پایان',
         cancelLabel: 'ادامه',
       );
-      if (!ok || !mounted || !isTakingExam) return;
+      if (!ok || !mounted || !isTakingExam) {
+        _examTakingLifecycleController.cancelFinish();
+        return;
+      }
     }
     _examTimerController.stop();
     setState(() {
       activeExam.isCompleted = true;
-      isTakingExam = false;
+      _examTakingLifecycleController.complete();
       _examTimerController.isRunning = false;
       _examTimerController.deadline = null;
       examSection = 1;
@@ -747,7 +752,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> saveExamResult() async {
-    if (_savingExamResult) return;
+    if (!_examTakingLifecycleController.beginSaveResult()) return;
     final exam = activeExam;
     final completedAt = DateTime.now();
     final result = _examController.createResult(
@@ -756,12 +761,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       completedAt: completedAt,
     );
     setState(() {
-      _savingExamResult = true;
       results.add(result);
     });
     final saved = await save(sections: {'exams', 'results'});
     if (!mounted) return;
-    setState(() => _savingExamResult = false);
+    _examTakingLifecycleController.endSaveResult();
     if (saved) {
       _showSnackBar(SnackBar(
         content: Text(result.percentage == null
