@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/glass_button.dart';
 import '../../../design_system/modal_content.dart';
 import '../../../design_system/input_focus_behavior.dart';
 
@@ -218,9 +219,9 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
             child: Row(
           children: [
             Expanded(
-              child: GlassButton.custom(
+              child: DarsYarGlassButton(
                 height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                radius: 16,
                 quality: GlassQuality.standard,
                 onTap: () => Navigator.of(context).pop(),
                 child: const DarsYarModalButtonLabel(child: Text('انصراف')),
@@ -228,9 +229,9 @@ class ExamDurationDialogState extends State<ExamDurationDialog> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: GlassButton.custom(
+              child: DarsYarGlassButton(
                 height: 48,
-                shape: const LiquidRoundedSuperellipse(borderRadius: 16),
+                radius: 16,
                 quality: GlassQuality.standard,
                 style: GlassButtonStyle.filled,
                 onTap: _submit,

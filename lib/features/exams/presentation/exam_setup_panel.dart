@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/glass_button.dart';
 import 'answer_key_editor_sheet.dart';
 import 'exam_duration_dialog.dart';
 import '../../../design_system/glass_modal_sheet.dart';
@@ -176,10 +177,10 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
                       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
                   ],
                 );
-                final editButton = GlassButton.custom(
+                final editButton = DarsYarGlassButton(
                   width: 112,
                   height: 42,
-                  shape: const LiquidRoundedSuperellipse(borderRadius: 14),
+                  radius: 14,
                   quality: GlassQuality.standard,
                   style: GlassButtonStyle.filled,
                   onTap: _editDuration,
@@ -209,10 +210,10 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
             ),
           ),
           SizedBox(height: 12),
-          Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), GlassButton.custom(
+          Row(children: [Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('کلید پاسخ اختیاری', style: TextStyle(fontWeight: FontWeight.w700)), Text(_answerKey.isEmpty ? 'هنوز کلیدی ثبت نشده' : 'کلید ${_answerKey.length} سؤال وارد شده', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))])), DarsYarGlassButton(
                       width: 112,
                       height: 40,
-                      shape: const LiquidRoundedSuperellipse(borderRadius: 13),
+                      radius: 13,
                       quality: GlassQuality.standard,
                       style: GlassButtonStyle.filled,
                       onTap: _editSetupAnswerKey,
@@ -261,9 +262,9 @@ class ExamSetupPanelState extends State<ExamSetupPanel> {
           const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
-            child: GlassButton.custom(
+            child: DarsYarGlassButton(
               height: 52,
-              shape: const LiquidRoundedSuperellipse(borderRadius: 17),
+              radius: 17,
               quality: GlassQuality.standard,
               style: GlassButtonStyle.prominent,
               onTap: _submit,
