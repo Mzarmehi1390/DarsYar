@@ -18,6 +18,7 @@ import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
 import '../features/exams/presentation/exam_history_page.dart';
 import '../features/exams/presentation/exam_question_navigator.dart';
+import '../features/exams/presentation/exam_taking_header.dart';
 import '../features/exams/presentation/saved_exams_view.dart';
 import '../features/settings/presentation/backup_import_dialog.dart';
 import '../features/planner/presentation/study_session_editor.dart';
@@ -641,181 +642,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     return Column(
       children: [
-        GlassContainer.card(
-          shape: const LiquidRoundedSuperellipse(borderRadius: 22),
-          useOwnLayer: true,
-          quality: GlassQuality.standard,
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-            child: Column(
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final compact = constraints.maxWidth < 430;
-                    final backButton = DarsYarGlassIconButton(
-                      icon: const Icon(Icons.arrow_forward),
-                      onPressed: () => setState(() => isTakingExam = false),
-                      size: 40,
-                      shape: GlassIconButtonShape.roundedSquare,
-                      quality: GlassQuality.standard,
-                      semanticLabel: 'بازگشت به پاسخ‌برگ',
-                    );
-                    final timerBadge = Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.72),
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.timer_outlined,
-                            size: 17,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 5),
-                          ValueListenableBuilder<int>(
-                            valueListenable: _examTimerController.displaySeconds,
-                            builder: (context, seconds, _) => Text(
-                              _formatDuration(
-                                _examTimerController.examId == activeExamId ? seconds : remaining,
-                              ),
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: Theme.of(context).colorScheme.primary,
-                                fontFeatures: const [FontFeature.tabularFigures()],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                    final navigatorButton = DarsYarGlassIconButton(
-                      icon: Icon(
-                        Icons.format_list_numbered_rounded,
-                        color: _showQuestionNavigator
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                      ),
-                      onPressed: () => setState(
-                        () => _showQuestionNavigator = !_showQuestionNavigator,
-                      ),
-                      size: 40,
-                      shape: GlassIconButtonShape.roundedSquare,
-                      quality: GlassQuality.standard,
-                      semanticLabel: 'فهرست سؤال‌ها',
-                    );
-                    final timerButton = DarsYarGlassIconButton(
-                      icon: Icon(
-                        _examTimerController.isRunning ? Icons.pause : Icons.play_arrow,
-                      ),
-                      onPressed: _toggleExamTimer,
-                      size: 40,
-                      shape: GlassIconButtonShape.roundedSquare,
-                      quality: GlassQuality.standard,
-                      semanticLabel: _examTimerController.isRunning
-                          ? 'توقف زمان‌سنج'
-                          : 'ادامه زمان‌سنج',
-                    );
-                    final examTitle = Expanded(
-                      child: Text(
-                        exam.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    );
-
-                    if (compact) {
-                      return Column(
-                        children: [
-                          Row(
-                            children: [
-                              backButton,
-                              const SizedBox(width: 6),
-                              examTitle,
-                              const SizedBox(width: 6),
-                              timerBadge,
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              navigatorButton,
-                              const SizedBox(width: 6),
-                              timerButton,
-                            ],
-                          ),
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        backButton,
-                        const SizedBox(width: 8),
-                        examTitle,
-                        const SizedBox(width: 8),
-                        timerBadge,
-                        const SizedBox(width: 4),
-                        navigatorButton,
-                        timerButton,
-                      ],
-                    );
-                  },
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: GlassProgressIndicator.linear(
-                    value: exam.questionCount == 0
-                        ? 0
-                        : answered / exam.questionCount,
-                    height: 7,
-                    minWidth: 0,
-                    color: accent,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-                    quality: GlassQuality.standard,
-                    semanticLabel: 'پیشرفت آزمون',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  runAlignment: WrapAlignment.center,
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    Text(
-                      'پاسخ داده‌شده: $answered از ${exam.questionCount}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      'سؤال $q از ${exam.questionCount}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+        ExamTakingHeader(
+          exam: exam,
+          currentQuestion: q,
+          answeredCount: answered,
+          remainingSeconds: remaining,
+          timerDisplay: _examTimerController.displaySeconds,
+          timerExamMatches: _examTimerController.examId == activeExamId,
+          timerRunning: _examTimerController.isRunning,
+          showQuestionNavigator: _showQuestionNavigator,
+          onBack: () => setState(() => isTakingExam = false),
+          onToggleNavigator: () => setState(
+            () => _showQuestionNavigator = !_showQuestionNavigator,
           ),
+          onToggleTimer: _toggleExamTimer,
+          formatDuration: _formatDuration,
         ),
         Expanded(
           child: Row(
