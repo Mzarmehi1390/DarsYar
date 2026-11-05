@@ -5,7 +5,6 @@ import '../../../design_system/darsyar_theme.dart';
 import '../../../design_system/glass_button.dart';
 import '../../../design_system/glass_selector.dart';
 import '../../../design_system/glass_surface.dart';
-import '../../../design_system/glass_tokens.dart';
 import '../domain/models/exam_sheet.dart';
 
 /// Scrollable question content and navigation controls for an active exam.
