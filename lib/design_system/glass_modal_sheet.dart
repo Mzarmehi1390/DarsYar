@@ -56,10 +56,19 @@ Future<T?> showDarsYarGlassSheet<T>({
       // Android gesture navigation can otherwise be lost at this boundary.
       DarsYarModalSheetContent(
         bottomInset: bottomSystemInset,
+        // GlassModalSheet intentionally sinks its full-state frame below the
+        // screen by its base bottom radius. Keep the content footer above that
+        // submerged edge as well as above Android's navigation area.
+        bottomRadiusCompensation:
+            defaultTargetPlatform == TargetPlatform.android ? 28 : 0,
         child: builder(sheetContext),
       ),
     ),
     initialState: initialState,
+    bottomBorderRadius:
+        defaultTargetPlatform == TargetPlatform.android ? 28 : null,
+    fullBottomBorderRadius:
+        defaultTargetPlatform == TargetPlatform.android ? 0 : null,
     detents: const {GlassSheetDetent.medium, GlassSheetDetent.large},
     halfSize: halfSize,
     fullSize: fullSize,

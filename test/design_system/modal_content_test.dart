@@ -35,7 +35,7 @@ void main() {
           matching: find.byType(Padding),
         ).first,
       );
-      expect(padding.padding, const EdgeInsets.only(bottom: 40));
+      expect(padding.padding, const EdgeInsets.only(bottom: 68));
       expect(find.text('fixed actions'), findsOneWidget);
     });
 
@@ -45,6 +45,7 @@ void main() {
         const MaterialApp(
           home: DarsYarModalSheetContent(
             bottomInset: 80,
+            bottomRadiusCompensation: 28,
             child: Text('fixed actions'),
           ),
         ),
@@ -56,7 +57,7 @@ void main() {
           matching: find.byType(Padding),
         ).first,
       );
-      expect(padding.padding, const EdgeInsets.only(bottom: 92));
+      expect(padding.padding, const EdgeInsets.only(bottom: 120));
     });
 
     testWidgets('keeps minimum clearance when system inset is unavailable',

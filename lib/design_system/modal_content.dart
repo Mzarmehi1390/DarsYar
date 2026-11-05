@@ -112,11 +112,16 @@ class DarsYarModalSheetContent extends StatelessWidget {
   const DarsYarModalSheetContent({
     required this.child,
     this.bottomInset = 0,
+    this.bottomRadiusCompensation = 0,
     super.key,
   });
 
   final Widget child;
   final double bottomInset;
+
+  /// Extra room for the sheet package's full-state bottom-edge submergence.
+  /// This is separate from the Android system inset.
+  final double bottomRadiusCompensation;
 
   @override
   Widget build(BuildContext context) {
