@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../design_system/darsyar_theme.dart';
+import '../../../design_system/glass_button.dart';
 import '../../../design_system/page_header.dart';
 import '../../../models/study_task.dart';
 
@@ -33,7 +34,7 @@ class DashboardPage extends StatelessWidget {
     SizedBox(height: 24),
     GlassContainer.card(
       padding: EdgeInsets.zero,
-      radius: 30,
+      shape: const LiquidRoundedSuperellipse(borderRadius: 30),
       useOwnLayer: true,
       quality: GlassQuality.standard,
       clipBehavior: Clip.antiAlias,
