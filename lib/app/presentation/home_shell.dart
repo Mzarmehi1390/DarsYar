@@ -5,7 +5,7 @@ import '../../design_system/darsyar_theme.dart';
 
 /// Owns the persistent app chrome and active-page transition.
 ///
-/// Keeping this widget separate from [DarsYarHome] prevents exam/planner state
+/// Keeping this widget separate from the home state owner prevents feature
 /// updates from coupling navigation chrome to feature orchestration.
 class DarsYarHomeShell extends StatelessWidget {
   const DarsYarHomeShell({
