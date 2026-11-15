@@ -57,7 +57,7 @@ class DarsYarBackupCodec {
       'tasks',
       requiredStrings: const ['id', 'title'],
       uniqueId: true,
-      optionalStrings: const ['subject'],
+      optionalStrings: const ['subject', 'dueDate'],
       optionalBooleans: const ['done'],
     );
     _validateRecords(
@@ -65,7 +65,7 @@ class DarsYarBackupCodec {
       'studySessions',
       requiredStrings: const ['id', 'title'],
       uniqueId: true,
-      optionalStrings: const ['subject'],
+      optionalStrings: const ['subject', 'scheduledDate'],
       optionalIntegers: const ['weekday', 'startMinutes', 'durationMinutes'],
       optionalBooleans: const ['completed'],
     );
