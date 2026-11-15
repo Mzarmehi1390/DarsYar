@@ -67,6 +67,14 @@ void main() {
     expect(copies.single.completed, isFalse);
   });
 
+  test('study session date round-trips without losing its weekday', () {
+    final session = makeSession('date-session', DateTime(2026, 11, 23), start: 720);
+    final restored = StudySession.fromJson(session.toJson());
+    expect(restored.scheduledDate, DateTime(2026, 11, 23));
+    expect(restored.weekday, 1);
+    expect(restored.startMinutes, 720);
+  });
+
   test('date-based tasks round-trip while legacy tasks remain unscheduled', () {
     final task = StudyTask('t1', 'تمرین', 'فیزیک', dueDate: DateTime(2026, 11, 23));
     final restored = StudyTask.fromJson(task.toJson());
