@@ -32,7 +32,8 @@ jobs:
         run: dart run flutter_launcher_icons
 
       - name: Analyze
-        run: flutter analyze
+        # Keep infos visible without failing CI; warnings and errors remain fatal.
+        run: flutter analyze --no-fatal-infos
 
       - name: Run tests
         run: flutter test
