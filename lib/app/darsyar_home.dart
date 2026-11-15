@@ -1433,6 +1433,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final result = await showTaskDetailsDialog(
       context: context,
       existing: existing,
+      initialDueDate: existing?.dueDate ?? selectedStudyDate,
       reduceMotion: !widget.animationsEnabled,
     );
     if (result == null || !mounted) return;
@@ -1442,7 +1443,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: result.$1,
         subject: result.$2,
         existing: existing,
-        dueDate: existing?.dueDate ?? selectedStudyDate,
+        dueDate: result.$3,
         createId: () => DateTime.now().microsecondsSinceEpoch.toString(),
       );
     });
