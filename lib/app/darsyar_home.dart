@@ -1405,7 +1405,6 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       context: context,
       builder: (_) => StudySessionEditorDialog(
         existing: existing,
-        initialWeekday: selectedStudyDay,
         initialDate: existing?.scheduledDate ?? selectedStudyDate,
         weekDays: weekDays,
         hasOverlap: (candidate) => _hasOverlappingSession(
