@@ -132,9 +132,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       tasks
         ..clear()
         ..addAll(snapshot.tasks);
+      final needsPlannerMigration = snapshot.studySessions.any(
+        (session) => session.scheduledDate == null,
+      );
       studySessions
         ..clear()
-        ..addAll(snapshot.studySessions);
+        ..addAll(_plannerController.migrateLegacySessions(
+          snapshot.studySessions,
+          referenceDate: DateTime.now(),
+        ));
       results
         ..clear()
         ..addAll(snapshot.results);
@@ -154,6 +160,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (mounted) {
       setState(() => loading = false);
       if (tab == 1) _revealSelectedDay();
+      if (needsPlannerMigration) {
+        await save(sections: {'studySessions'});
+      }
     }
   }
 
@@ -1207,10 +1216,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         return StudyTask.fromJson(Map<String, dynamic>.from(item));
       }).toList();
 
-      importedSessions = readList('studySessions').map((item) {
+      final decodedSessions = readList('studySessions').map((item) {
         if (item is! Map) throw const FormatException('Invalid study session');
         return StudySession.fromJson(Map<String, dynamic>.from(item));
       }).toList();
+      importedSessions = _plannerController.migrateLegacySessions(
+        decodedSessions,
+        referenceDate: DateTime.now(),
+      );
 
       importedExams = readList('exams').map((item) {
         if (item is! Map) throw const FormatException('Invalid exam sheet');
