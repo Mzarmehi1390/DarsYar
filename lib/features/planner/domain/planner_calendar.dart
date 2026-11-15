@@ -1,5 +1,3 @@
-import 'study_session.dart';
-
 /// Calendar rules for the planner. Weeks follow the Iranian Saturday-Friday
 /// convention while dates use the device's local calendar.
 class PlannerCalendar {
