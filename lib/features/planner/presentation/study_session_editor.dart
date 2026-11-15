@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../study_session.dart';
+import '../domain/planner_calendar.dart';
 import '../../../design_system/modal_content.dart';
 import '../../../design_system/glass_button.dart';
 import '../../../design_system/glass_selector.dart';
@@ -12,7 +13,7 @@ import '../../../design_system/input_focus_behavior.dart';
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
     super.key,
-    required this.initialWeekday,
+    required this.initialDate,
     required this.weekDays,
     required this.hasOverlap,
     required this.onMessage,
@@ -20,7 +21,7 @@ class StudySessionEditorDialog extends StatefulWidget {
   });
 
   final StudySession? existing;
-  final int initialWeekday;
+  final DateTime initialDate;
   final List<String> weekDays;
   final bool Function(StudySession candidate) hasOverlap;
   final ValueChanged<String> onMessage;
@@ -37,6 +38,7 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
   late final ValueNotifier<int> _startMinutes;
   late final ValueNotifier<bool> _showTimePicker;
   late DateTime _selectedTime;
+  late DateTime _selectedDate;
   late int _durationMinutes;
   late final TextEditingController _durationController;
   String? _lastError;
@@ -47,7 +49,8 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
     super.initState();
     _titleController = TextEditingController(text: widget.existing?.title ?? '');
     _subjectController = TextEditingController(text: widget.existing?.subject ?? '');
-    _weekday = ValueNotifier<int>(widget.existing?.weekday ?? widget.initialWeekday);
+    _selectedDate = PlannerCalendar.dateOnly(widget.existing?.scheduledDate ?? widget.initialDate);
+    _weekday = ValueNotifier<int>(StudySession.weekdayFor(_selectedDate));
     _startMinutes = ValueNotifier<int>(widget.existing?.startMinutes ?? 16 * 60);
     _showTimePicker = ValueNotifier<bool>(false);
     _selectedTime = DateTime(2026, 1, 1, _startMinutes.value ~/ 60, _startMinutes.value % 60);
@@ -143,7 +146,12 @@ class StudySessionEditorDialogState extends State<StudySessionEditorDialog> {
                           label: widget.weekDays[day].substring(0, 1),
                           semanticLabel: widget.weekDays[day],
                           selected: weekday == day,
-                          onTap: () => _weekday.value = day,
+                          onTap: () {
+                            _weekday.value = day;
+                            _selectedDate = PlannerCalendar.dateForWeekday(
+                              PlannerCalendar.startOfWeek(widget.initialDate), day,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -333,6 +341,7 @@ SafeArea(
       startMinutes: _startMinutes.value,
       durationMinutes: _durationMinutes,
       completed: widget.existing?.completed ?? false,
+      scheduledDate: _selectedDate,
     );
     if (widget.hasOverlap(candidate)) {
       _showMessage('این زمان با یک جلسهٔ دیگر در همین روز تداخل دارد.');

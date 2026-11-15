@@ -44,6 +44,40 @@ void main() {
     expect(tasks.single.done, isTrue);
   });
 
+  test('upsert can assign, change, and clear a due date', () {
+    final tasks = <StudyTask>[];
+    final firstDate = DateTime(2026, 11, 16);
+    final secondDate = DateTime(2026, 11, 23);
+    controller.upsert(
+      tasks: tasks,
+      title: 'تمرین',
+      subject: 'ریاضی',
+      dueDate: firstDate,
+      createId: () => 'dated-task',
+    );
+    expect(tasks.single.dueDate, firstDate);
+
+    controller.upsert(
+      tasks: tasks,
+      title: 'تمرین ویرایش‌شده',
+      subject: 'ریاضی',
+      dueDate: secondDate,
+      existing: tasks.single,
+      createId: () => 'unused',
+    );
+    expect(tasks.single.dueDate, secondDate);
+
+    controller.upsert(
+      tasks: tasks,
+      title: 'بدون سررسید',
+      subject: 'ریاضی',
+      dueDate: null,
+      existing: tasks.single,
+      createId: () => 'unused',
+    );
+    expect(tasks.single.dueDate, isNull);
+  });
+
   test('removeById removes only the requested task', () {
     final tasks = [
       StudyTask('a', 'اول', 'ریاضی'),

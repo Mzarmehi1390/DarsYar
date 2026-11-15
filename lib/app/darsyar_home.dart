@@ -8,13 +8,14 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
-import '../design_system/glass_selector.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_taking_session_controller.dart';
 import '../features/exams/application/exam_taking_lifecycle_controller.dart';
 import '../features/exams/application/exam_controller.dart';
+import '../features/exams/application/exam_sheet_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
+import '../features/exams/presentation/exam_answer_editor_dialog.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/exam_taking_view.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
@@ -30,8 +31,10 @@ import '../features/planner/presentation/planner_week_overview_card.dart';
 import '../features/planner/presentation/planner_weekly_report_card.dart';
 import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
+import '../features/planner/application/planner_week_copy_service.dart';
+import '../features/planner/domain/planner_calendar.dart';
 import '../features/planner/application/task_controller.dart';
-import '../backup_codec.dart';
+import '../features/settings/application/backup_service.dart';
 import '../features/exams/domain/models/exam_result.dart';
 import '../features/exams/domain/models/exam_sheet.dart';
 import '../features/planner/domain/models/study_session.dart';
@@ -84,12 +87,16 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
   final DarsYarRepository _repository = DarsYarRepository();
+  final DarsYarBackupService _backupService = DarsYarBackupService();
   final PlannerController _plannerController = PlannerController();
+  final PlannerWeekCopyService _plannerWeekCopyService = PlannerWeekCopyService();
   final TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
   int selectedStudyDay = DateTime.now().weekday % 7;
+  late DateTime selectedPlannerWeekStart = PlannerCalendar.startOfWeek(DateTime.now());
+  DateTime get selectedStudyDate => PlannerCalendar.dateForWeekday(selectedPlannerWeekStart, selectedStudyDay);
   String? _lastSnackMessage;
   DateTime? _lastSnackAt;
   final Map<int, GlobalKey> _plannerDayKeys = {for (final day in weekDayOrder) day: GlobalKey()};
@@ -103,6 +110,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   final ExamTimerController _examTimerController = ExamTimerController();
   final ExamController _examController = ExamController();
+  final ExamSheetController _examSheetController = ExamSheetController();
   int examSection = 0;
   final ExamTakingLifecycleController _examTakingLifecycleController =
       ExamTakingLifecycleController();
@@ -124,14 +132,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
+    var needsPlannerMigration = false;
     try {
       final snapshot = await _repository.load();
       tasks
         ..clear()
         ..addAll(snapshot.tasks);
+      needsPlannerMigration = snapshot.studySessions.any(
+        (session) => session.scheduledDate == null,
+      );
       studySessions
         ..clear()
-        ..addAll(snapshot.studySessions);
+        ..addAll(_plannerController.migrateLegacySessions(
+          snapshot.studySessions,
+          referenceDate: DateTime.now(),
+        ));
       results
         ..clear()
         ..addAll(snapshot.results);
@@ -151,6 +166,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     if (mounted) {
       setState(() => loading = false);
       if (tab == 1) _revealSelectedDay();
+      if (needsPlannerMigration) {
+        await save(sections: {'studySessions'});
+      }
     }
   }
 
@@ -404,19 +422,35 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
 
   Widget _plannerPage() {
-    // Group sessions in one pass. The seven overview cards previously each
-    // filtered the complete session list during every planner rebuild.
+    // Build only the selected week's buckets; other weeks remain stored and
+    // are loaded when the user navigates to them.
+    final weekSessions = _plannerController.sessionsForWeek(
+      studySessions,
+      selectedPlannerWeekStart,
+    );
     final sessionsByDay = <int, List<StudySession>>{
       for (final day in weekDayOrder) day: <StudySession>[],
     };
-    for (final session in studySessions) {
+    for (final session in weekSessions) {
       sessionsByDay.putIfAbsent(session.weekday, () => <StudySession>[]).add(session);
     }
+    final weekTasks = tasks.where((task) =>
+      task.dueDate == null ||
+      PlannerCalendar.isInWeek(task.dueDate!, selectedPlannerWeekStart)
+    ).toList();
 
     return PlannerPage(
-      sessions: studySessions,
-      tasks: tasks,
+      sessions: weekSessions,
+      tasks: weekTasks,
       selectedDay: selectedStudyDay,
+      weekStartDate: selectedPlannerWeekStart,
+      onCopyWeekToNext: copySelectedWeekToNext,
+      onWeekOffsetChanged: (offset) {
+        setState(() {
+          selectedPlannerWeekStart = selectedPlannerWeekStart.add(Duration(days: 7 * offset));
+        });
+        _revealSelectedDay();
+      },
       onSelectedDayChanged: (day) {
         setState(() => selectedStudyDay = day);
         _revealSelectedDay();
@@ -455,9 +489,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> copySelectedDayTo(int targetDay) async {
     if (targetDay == selectedStudyDay) return;
-    final sourceSessions = _plannerController.sessionsForDay(
+    final sourceSessions = _plannerController.sessionsForDate(
       studySessions,
-      selectedStudyDay,
+      selectedStudyDate,
     );
     if (sourceSessions.isEmpty) {
       _showSnackBar(
@@ -470,6 +504,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       sessions: sourceSessions,
       sourceDay: selectedStudyDay,
       targetDay: targetDay,
+      targetDate: PlannerCalendar.dateForWeekday(selectedPlannerWeekStart, targetDay),
       createId: (session) => '$copyTimestamp-${session.id}-$targetDay',
     );
     final conflicts = copies.any(
@@ -491,6 +526,59 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     _showSnackBar(
       SnackBar(content: Text('${copies.length} جلسه به ${weekDays[targetDay]} کپی شد.')),
     );
+  }
+
+  Future<void> copySelectedWeekToNext() async {
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final plan = _plannerWeekCopyService.createNextWeekPlan(
+      sessions: studySessions,
+      tasks: tasks,
+      sourceWeekStart: selectedPlannerWeekStart,
+      createSessionId: (session) => '$timestamp-copy-${session.id}',
+      createTaskId: (task) => '$timestamp-task-${task.id}',
+    );
+    if (plan.sourceSessions.isEmpty && plan.sourceTasks.isEmpty) {
+      _showSnackBar(const SnackBar(content: Text('این هفته برنامه یا وظیفه زمان‌بندی‌شده‌ای برای کپی ندارد.')));
+      return;
+    }
+
+    final targetSessions = _plannerController.sessionsForWeek(
+      studySessions,
+      plan.targetWeekStart,
+    );
+    final targetTasks = tasks.where((task) =>
+      task.dueDate != null &&
+      PlannerCalendar.isInWeek(task.dueDate!, plan.targetWeekStart)
+    ).toList();
+    if (targetSessions.isNotEmpty || targetTasks.isNotEmpty) {
+      final confirmed = await _confirmGlass(
+        title: 'جایگزینی برنامه هفته بعد؟',
+        message: 'هفته مقصد از قبل برنامه دارد. با تأیید، جلسات و وظایف تاریخ‌دار هفته بعد با کپی این هفته جایگزین می‌شوند.',
+        confirmLabel: 'جایگزینی',
+        destructive: true,
+      );
+      if (!confirmed || !mounted) return;
+    }
+
+    setState(() {
+      studySessions.removeWhere((session) =>
+        session.scheduledDate != null &&
+        PlannerCalendar.isInWeek(session.scheduledDate!, plan.targetWeekStart)
+      );
+      tasks.removeWhere((task) =>
+        task.dueDate != null &&
+        PlannerCalendar.isInWeek(task.dueDate!, plan.targetWeekStart)
+      );
+      studySessions.addAll(plan.copiedSessions);
+      tasks.addAll(plan.copiedTasks);
+      selectedPlannerWeekStart = plan.targetWeekStart;
+    });
+    final saved = await save(sections: {'studySessions', 'tasks'});
+    if (!mounted) return;
+    _revealSelectedDay();
+    _showSnackBar(SnackBar(
+      content: Text('${plan.copiedSessions.length} جلسه و ${plan.copiedTasks.length} وظیفه به هفته بعد کپی شد${saved ? '' : '؛ ذخیره‌سازی کامل نشد'}. '),
+    ));
   }
 
   Widget weekOverviewCard(int day, List<StudySession> sessions) =>
@@ -851,7 +939,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ]);
 
   void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking, Map<int, int> answerKey) {
-    final exam = ExamSheet(
+    final exam = _examSheetController.create(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name,
       questionCount: questionCount,
@@ -925,41 +1013,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
   );
 
-  Future<void> addExam() async {
-    final name = await _requestExamName();
-    if (name == null || name.trim().isEmpty || !mounted) return;
-    final exam = ExamSheet(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name.trim(),
-    );
-    _selectExam(exam);
-    setState(() => tab = 2);
-    await save(sections: {'exams', 'activeExam'});
-  }
-
-  Future<void> renameExam() async {
-    final name = await _requestExamName(
-      initialName: activeExam.name,
-      isRename: true,
-    );
-    if (name == null || name.trim().isEmpty || !mounted) return;
-    final oldName = activeExam.name;
-    setState(() {
-      activeExam.name = name.trim();
-      for (var i = 0; i < results.length; i++) {
-        if (results[i].examId == activeExam.id ||
-            (results[i].examId == null && results[i].examName == oldName)) {
-          results[i] = results[i].copyWith(examName: name.trim());
-        }
-      }
-    });
-    await save(sections: {'exams', 'results', 'activeExam'});
-  }
-
   Future<void> deleteExam() async {
-    if (exams.length == 1) {
+    if (exams.length <= 1) {
       _showSnackBar(
-        SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
+        const SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
       );
       return;
     }
@@ -970,136 +1027,57 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       destructive: true,
     );
     if (!confirmed || !mounted) return;
-    final deletedExam = activeExam;
-    // A timer must never outlive the answer sheet it belongs to.
+
     _examTimerController.stop();
     _examTimerController.isRunning = false;
     _examTimerController.deadline = null;
     _examTimerController.setRemaining(0);
     _examTimerController.examId = null;
+
     setState(() {
-      final index = exams.indexWhere((exam) => exam.id == activeExamId);
-      exams.removeWhere((exam) => exam.id == activeExamId);
-      results.removeWhere((result) => result.examId == deletedExam.id || (result.examId == null && result.examName == deletedExam.name));
-      activeExamId = exams[(index - 1).clamp(0, exams.length - 1).toInt()].id;
+      activeExamId = _examSheetController.delete(
+        exams: exams,
+        results: results,
+        activeExamId: activeExamId,
+      );
     });
     await save(sections: {'exams', 'results', 'activeExam'});
   }
 
+  Future<void> renameExam() async {
+    final name = await _requestExamName(
+      initialName: activeExam.name,
+      isRename: true,
+    );
+    if (name == null || name.trim().isEmpty || !mounted) return;
+    setState(() => _examSheetController.rename(
+      exam: activeExam,
+      results: results,
+      name: name.trim(),
+    ));
+    await save(sections: {'exams', 'results', 'activeExam'});
+  }
+
   Future<void> resize(int value) async {
-    setState(() { count = value; answers.removeWhere((key, _) => key > count); answerKey.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
+    setState(() => _examSheetController.resize(activeExam, value));
     await save(sections: {'exams'});
   }
 
   Future<void> editAnswer(int number) async {
-    int? answer = answers[number];
-    bool flag = marked.contains(number);
-    final result = await showDarsYarGlassDialog<({int? answer, bool marked})>(
+    final result = await showExamAnswerEditorDialog(
       context: context,
-      title: 'سؤال $number',
-      maxWidth: 360,
-      quality: GlassQuality.standard,
-      reduceMotion: !widget.animationsEnabled,
-      barrierColor: DarsYarGlassTokens.dialogBarrierColor,
-      content: StatefulBuilder(
-        builder: (dialogContext, dialogSet) => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'گزینهٔ پاسخ',
-              style: TextStyle(
-                color: Theme.of(dialogContext).colorScheme.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (var i = 0; i < 4; i++)
-                  DarsYarGlassChoiceChip(
-                    label: ['الف', 'ب', 'ج', 'د'][i],
-                    semanticLabel: 'سؤال $number، گزینه ${['الف', 'ب', 'ج', 'د'][i]}',
-                    selected: answer == i,
-                    selectedColor: accent.withValues(alpha: 0.18),
-                    labelStyle: TextStyle(
-                      color: Theme.of(dialogContext).colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    quality: GlassQuality.standard,
-                    onTap: () => dialogSet(
-                      () => answer = answer == i ? null : i,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'نیاز به مرور دارد',
-                    style: TextStyle(
-                      color: Theme.of(dialogContext).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                GlassSwitch(
-                  value: flag,
-                  activeColor: accent,
-                  semanticLabel: 'علامت‌گذاری سؤال برای مرور',
-                  quality: GlassQuality.standard,
-                  onChanged: (value) => dialogSet(() => flag = value),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: DarsYarGlassChoiceChip(
-                label: 'پاک کردن پاسخ',
-                semanticLabel: 'پاک کردن پاسخ سؤال $number',
-                selected: false,
-                selectedColor: accent.withValues(alpha: 0.16),
-                labelStyle: TextStyle(
-                  color: Theme.of(dialogContext).colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-                quality: GlassQuality.standard,
-                onTap: () => dialogSet(() => answer = null),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        GlassDialogAction(
-          label: 'انصراف',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GlassDialogAction(
-          label: 'ذخیره',
-          isPrimary: true,
-          onPressed: () => Navigator.of(context).pop(
-            (answer: answer, marked: flag),
-          ),
-        ),
-      ],
+      questionNumber: number,
+      initialAnswer: answers[number],
+      initiallyMarked: marked.contains(number),
+      animationsEnabled: widget.animationsEnabled,
     );
     if (result == null) return;
-    setState(() {
-      if (result.answer != null) {
-        answers[number] = result.answer!;
-        // Answering a marked question clears its review marker.
-        marked.remove(number);
-      } else {
-        answers.remove(number);
-        // Clearing an answer never creates a review marker automatically.
-        if (result.marked) { marked.add(number); } else { marked.remove(number); }
-      }
-    });
+    setState(() => _examSheetController.setAnswer(
+      exam: activeExam,
+      question: number,
+      answer: result.answer,
+      marked: result.marked,
+    ));
     await save(sections: {'exams'});
   }
 
@@ -1122,27 +1100,21 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (result == null) return;
     setState(() {
-      answerKey
-        ..clear()
-        ..addAll(result);
+      _examSheetController.replaceAnswerKey(activeExam, result);
       _examController.syncResults(results: results, exam: activeExam);
     });
     await save(sections: {'exams', 'results', 'activeExam'});
   }
 
-  Map<String, dynamic> _createBackupPayload() =>
-      DarsYarBackupCodec.createPayload(
-        exportedAt: DateTime.now().toUtc().toIso8601String(),
-        activeExamId: activeExamId,
-        tasks: tasks.map((item) => item.toJson()).toList(),
-        studySessions: studySessions.map((item) => item.toJson()).toList(),
-        exams: exams.map((item) => item.toJson()).toList(),
-        results: results.map((item) => item.toJson()).toList(),
-      );
-
   Future<void> exportBackup() async {
     try {
-      final backup = DarsYarBackupCodec.encode(_createBackupPayload());
+      final backup = _backupService.encode(
+        activeExamId: activeExamId,
+        tasks: tasks,
+        studySessions: studySessions,
+        exams: exams,
+        results: results,
+      );
       await Clipboard.setData(ClipboardData(text: backup));
       if (!mounted) return;
       _showSnackBar(
@@ -1172,41 +1144,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
-    List<StudyTask> importedTasks;
-    List<StudySession> importedSessions;
-    List<ExamSheet> importedExams;
-    List<ExamResult> importedResults;
-    String importedActiveExamId;
+    late final DarsYarBackupSnapshot importedBackup;
     try {
-      final decoded = DarsYarBackupCodec.decode(raw);
-
-      List<dynamic> readList(String key) =>
-          decoded[key] as List<dynamic>;
-
-      importedTasks = readList('tasks').map((item) {
-        if (item is! Map) throw const FormatException('Invalid task');
-        return StudyTask.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      importedSessions = readList('studySessions').map((item) {
-        if (item is! Map) throw const FormatException('Invalid study session');
-        return StudySession.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      importedExams = readList('exams').map((item) {
-        if (item is! Map) throw const FormatException('Invalid exam sheet');
-        return ExamSheet.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      importedResults = readList('results').map((item) {
-        if (item is! Map) throw const FormatException('Invalid exam result');
-        return ExamResult.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      if (importedExams.isEmpty) {
-        throw const FormatException('Backup has no exam sheets');
-      }
-      importedActiveExamId = decoded['activeExamId'] as String;
+      importedBackup = _backupService.decode(
+        raw,
+        referenceDate: DateTime.now(),
+      );
     } catch (_) {
       _showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان معتبر نیست یا با این نسخه از درس‌یار سازگار نیست؛ اطلاعات فعلی تغییر نکرد.')),
@@ -1216,8 +1159,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     final confirmed = await _confirmGlass(
       title: 'جایگزینی اطلاعات؟',
-      message: 'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
-          '${importedExams.length} پاسخ‌برگ و ${importedResults.length} نتیجه آزمون وجود دارد. '
+      message: 'در نسخه پشتیبان ${importedBackup.tasks.length} وظیفه، ${importedBackup.studySessions.length} جلسه مطالعه، '
+          '${importedBackup.exams.length} پاسخ‌برگ و ${importedBackup.results.length} نتیجه آزمون وجود دارد. '
           'اطلاعات فعلی با این داده‌ها جایگزین می‌شوند.',
       confirmLabel: 'بازیابی',
       destructive: true,
@@ -1239,11 +1182,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _examTimerController.setRemaining(0);
       _examTimerController.examId = null;
       _examTimerController.deadline = null;
-      tasks..clear()..addAll(importedTasks);
-      studySessions..clear()..addAll(importedSessions);
-      exams..clear()..addAll(importedExams);
-      results..clear()..addAll(importedResults);
-      activeExamId = importedActiveExamId;
+      tasks..clear()..addAll(importedBackup.tasks);
+      studySessions..clear()..addAll(importedBackup.studySessions);
+      exams..clear()..addAll(importedBackup.exams);
+      results..clear()..addAll(importedBackup.results);
+      activeExamId = importedBackup.activeExamId;
     });
 
     if (await save()) {
@@ -1307,7 +1250,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       context: context,
       builder: (_) => StudySessionEditorDialog(
         existing: existing,
-        initialWeekday: selectedStudyDay,
+        initialDate: existing?.scheduledDate ?? selectedStudyDate,
         weekDays: weekDays,
         hasOverlap: (candidate) => _hasOverlappingSession(
           candidate,
@@ -1325,6 +1268,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() {
       _plannerController.upsert(studySessions, result);
       selectedStudyDay = result.weekday;
+      selectedPlannerWeekStart = PlannerCalendar.startOfWeek(result.scheduledDate ?? selectedStudyDate);
     });
     _revealSelectedDay();
     await save(sections: {'studySessions'});
@@ -1334,6 +1278,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     final result = await showTaskDetailsDialog(
       context: context,
       existing: existing,
+      initialDueDate: existing?.dueDate ?? selectedStudyDate,
       reduceMotion: !widget.animationsEnabled,
     );
     if (result == null || !mounted) return;
@@ -1343,6 +1288,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: result.$1,
         subject: result.$2,
         existing: existing,
+        dueDate: result.$3,
         createId: () => DateTime.now().microsecondsSinceEpoch.toString(),
       );
     });

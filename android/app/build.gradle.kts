@@ -53,8 +53,8 @@ android {
 
     buildTypes {
         release {
-            // CI supplies the private keystore. Local builds without it retain
-            // the debug fallback, but CI fails earlier if signing secrets are absent.
+            // A local private keystore may be used when key.properties exists.
+            // Otherwise (including CI test builds), use the standard debug certificate.
             signingConfig = if (hasReleaseKeystore) {
                 signingConfigs.getByName("release")
             } else {

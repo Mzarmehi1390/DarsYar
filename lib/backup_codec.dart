@@ -57,7 +57,7 @@ class DarsYarBackupCodec {
       'tasks',
       requiredStrings: const ['id', 'title'],
       uniqueId: true,
-      optionalStrings: const ['subject'],
+      optionalStrings: const ['subject', 'dueDate'],
       optionalBooleans: const ['done'],
     );
     _validateRecords(
@@ -65,11 +65,13 @@ class DarsYarBackupCodec {
       'studySessions',
       requiredStrings: const ['id', 'title'],
       uniqueId: true,
-      optionalStrings: const ['subject'],
+      optionalStrings: const ['subject', 'scheduledDate'],
       optionalIntegers: const ['weekday', 'startMinutes', 'durationMinutes'],
       optionalBooleans: const ['completed'],
     );
     _validateStudySessionRanges(payload['studySessions'] as List);
+    _validateDateField(payload['tasks'] as List, 'dueDate', 'tasks');
+    _validateDateField(payload['studySessions'] as List, 'scheduledDate', 'studySessions');
     _validateRecords(
       payload['exams'] as List,
       'exams',
@@ -121,7 +123,22 @@ class DarsYarBackupCodec {
   }
 
 
-  /// Reject values that the model layer would otherwise silently clamp.
+  static void _validateDateField(List records, String field, String collection) {
+    for (var index = 0; index < records.length; index++) {
+      final record = records[index] as Map;
+      final raw = record[field];
+      if (raw == null) continue;
+      final shapeIsValid = raw is String && raw.length == 10 &&
+          raw[4] == '-' && raw[7] == '-';
+      final parsed = raw is String ? DateTime.tryParse(raw) : null;
+      if (!shapeIsValid || parsed == null ||
+          parsed.year.toString().padLeft(4, '0') != raw.substring(0, 4) ||
+          parsed.month.toString().padLeft(2, '0') != raw.substring(5, 7) ||
+          parsed.day.toString().padLeft(2, '0') != raw.substring(8, 10)) {
+        throw FormatException('Invalid $collection record at index $index: $field');
+      }
+    }
+  }
   /// A backup must restore the same schedule values the user exported.
   static void _validateStudySessionRanges(List sessions) {
     for (var index = 0; index < sessions.length; index++) {

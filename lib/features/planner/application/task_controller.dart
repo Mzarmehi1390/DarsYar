@@ -19,12 +19,13 @@ class TaskController {
     required List<StudyTask> tasks,
     required String title,
     required String subject,
+    DateTime? dueDate,
     StudyTask? existing,
     required String Function() createId,
   }) {
     final normalizedSubject = subject.isEmpty ? 'عمومی' : subject;
     if (existing == null) {
-      tasks.add(StudyTask(createId(), title, normalizedSubject));
+      tasks.add(StudyTask(createId(), title, normalizedSubject, dueDate: dueDate));
       return;
     }
 
@@ -35,6 +36,7 @@ class TaskController {
       title,
       normalizedSubject,
       done: existing.done,
+      dueDate: dueDate,
     );
   }
 }

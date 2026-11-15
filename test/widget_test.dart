@@ -9,6 +9,7 @@ import 'package:dars_yar/design_system/darsyar_theme.dart';
 import 'package:dars_yar/design_system/glass_surface.dart';
 import 'package:dars_yar/design_system/glass_dialog.dart';
 import 'package:dars_yar/design_system/glass_tokens.dart';
+import 'package:dars_yar/design_system/glass_selector.dart';
 import 'package:dars_yar/design_system/glass_modal_sheet.dart';
 import 'package:dars_yar/design_system/modal_content.dart';
 
@@ -1014,13 +1015,12 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     final today = DateTime.now().weekday % 7;
-    final todayChip = find.widgetWithText(GlassChip, weekDays[today]);
+    final todayChip = find.byKey(ValueKey<String>('planner-day-$today'));
 
     expect(todayChip, findsOneWidget);
-    expect(tester.widget<GlassChip>(todayChip).selected, isTrue);
-    expect(find.text(weekDays[today]), findsWidgets);
+    expect(tester.widget<DarsYarGlassChoiceChip>(todayChip).selected, isTrue);
+    expect(find.text('انتخاب روز'), findsOneWidget);
   });
 
 
@@ -1399,7 +1399,7 @@ void main() {
 
     expect(find.text('جلسه‌ها'), findsOneWidget);
     expect(find.text('انجام‌شده'), findsOneWidget);
-    expect(find.text('دقیقه امروز'), findsOneWidget);
+    expect(find.text('دقیقه روز انتخاب‌شده'), findsOneWidget);
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('planner-week-selected-indicator')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -1438,8 +1438,13 @@ void main() {
     await tester.pumpAndSettle();
 
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
-    // Select the fixture's fixed weekday through its stable chip identity.
-    await tester.tap(find.byKey(const ValueKey<String>('planner-day-3')));
+    // The weekday selector is horizontally scrollable on compact screens.
+    // Reveal the fixed fixture day before tapping it so the test does not
+    // attempt to interact with a chip positioned outside the 320px viewport.
+    final fixtureDay = find.byKey(const ValueKey<String>('planner-day-3'));
+    await tester.ensureVisible(fixtureDay);
+    await tester.pumpAndSettle();
+    await tester.tap(fixtureDay);
     await tester.pumpAndSettle();
     final plannerScrollable = find.descendant(
       of: find.byKey(const PageStorageKey<String>('planner-scroll')),
@@ -1540,6 +1545,7 @@ void main() {
                 onPressed: () => showTaskDetailsDialog(
                   context: context,
                   reduceMotion: true,
+                  initialDueDate: DateTime(2026, 11, 15),
                 ),
                 child: const Text('وظیفه آزمایشی'),
               ),
@@ -1565,7 +1571,7 @@ void main() {
         theme: DarsYarTheme.light,
         home: Scaffold(
           body: StudySessionEditorDialog(
-            initialWeekday: 1,
+            initialDate: DateTime(2026, 11, 16),
             weekDays: const ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
             hasOverlap: (_) => false,
             onMessage: (_) {},
@@ -1616,7 +1622,7 @@ void main() {
                     initialState: GlassSheetState.full,
                     fullSize: 0.9,
                     builder: (_) => StudySessionEditorDialog(
-                      initialWeekday: 1,
+                      initialDate: DateTime(2026, 11, 16),
                       weekDays: const [
                         'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه',
                         'پنجشنبه', 'جمعه', 'شنبه',
