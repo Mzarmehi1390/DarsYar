@@ -32,7 +32,7 @@ import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
 import '../features/planner/domain/planner_calendar.dart';
 import '../features/planner/application/task_controller.dart';
-import '../backup_codec.dart';
+import '../features/settings/application/backup_service.dart';
 import '../features/exams/domain/models/exam_result.dart';
 import '../features/exams/domain/models/exam_sheet.dart';
 import '../features/planner/domain/models/study_session.dart';
@@ -85,6 +85,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   // Serialize writes so a slower older save cannot overwrite newer state.
   Future<void> _saveQueue = Future<void>.value();
   final DarsYarRepository _repository = DarsYarRepository();
+  final DarsYarBackupService _backupService = DarsYarBackupService();
   final PlannerController _plannerController = PlannerController();
   final TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
@@ -1224,19 +1225,15 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     await save(sections: {'exams', 'results', 'activeExam'});
   }
 
-  Map<String, dynamic> _createBackupPayload() =>
-      DarsYarBackupCodec.createPayload(
-        exportedAt: DateTime.now().toUtc().toIso8601String(),
-        activeExamId: activeExamId,
-        tasks: tasks.map((item) => item.toJson()).toList(),
-        studySessions: studySessions.map((item) => item.toJson()).toList(),
-        exams: exams.map((item) => item.toJson()).toList(),
-        results: results.map((item) => item.toJson()).toList(),
-      );
-
   Future<void> exportBackup() async {
     try {
-      final backup = DarsYarBackupCodec.encode(_createBackupPayload());
+      final backup = _backupService.encode(
+        activeExamId: activeExamId,
+        tasks: tasks,
+        studySessions: studySessions,
+        exams: exams,
+        results: results,
+      );
       await Clipboard.setData(ClipboardData(text: backup));
       if (!mounted) return;
       _showSnackBar(
@@ -1266,45 +1263,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (raw == null || raw.trim().isEmpty || !mounted) return;
 
-    List<StudyTask> importedTasks;
-    List<StudySession> importedSessions;
-    List<ExamSheet> importedExams;
-    List<ExamResult> importedResults;
-    String importedActiveExamId;
+    late final DarsYarBackupSnapshot importedBackup;
     try {
-      final decoded = DarsYarBackupCodec.decode(raw);
-
-      List<dynamic> readList(String key) =>
-          decoded[key] as List<dynamic>;
-
-      importedTasks = readList('tasks').map((item) {
-        if (item is! Map) throw const FormatException('Invalid task');
-        return StudyTask.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      final decodedSessions = readList('studySessions').map((item) {
-        if (item is! Map) throw const FormatException('Invalid study session');
-        return StudySession.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-      importedSessions = _plannerController.migrateLegacySessions(
-        decodedSessions,
+      importedBackup = _backupService.decode(
+        raw,
         referenceDate: DateTime.now(),
       );
-
-      importedExams = readList('exams').map((item) {
-        if (item is! Map) throw const FormatException('Invalid exam sheet');
-        return ExamSheet.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      importedResults = readList('results').map((item) {
-        if (item is! Map) throw const FormatException('Invalid exam result');
-        return ExamResult.fromJson(Map<String, dynamic>.from(item));
-      }).toList();
-
-      if (importedExams.isEmpty) {
-        throw const FormatException('Backup has no exam sheets');
-      }
-      importedActiveExamId = decoded['activeExamId'] as String;
     } catch (_) {
       _showSnackBar(
         SnackBar(content: Text('نسخه پشتیبان معتبر نیست یا با این نسخه از درس‌یار سازگار نیست؛ اطلاعات فعلی تغییر نکرد.')),
@@ -1314,8 +1278,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
     final confirmed = await _confirmGlass(
       title: 'جایگزینی اطلاعات؟',
-      message: 'در نسخه پشتیبان ${importedTasks.length} وظیفه، ${importedSessions.length} جلسه مطالعه، '
-          '${importedExams.length} پاسخ‌برگ و ${importedResults.length} نتیجه آزمون وجود دارد. '
+      message: 'در نسخه پشتیبان ${importedBackup.tasks.length} وظیفه، ${importedBackup.studySessions.length} جلسه مطالعه، '
+          '${importedBackup.exams.length} پاسخ‌برگ و ${importedBackup.results.length} نتیجه آزمون وجود دارد. '
           'اطلاعات فعلی با این داده‌ها جایگزین می‌شوند.',
       confirmLabel: 'بازیابی',
       destructive: true,
@@ -1337,11 +1301,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       _examTimerController.setRemaining(0);
       _examTimerController.examId = null;
       _examTimerController.deadline = null;
-      tasks..clear()..addAll(importedTasks);
-      studySessions..clear()..addAll(importedSessions);
-      exams..clear()..addAll(importedExams);
-      results..clear()..addAll(importedResults);
-      activeExamId = importedActiveExamId;
+      tasks..clear()..addAll(importedBackup.tasks);
+      studySessions..clear()..addAll(importedBackup.studySessions);
+      exams..clear()..addAll(importedBackup.exams);
+      results..clear()..addAll(importedBackup.results);
+      activeExamId = importedBackup.activeExamId;
     });
 
     if (await save()) {
