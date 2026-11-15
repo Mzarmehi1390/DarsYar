@@ -8,7 +8,6 @@ import '../design_system/glass_modal_sheet.dart';
 import '../design_system/glass_dialog.dart';
 import '../design_system/glass_snackbar.dart';
 import '../design_system/glass_tokens.dart';
-import '../design_system/glass_selector.dart';
 import '../design_system/glass_ambient_background.dart';
 import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_taking_session_controller.dart';
@@ -1013,6 +1012,37 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       ]),
     ),
   );
+
+  Future<void> deleteExam() async {
+    if (exams.length <= 1) {
+      _showSnackBar(
+        const SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
+      );
+      return;
+    }
+    final confirmed = await _confirmGlass(
+      title: 'حذف پاسخ‌برگ',
+      message: '«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.',
+      confirmLabel: 'حذف',
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+
+    _examTimerController.stop();
+    _examTimerController.isRunning = false;
+    _examTimerController.deadline = null;
+    _examTimerController.setRemaining(0);
+    _examTimerController.examId = null;
+
+    setState(() {
+      activeExamId = _examSheetController.delete(
+        exams: exams,
+        results: results,
+        activeExamId: activeExamId,
+      );
+    });
+    await save(sections: {'exams', 'results', 'activeExam'});
+  }
 
   Future<void> renameExam() async {
     final name = await _requestExamName(
