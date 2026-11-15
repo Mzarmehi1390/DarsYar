@@ -30,6 +30,7 @@ import '../features/planner/presentation/planner_week_overview_card.dart';
 import '../features/planner/presentation/planner_weekly_report_card.dart';
 import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
+import '../features/planner/domain/planner_calendar.dart';
 import '../features/planner/application/task_controller.dart';
 import '../backup_codec.dart';
 import '../features/exams/domain/models/exam_result.dart';
@@ -90,6 +91,8 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final results = <ExamResult>[];
   final studySessions = <StudySession>[];
   int selectedStudyDay = DateTime.now().weekday % 7;
+  late DateTime selectedPlannerWeekStart = PlannerCalendar.startOfWeek(DateTime.now());
+  DateTime get selectedStudyDate => PlannerCalendar.dateForWeekday(selectedPlannerWeekStart, selectedStudyDay);
   String? _lastSnackMessage;
   DateTime? _lastSnackAt;
   final Map<int, GlobalKey> _plannerDayKeys = {for (final day in weekDayOrder) day: GlobalKey()};
@@ -404,19 +407,34 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       );
 
   Widget _plannerPage() {
-    // Group sessions in one pass. The seven overview cards previously each
-    // filtered the complete session list during every planner rebuild.
+    // Build only the selected week's buckets; other weeks remain stored and
+    // are loaded when the user navigates to them.
+    final weekSessions = _plannerController.sessionsForWeek(
+      studySessions,
+      selectedPlannerWeekStart,
+    );
     final sessionsByDay = <int, List<StudySession>>{
       for (final day in weekDayOrder) day: <StudySession>[],
     };
-    for (final session in studySessions) {
+    for (final session in weekSessions) {
       sessionsByDay.putIfAbsent(session.weekday, () => <StudySession>[]).add(session);
     }
+    final weekTasks = tasks.where((task) =>
+      task.dueDate == null ||
+      PlannerCalendar.isInWeek(task.dueDate!, selectedPlannerWeekStart)
+    ).toList();
 
     return PlannerPage(
-      sessions: studySessions,
-      tasks: tasks,
+      sessions: weekSessions,
+      tasks: weekTasks,
       selectedDay: selectedStudyDay,
+      weekStartDate: selectedPlannerWeekStart,
+      onWeekOffsetChanged: (offset) {
+        setState(() {
+          selectedPlannerWeekStart = selectedPlannerWeekStart.add(Duration(days: 7 * offset));
+        });
+        _revealSelectedDay();
+      },
       onSelectedDayChanged: (day) {
         setState(() => selectedStudyDay = day);
         _revealSelectedDay();
@@ -455,9 +473,9 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   Future<void> copySelectedDayTo(int targetDay) async {
     if (targetDay == selectedStudyDay) return;
-    final sourceSessions = _plannerController.sessionsForDay(
+    final sourceSessions = _plannerController.sessionsForDate(
       studySessions,
-      selectedStudyDay,
+      selectedStudyDate,
     );
     if (sourceSessions.isEmpty) {
       _showSnackBar(
@@ -470,6 +488,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       sessions: sourceSessions,
       sourceDay: selectedStudyDay,
       targetDay: targetDay,
+      targetDate: PlannerCalendar.dateForWeekday(selectedPlannerWeekStart, targetDay),
       createId: (session) => '$copyTimestamp-${session.id}-$targetDay',
     );
     final conflicts = copies.any(
@@ -1308,6 +1327,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       builder: (_) => StudySessionEditorDialog(
         existing: existing,
         initialWeekday: selectedStudyDay,
+        initialDate: existing?.scheduledDate ?? selectedStudyDate,
         weekDays: weekDays,
         hasOverlap: (candidate) => _hasOverlappingSession(
           candidate,
@@ -1325,6 +1345,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     setState(() {
       _plannerController.upsert(studySessions, result);
       selectedStudyDay = result.weekday;
+      selectedPlannerWeekStart = PlannerCalendar.startOfWeek(result.scheduledDate ?? selectedStudyDate);
     });
     _revealSelectedDay();
     await save(sections: {'studySessions'});
@@ -1343,6 +1364,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
         title: result.$1,
         subject: result.$2,
         existing: existing,
+        dueDate: existing?.dueDate ?? selectedStudyDate,
         createId: () => DateTime.now().microsecondsSinceEpoch.toString(),
       );
     });
