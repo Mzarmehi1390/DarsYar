@@ -128,7 +128,18 @@ class DarsYarBackupCodec {
       final record = records[index] as Map;
       final raw = record[field];
       if (raw == null) continue;
-      if (raw is! String || !RegExp(r'^\\d{4}-\\d{2}-\\d{2}  /// A backup must restore the same schedule values the user exported.
+      final shapeIsValid = raw is String && raw.length == 10 &&
+          raw[4] == '-' && raw[7] == '-';
+      final parsed = raw is String ? DateTime.tryParse(raw) : null;
+      if (!shapeIsValid || parsed == null ||
+          parsed.year.toString().padLeft(4, '0') != raw.substring(0, 4) ||
+          parsed.month.toString().padLeft(2, '0') != raw.substring(5, 7) ||
+          parsed.day.toString().padLeft(2, '0') != raw.substring(8, 10)) {
+        throw FormatException('Invalid $collection record at index $index: $field');
+      }
+    }
+  }
+  /// A backup must restore the same schedule values the user exported.
   static void _validateStudySessionRanges(List sessions) {
     for (var index = 0; index < sessions.length; index++) {
       final session = sessions[index] as Map;
