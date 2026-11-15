@@ -15,6 +15,7 @@ import '../features/exams/application/exam_taking_session_controller.dart';
 import '../features/exams/application/exam_taking_lifecycle_controller.dart';
 import '../features/exams/application/exam_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
+import '../features/exams/presentation/exam_answer_editor_dialog.dart';
 import '../features/exams/presentation/exam_page.dart';
 import '../features/exams/presentation/exam_taking_view.dart';
 import '../features/exams/presentation/saved_exam_card.dart';
@@ -1078,101 +1079,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> editAnswer(int number) async {
-    int? answer = answers[number];
-    bool flag = marked.contains(number);
-    final result = await showDarsYarGlassDialog<({int? answer, bool marked})>(
+    final result = await showExamAnswerEditorDialog(
       context: context,
-      title: 'سؤال $number',
-      maxWidth: 360,
-      quality: GlassQuality.standard,
-      reduceMotion: !widget.animationsEnabled,
-      barrierColor: DarsYarGlassTokens.dialogBarrierColor,
-      content: StatefulBuilder(
-        builder: (dialogContext, dialogSet) => Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'گزینهٔ پاسخ',
-              style: TextStyle(
-                color: Theme.of(dialogContext).colorScheme.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (var i = 0; i < 4; i++)
-                  DarsYarGlassChoiceChip(
-                    label: ['الف', 'ب', 'ج', 'د'][i],
-                    semanticLabel: 'سؤال $number، گزینه ${['الف', 'ب', 'ج', 'د'][i]}',
-                    selected: answer == i,
-                    selectedColor: accent.withValues(alpha: 0.18),
-                    labelStyle: TextStyle(
-                      color: Theme.of(dialogContext).colorScheme.onSurface,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    quality: GlassQuality.standard,
-                    onTap: () => dialogSet(
-                      () => answer = answer == i ? null : i,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'نیاز به مرور دارد',
-                    style: TextStyle(
-                      color: Theme.of(dialogContext).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                GlassSwitch(
-                  value: flag,
-                  activeColor: accent,
-                  semanticLabel: 'علامت‌گذاری سؤال برای مرور',
-                  quality: GlassQuality.standard,
-                  onChanged: (value) => dialogSet(() => flag = value),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: DarsYarGlassChoiceChip(
-                label: 'پاک کردن پاسخ',
-                semanticLabel: 'پاک کردن پاسخ سؤال $number',
-                selected: false,
-                selectedColor: accent.withValues(alpha: 0.16),
-                labelStyle: TextStyle(
-                  color: Theme.of(dialogContext).colorScheme.onSurface,
-                  fontWeight: FontWeight.w700,
-                ),
-                quality: GlassQuality.standard,
-                onTap: () => dialogSet(() => answer = null),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        GlassDialogAction(
-          label: 'انصراف',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GlassDialogAction(
-          label: 'ذخیره',
-          isPrimary: true,
-          onPressed: () => Navigator.of(context).pop(
-            (answer: answer, marked: flag),
-          ),
-        ),
-      ],
+      questionNumber: number,
+      initialAnswer: answers[number],
+      initiallyMarked: marked.contains(number),
+      animationsEnabled: widget.animationsEnabled,
     );
     if (result == null) return;
     setState(() {
@@ -1183,7 +1095,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       } else {
         answers.remove(number);
         // Clearing an answer never creates a review marker automatically.
-        if (result.marked) { marked.add(number); } else { marked.remove(number); }
+        if (result.marked) {
+          marked.add(number);
+        } else {
+          marked.remove(number);
+        }
       }
     });
     await save(sections: {'exams'});
