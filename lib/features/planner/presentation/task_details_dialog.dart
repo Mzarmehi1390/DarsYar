@@ -64,9 +64,13 @@ Future<(String, String, DateTime?)?> showTaskDetailsDialog({
                           }
                         },
                         icon: const Icon(Icons.event_outlined),
-                        label: Text(value == null
-                          ? 'انتخاب تاریخ سررسید'
-                          : 'سررسید: ${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}'),
+                        label: Text(
+                          value == null
+                              ? 'انتخاب تاریخ سررسید'
+                              : 'سررسید: ${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     if (value != null)
