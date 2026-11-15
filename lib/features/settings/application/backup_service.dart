@@ -1,4 +1,4 @@
-import '../../backup_codec.dart';
+import '../../../backup_codec.dart';
 import '../../planner/application/planner_controller.dart';
 import '../../planner/domain/models/study_session.dart';
 import '../../planner/domain/models/study_task.dart';
@@ -11,8 +11,8 @@ import '../../exams/domain/models/exam_sheet.dart';
 /// serialization, validation, model decoding, and legacy schedule migration.
 class DarsYarBackupService {
   const DarsYarBackupService({
-    PlannerController plannerController = const PlannerController(),
-  }) : _plannerController = plannerController;
+    this._plannerController = const PlannerController(),
+  });
 
   final PlannerController _plannerController;
 
