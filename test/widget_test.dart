@@ -1438,8 +1438,13 @@ void main() {
     await tester.pumpAndSettle();
 
     final sessionTitle = find.text('مرور فصل‌های مهم زیست‌شناسی');
-    // Select the fixture's fixed weekday through its stable chip identity.
-    await tester.tap(find.byKey(const ValueKey<String>('planner-day-3')));
+    // The weekday selector is horizontally scrollable on compact screens.
+    // Reveal the fixed fixture day before tapping it so the test does not
+    // attempt to interact with a chip positioned outside the 320px viewport.
+    final fixtureDay = find.byKey(const ValueKey<String>('planner-day-3'));
+    await tester.ensureVisible(fixtureDay);
+    await tester.pumpAndSettle();
+    await tester.tap(fixtureDay);
     await tester.pumpAndSettle();
     final plannerScrollable = find.descendant(
       of: find.byKey(const PageStorageKey<String>('planner-scroll')),
