@@ -439,6 +439,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       tasks: weekTasks,
       selectedDay: selectedStudyDay,
       weekStartDate: selectedPlannerWeekStart,
+      onCopyWeekToNext: copySelectedWeekToNext,
       onWeekOffsetChanged: (offset) {
         setState(() {
           selectedPlannerWeekStart = selectedPlannerWeekStart.add(Duration(days: 7 * offset));
@@ -522,6 +523,70 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
   }
 
+  Future<void> copySelectedWeekToNext() async {
+    final sourceStart = selectedPlannerWeekStart;
+    final targetStart = sourceStart.add(const Duration(days: 7));
+    final sourceSessions = _plannerController.sessionsForWeek(studySessions, sourceStart);
+    final sourceTasks = tasks.where((task) =>
+      task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, sourceStart)
+    ).toList();
+    if (sourceSessions.isEmpty && sourceTasks.isEmpty) {
+      _showSnackBar(const SnackBar(content: Text('این هفته برنامه یا وظیفه زمان‌بندی‌شده‌ای برای کپی ندارد.')));
+      return;
+    }
+
+    final targetSessions = _plannerController.sessionsForWeek(studySessions, targetStart);
+    final targetTasks = tasks.where((task) =>
+      task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, targetStart)
+    ).toList();
+    if (targetSessions.isNotEmpty || targetTasks.isNotEmpty) {
+      final confirmed = await _confirmGlass(
+        title: 'جایگزینی برنامه هفته بعد؟',
+        message: 'هفته مقصد از قبل برنامه دارد. با تأیید، جلسات و وظایف تاریخ‌دار هفته بعد با کپی این هفته جایگزین می‌شوند.',
+        confirmLabel: 'جایگزینی',
+        destructive: true,
+      );
+      if (!confirmed || !mounted) return;
+    }
+
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final copiedSessions = sourceSessions.map((session) {
+      final nextDate = session.scheduledDate!.add(const Duration(days: 7));
+      return StudySession(
+        id: '$timestamp-copy-${session.id}',
+        title: session.title,
+        subject: session.subject,
+        weekday: session.weekday,
+        startMinutes: session.startMinutes,
+        durationMinutes: session.durationMinutes,
+        scheduledDate: nextDate,
+      );
+    }).toList();
+    final copiedTasks = sourceTasks.map((task) => StudyTask(
+      '$timestamp-task-${task.id}',
+      task.title,
+      task.subject,
+      dueDate: task.dueDate!.add(const Duration(days: 7)),
+    )).toList();
+
+    setState(() {
+      studySessions.removeWhere((session) =>
+        session.scheduledDate != null && PlannerCalendar.isInWeek(session.scheduledDate!, targetStart)
+      );
+      tasks.removeWhere((task) =>
+        task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, targetStart)
+      );
+      studySessions.addAll(copiedSessions);
+      tasks.addAll(copiedTasks);
+      selectedPlannerWeekStart = targetStart;
+    });
+    final saved = await save(sections: {'studySessions', 'tasks'});
+    if (!mounted) return;
+    _revealSelectedDay();
+    _showSnackBar(SnackBar(
+      content: Text('${copiedSessions.length} جلسه و ${copiedTasks.length} وظیفه به هفته بعد کپی شد${saved ? '' : '؛ ذخیره‌سازی کامل نشد'}. '),
+    ));
+  }
   Widget weekOverviewCard(int day, List<StudySession> sessions) =>
       PlannerWeekOverviewCard(
     dayLabel: weekDays[day],
