@@ -116,11 +116,11 @@ jobs:
       # Compile the iOS release app without Apple signing credentials.
       # This validates the iOS project but is not an installable/distributable IPA.
       - name: Build iOS release (no code signing)
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --simulator --release
 
       - name: Upload iOS build validation artifact
         uses: actions/upload-artifact@v4
         with:
           name: darsyar-ios-build-validation
-          path: build/ios/iphoneos/Runner.app
+          path: build/ios/iphonesimulator/Runner.app
           if-no-files-found: error
