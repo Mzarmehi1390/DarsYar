@@ -46,8 +46,8 @@ void main() {
 
   test('upsert can assign, change, and clear a due date', () {
     final tasks = <StudyTask>[];
-    const firstDate = DateTime(2026, 11, 16);
-    const secondDate = DateTime(2026, 11, 23);
+    final firstDate = DateTime(2026, 11, 16);
+    final secondDate = DateTime(2026, 11, 23);
     controller.upsert(
       tasks: tasks,
       title: 'تمرین',
