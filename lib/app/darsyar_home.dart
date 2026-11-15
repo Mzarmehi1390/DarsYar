@@ -14,6 +14,7 @@ import '../features/exams/application/exam_timer_controller.dart';
 import '../features/exams/application/exam_taking_session_controller.dart';
 import '../features/exams/application/exam_taking_lifecycle_controller.dart';
 import '../features/exams/application/exam_controller.dart';
+import '../features/exams/application/exam_sheet_controller.dart';
 import '../features/exams/presentation/answer_key_editor_sheet.dart';
 import '../features/exams/presentation/exam_answer_editor_dialog.dart';
 import '../features/exams/presentation/exam_page.dart';
@@ -110,6 +111,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
 
   final ExamTimerController _examTimerController = ExamTimerController();
   final ExamController _examController = ExamController();
+  final ExamSheetController _examSheetController = ExamSheetController();
   int examSection = 0;
   final ExamTakingLifecycleController _examTakingLifecycleController =
       ExamTakingLifecycleController();
@@ -938,7 +940,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   ]);
 
   void _createExamFromSetup(String name, int questionCount, int durationSeconds, bool negativeMarking, Map<int, int> answerKey) {
-    final exam = ExamSheet(
+    final exam = _examSheetController.create(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name,
       questionCount: questionCount,
@@ -1012,69 +1014,22 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     ),
   );
 
-  Future<void> addExam() async {
-    final name = await _requestExamName();
-    if (name == null || name.trim().isEmpty || !mounted) return;
-    final exam = ExamSheet(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: name.trim(),
-    );
-    _selectExam(exam);
-    setState(() => tab = 2);
-    await save(sections: {'exams', 'activeExam'});
-  }
-
   Future<void> renameExam() async {
     final name = await _requestExamName(
       initialName: activeExam.name,
       isRename: true,
     );
     if (name == null || name.trim().isEmpty || !mounted) return;
-    final oldName = activeExam.name;
-    setState(() {
-      activeExam.name = name.trim();
-      for (var i = 0; i < results.length; i++) {
-        if (results[i].examId == activeExam.id ||
-            (results[i].examId == null && results[i].examName == oldName)) {
-          results[i] = results[i].copyWith(examName: name.trim());
-        }
-      }
-    });
-    await save(sections: {'exams', 'results', 'activeExam'});
-  }
-
-  Future<void> deleteExam() async {
-    if (exams.length == 1) {
-      _showSnackBar(
-        SnackBar(content: Text('حداقل یک پاسخ‌برگ باید باقی بماند.')),
-      );
-      return;
-    }
-    final confirmed = await _confirmGlass(
-      title: 'حذف پاسخ‌برگ',
-      message: '«${activeExam.name}» و تمام پاسخ‌ها و کلید آن حذف شوند؟ این کار قابل بازگشت نیست.',
-      confirmLabel: 'حذف',
-      destructive: true,
-    );
-    if (!confirmed || !mounted) return;
-    final deletedExam = activeExam;
-    // A timer must never outlive the answer sheet it belongs to.
-    _examTimerController.stop();
-    _examTimerController.isRunning = false;
-    _examTimerController.deadline = null;
-    _examTimerController.setRemaining(0);
-    _examTimerController.examId = null;
-    setState(() {
-      final index = exams.indexWhere((exam) => exam.id == activeExamId);
-      exams.removeWhere((exam) => exam.id == activeExamId);
-      results.removeWhere((result) => result.examId == deletedExam.id || (result.examId == null && result.examName == deletedExam.name));
-      activeExamId = exams[(index - 1).clamp(0, exams.length - 1).toInt()].id;
-    });
+    setState(() => _examSheetController.rename(
+      exam: activeExam,
+      results: results,
+      name: name.trim(),
+    ));
     await save(sections: {'exams', 'results', 'activeExam'});
   }
 
   Future<void> resize(int value) async {
-    setState(() { count = value; answers.removeWhere((key, _) => key > count); answerKey.removeWhere((key, _) => key > count); marked.removeWhere((key) => key > count); });
+    setState(() => _examSheetController.resize(activeExam, value));
     await save(sections: {'exams'});
   }
 
@@ -1087,21 +1042,12 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       animationsEnabled: widget.animationsEnabled,
     );
     if (result == null) return;
-    setState(() {
-      if (result.answer != null) {
-        answers[number] = result.answer!;
-        // Answering a marked question clears its review marker.
-        marked.remove(number);
-      } else {
-        answers.remove(number);
-        // Clearing an answer never creates a review marker automatically.
-        if (result.marked) {
-          marked.add(number);
-        } else {
-          marked.remove(number);
-        }
-      }
-    });
+    setState(() => _examSheetController.setAnswer(
+      exam: activeExam,
+      question: number,
+      answer: result.answer,
+      marked: result.marked,
+    ));
     await save(sections: {'exams'});
   }
 
@@ -1124,9 +1070,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
     );
     if (result == null) return;
     setState(() {
-      answerKey
-        ..clear()
-        ..addAll(result);
+      _examSheetController.replaceAnswerKey(activeExam, result);
       _examController.syncResults(results: results, exam: activeExam);
     });
     await save(sections: {'exams', 'results', 'activeExam'});
