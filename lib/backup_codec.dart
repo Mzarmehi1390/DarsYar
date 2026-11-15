@@ -70,6 +70,8 @@ class DarsYarBackupCodec {
       optionalBooleans: const ['completed'],
     );
     _validateStudySessionRanges(payload['studySessions'] as List);
+    _validateDateField(payload['tasks'] as List, 'dueDate', 'tasks');
+    _validateDateField(payload['studySessions'] as List, 'scheduledDate', 'studySessions');
     _validateRecords(
       payload['exams'] as List,
       'exams',
@@ -120,6 +122,275 @@ class DarsYarBackupCodec {
     return payload;
   }
 
+
+  static void _validateDateField(List records, String field, String collection) {
+    for (var index = 0; index < records.length; index++) {
+      final record = records[index] as Map;
+      final raw = record[field];
+      if (raw == null) continue;
+      if (raw is! String || !RegExp(r'^\\d{4}-\\d{2}-\\d{2}  /// A backup must restore the same schedule values the user exported.
+  static void _validateStudySessionRanges(List sessions) {
+    for (var index = 0; index < sessions.length; index++) {
+      final session = sessions[index] as Map;
+      final weekday = session['weekday'] ?? 0;
+      final start = session['startMinutes'] ?? 960;
+      final duration = session['durationMinutes'] ?? 55;
+      if (weekday is! num ||
+          !weekday.isFinite ||
+          weekday % 1 != 0 ||
+          weekday < 0 ||
+          weekday > 6) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: weekday',
+        );
+      }
+      if (start is! num ||
+          !start.isFinite ||
+          start % 1 != 0 ||
+          start < 0 ||
+          start >= 1440) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: startMinutes',
+        );
+      }
+      if (duration is! num ||
+          !duration.isFinite ||
+          duration % 1 != 0 ||
+          duration < 1 ||
+          duration > 1440 - start) {
+        throw FormatException(
+          'Invalid studySessions record at index $index: durationMinutes',
+        );
+      }
+    }
+  }
+
+  static void _validateResultRanges(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      int readCount(String field) => (result[field] as num?)?.toInt() ?? 0;
+
+      final questionCount = readCount('questionCount');
+      final keyedQuestions = readCount('keyedQuestions');
+      final correct = readCount('correct');
+      final wrong = readCount('wrong');
+      final unanswered = readCount('unanswered');
+
+      if (questionCount < 0 ||
+          questionCount > 200 ||
+          keyedQuestions < 0 ||
+          keyedQuestions > questionCount ||
+          correct < 0 ||
+          correct > keyedQuestions ||
+          wrong < 0 ||
+          wrong > keyedQuestions - correct ||
+          unanswered < 0 ||
+          unanswered > questionCount) {
+        throw FormatException(
+          'Invalid results record at index $index: score ranges',
+        );
+      }
+    }
+  }
+
+  static void _validateResultPercentages(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      final percentage = result['percentage'];
+      if (percentage != null &&
+          (percentage is! num ||
+              !percentage.isFinite ||
+              percentage < 0 ||
+              percentage > 100)) {
+        throw FormatException(
+          'Invalid results record at index $index: percentage',
+        );
+      }
+    }
+  }
+
+  static void _validateExamDurationRanges(List exams) {
+    for (var index = 0; index < exams.length; index++) {
+      final exam = exams[index] as Map;
+      final duration = exam['durationSeconds'];
+      if (duration != null &&
+          (duration is! num ||
+              !duration.isFinite ||
+              duration % 1 != 0 ||
+              duration < 1 ||
+              duration > 24 * 60 * 60)) {
+        throw FormatException(
+          'Invalid exams record at index $index: durationSeconds',
+        );
+      }
+    }
+  }
+
+  /// Exam answer maps are part of the portable backup contract. Reject
+  /// malformed entries instead of letting ExamSheet.fromJson silently drop
+  /// data during an import.
+  static void _validateExamAnswerData(List exams) {
+    for (var index = 0; index < exams.length; index++) {
+      final exam = exams[index] as Map;
+      final rawCount = exam['questionCount'] ?? 20;
+      final count = rawCount is num && rawCount % 1 == 0
+          ? rawCount.toInt()
+          : 20;
+      if (count < 1 || count > 200) {
+        throw FormatException(
+          'Invalid exams record at index $index: questionCount',
+        );
+      }
+
+      for (final field in const ['answers', 'answerKey']) {
+        final raw = exam[field];
+        if (raw == null && !exam.containsKey(field)) continue;
+        if (raw == null) continue;
+        if (raw is! Map) {
+          throw FormatException(
+            'Invalid exams record at index $index: $field',
+          );
+        }
+        final seenQuestions = <int>{};
+        for (final entry in raw.entries) {
+          final question = int.tryParse(entry.key.toString());
+          final option = entry.value;
+          if (question == null ||
+              question < 1 ||
+              question > count ||
+              !seenQuestions.add(question) ||
+              option is! num ||
+              option % 1 != 0 ||
+              option < 0 ||
+              option > 3) {
+            throw FormatException(
+              'Invalid exams record at index $index: $field',
+            );
+          }
+        }
+      }
+
+      final rawMarked = exam['marked'];
+      if (rawMarked != null) {
+        if (rawMarked is! List) {
+          throw FormatException(
+            'Invalid exams record at index $index: marked',
+          );
+        }
+        final seenQuestions = <int>{};
+        for (final item in rawMarked) {
+          if (item is! num ||
+              item % 1 != 0 ||
+              item < 1 ||
+              item > count ||
+              !seenQuestions.add(item.toInt())) {
+            throw FormatException(
+              'Invalid exams record at index $index: marked',
+            );
+          }
+        }
+      }
+    }
+  }
+
+  static void _validateResultAnswerData(List results) {
+    for (var index = 0; index < results.length; index++) {
+      final result = results[index] as Map;
+      final rawCount = result['questionCount'] ?? 0;
+      final count = rawCount is num && rawCount % 1 == 0 ? rawCount.toInt() : 0;
+      for (final field in const ['answers', 'answerKey']) {
+        if (!result.containsKey(field)) continue;
+        final raw = result[field];
+        if (raw is! Map) {
+          throw FormatException('Invalid results record at index $index: $field');
+        }
+        final seen = <int>{};
+        for (final entry in raw.entries) {
+          final question = int.tryParse(entry.key.toString());
+          final option = entry.value;
+          if (question == null || question < 1 || question > count ||
+              !seen.add(question) || option is! num || option % 1 != 0 ||
+              option < 0 || option > 3) {
+            throw FormatException('Invalid results record at index $index: $field');
+          }
+        }
+      }
+    }
+  }
+
+  static void _validateRecords(
+    List items,
+    String collection, {
+    List<String> requiredStrings = const [],
+    bool uniqueId = false,
+    List<String> optionalStrings = const [],
+    List<String> optionalNumbers = const [],
+    List<String> optionalIntegers = const [],
+    List<String> optionalBooleans = const [],
+  }) {
+    final seenIds = <String>{};
+    for (var index = 0; index < items.length; index++) {
+      final item = items[index] as Map;
+      void invalid(String field) {
+        throw FormatException(
+          'Invalid $collection record at index $index: $field',
+        );
+      }
+
+      for (final field in requiredStrings) {
+        final value = item[field];
+        if (value is! String || value.trim().isEmpty) invalid(field);
+      }
+      if (uniqueId) {
+        final id = item['id'] as String;
+        if (!seenIds.add(id)) invalid('duplicate id');
+      }
+      for (final field in optionalStrings) {
+        final value = item[field];
+        if (item.containsKey(field) && value != null && value is! String) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalNumbers) {
+        final value = item[field];
+        if (item.containsKey(field) &&
+            value != null &&
+            (value is! num || !value.isFinite)) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalIntegers) {
+        final value = item[field];
+        if (item.containsKey(field) &&
+            value != null &&
+            (value is! num || value % 1 != 0)) {
+          invalid(field);
+        }
+      }
+      for (final field in optionalBooleans) {
+        final value = item[field];
+        if (item.containsKey(field) && value != null && value is! bool) {
+          invalid(field);
+        }
+      }
+    }
+  }
+
+  static String encode(Map<String, dynamic> payload) =>
+      const JsonEncoder.withIndent('  ').convert(payload);
+}
+).hasMatch(raw)) {
+        throw FormatException('Invalid $collection record at index $index: $field');
+      }
+      final parsed = DateTime.tryParse(raw);
+      if (parsed == null ||
+          parsed.year.toString().padLeft(4, '0') != raw.substring(0, 4) ||
+          parsed.month.toString().padLeft(2, '0') != raw.substring(5, 7) ||
+          parsed.day.toString().padLeft(2, '0') != raw.substring(8, 10)) {
+        throw FormatException('Invalid $collection record at index $index: $field');
+      }
+    }
+  }
 
   /// Reject values that the model layer would otherwise silently clamp.
   /// A backup must restore the same schedule values the user exported.
