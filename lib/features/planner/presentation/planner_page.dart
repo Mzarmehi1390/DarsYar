@@ -18,6 +18,7 @@ class PlannerPage extends StatelessWidget {
     required this.selectedDay,
     required this.weekStartDate,
     required this.onWeekOffsetChanged,
+    required this.onCopyWeekToNext,
     required this.onSelectedDayChanged,
     required this.daysOrder,
     required this.dayLabels,
@@ -39,6 +40,7 @@ class PlannerPage extends StatelessWidget {
   final int selectedDay;
   final DateTime weekStartDate;
   final ValueChanged<int> onWeekOffsetChanged;
+  final VoidCallback onCopyWeekToNext;
   final ValueChanged<int> onSelectedDayChanged;
   final List<int> daysOrder;
   final List<String> dayLabels;
@@ -84,6 +86,24 @@ class PlannerPage extends StatelessWidget {
                 onPrevious: () => onWeekOffsetChanged(-1),
                 onNext: () => onWeekOffsetChanged(1),
               ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: DarsYarGlassButton(
+                  height: 40,
+                  radius: 13,
+                  quality: GlassQuality.standard,
+                  onTap: onCopyWeekToNext,
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.copy_all_rounded, size: 17),
+                      SizedBox(width: 7),
+                      Text('کپی این هفته به هفته بعد', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 14),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -92,7 +112,7 @@ class PlannerPage extends StatelessWidget {
                   final cards = [
                     summaryBuilder('جلسه‌ها', sessions.length, Icons.calendar_month_rounded),
                     summaryBuilder('انجام‌شده', completedSessions, Icons.check_circle_outline),
-                    summaryBuilder('دقیقه امروز', totalMinutes, Icons.timer_outlined),
+                    summaryBuilder('دقیقه روز انتخاب‌شده', totalMinutes, Icons.timer_outlined),
                   ];
                   if (compact) {
                     return Wrap(
