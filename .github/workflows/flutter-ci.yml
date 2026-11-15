@@ -52,16 +52,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${KEYSTORE_BASE64}" && "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+          if [[ -z "${KEYSTORE_BASE64}" || -z "${KEY_ALIAS}" || -z "${KEY_PASSWORD}" || -z "${STORE_PASS}" ]]; then
             echo "signed=false" >> "$GITHUB_OUTPUT"
-            echo "Repository signing secrets are unavailable to this pull request; using debug signing for validation."
+            echo "::warning::One or more Android signing secrets are unavailable; building validation artifacts with the Gradle debug-signing fallback. These artifacts are not suitable for distribution."
             exit 0
           fi
-
-          : "${KEYSTORE_BASE64:?Missing KEYSTORE_BASE64 repository secret}"
-          : "${KEY_ALIAS:?Missing KEY_ALIAS repository secret}"
-          : "${KEY_PASSWORD:?Missing KEY_PASSWORD repository secret}"
-          : "${STORE_PASS:?Missing STORE_PASS repository secret}"
 
           echo "signed=true" >> "$GITHUB_OUTPUT"
           printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/darsyar-upload-key.jks
@@ -113,10 +108,10 @@ jobs:
       - name: Generate platform app icons
         run: dart run flutter_launcher_icons
 
-      # Compile the iOS release app without Apple signing credentials.
-      # This validates the iOS project but is not an installable/distributable IPA.
+      # Compile the iOS app for the simulator without Apple signing credentials.
+      # Simulator output is for validation only, not an installable device IPA.
       - name: Build iOS release (no code signing)
-        run: flutter build ios --simulator --release
+        run: flutter build ios --simulator
 
       - name: Upload iOS build validation artifact
         uses: actions/upload-artifact@v4
