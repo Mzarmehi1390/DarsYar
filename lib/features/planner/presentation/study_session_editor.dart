@@ -13,7 +13,6 @@ import '../../../design_system/input_focus_behavior.dart';
 class StudySessionEditorDialog extends StatefulWidget {
   const StudySessionEditorDialog({
     super.key,
-    required this.initialWeekday,
     required this.initialDate,
     required this.weekDays,
     required this.hasOverlap,
@@ -22,7 +21,6 @@ class StudySessionEditorDialog extends StatefulWidget {
   });
 
   final StudySession? existing;
-  final int initialWeekday;
   final DateTime initialDate;
   final List<String> weekDays;
   final bool Function(StudySession candidate) hasOverlap;
