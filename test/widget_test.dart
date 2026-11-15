@@ -1545,6 +1545,7 @@ void main() {
                 onPressed: () => showTaskDetailsDialog(
                   context: context,
                   reduceMotion: true,
+                  initialDueDate: DateTime(2026, 11, 15),
                 ),
                 child: const Text('وظیفه آزمایشی'),
               ),
@@ -1570,7 +1571,7 @@ void main() {
         theme: DarsYarTheme.light,
         home: Scaffold(
           body: StudySessionEditorDialog(
-            initialWeekday: 1,
+            initialDate: DateTime(2026, 11, 16),
             weekDays: const ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'],
             hasOverlap: (_) => false,
             onMessage: (_) {},
@@ -1621,7 +1622,7 @@ void main() {
                     initialState: GlassSheetState.full,
                     fullSize: 0.9,
                     builder: (_) => StudySessionEditorDialog(
-                      initialWeekday: 1,
+                      initialDate: DateTime(2026, 11, 16),
                       weekDays: const [
                         'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه',
                         'پنجشنبه', 'جمعه', 'شنبه',
