@@ -181,6 +181,11 @@ class StudyTaskTile extends StatelessWidget {
                         ),
                         const SizedBox(height: 5),
                         _PlannerMetaPill(icon: Icons.menu_book_rounded, label: task.subject),
+                        if (task.dueDate != null)
+                          _PlannerMetaPill(
+                            icon: Icons.event_outlined,
+                            label: '${task.dueDate!.day.toString().padLeft(2, '0')}/${task.dueDate!.month.toString().padLeft(2, '0')}',
+                          ),
                       ],
                     ),
                   ),
