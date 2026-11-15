@@ -40,36 +40,15 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      # Forked pull requests do not receive repository secrets. They may still
-      # validate compilation with the Gradle debug-signing fallback.
-      - name: Configure Android release signing
-        id: signing
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          STORE_PASS: ${{ secrets.STORE_PASS }}
-        shell: bash
+      # No private upload keystore is used. Gradle's release build type is
+      # configured to fall back to the standard Android debug certificate.
+      - name: Confirm debug-signing mode
         run: |
-          set -euo pipefail
-          if [[ -z "${KEYSTORE_BASE64}" || -z "${KEY_ALIAS}" || -z "${KEY_PASSWORD}" || -z "${STORE_PASS}" ]]; then
-            if [[ "${GITHUB_EVENT_NAME}" != "pull_request" ]]; then
-              echo "::error::Android release signing secrets are required for push and manual release-validation runs."
-              exit 1
-            fi
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Signing secrets are unavailable to this pull request; using debug signing for compile validation only."
-            exit 0
+          if [[ -f android/key.properties ]]; then
+            echo "::error::Unexpected private signing configuration found in CI workspace."
+            exit 1
           fi
-
-          echo "signed=true" >> "$GITHUB_OUTPUT"
-          printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/darsyar-upload-key.jks
-          cat > android/key.properties <<EOF
-          storePassword=${STORE_PASS}
-          keyPassword=${KEY_PASSWORD}
-          keyAlias=${KEY_ALIAS}
-          storeFile=app/darsyar-upload-key.jks
-          EOF
+          echo "Building test artifacts with the standard Android debug certificate."
 
       - name: Build Android APK release
         run: flutter build apk --release
@@ -77,18 +56,10 @@ jobs:
       - name: Build Android App Bundle release
         run: flutter build appbundle --release
 
-      - name: Verify Android release signatures
-        if: steps.signing.outputs.signed == 'true'
-        run: |
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
-          test -n "$APKSIGNER"
-          "$APKSIGNER" verify --verbose build/app/outputs/flutter-apk/app-release.apk
-          jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
-
       - name: Upload Android release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: darsyar-android-ci-validation
+          name: darsyar-android-debug-signed-test
           path: |
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/bundle/release/*.aab
