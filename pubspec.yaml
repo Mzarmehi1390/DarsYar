@@ -25,11 +25,10 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path_android: assets/branding/darsyar_android_icon.png
-  image_path_ios: assets/branding/darsyar_ios_icon.png
+  image_path: assets/branding/darsyar_launcher.png
   remove_alpha_ios: true
   adaptive_icon_background: "#062019"
-  adaptive_icon_foreground: assets/branding/darsyar_android_icon.png
+  adaptive_icon_foreground: assets/branding/darsyar_launcher.png
   web:
     generate: true
     image_path: assets/branding/darsyar_launcher.png
