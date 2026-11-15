@@ -36,7 +36,7 @@ class TaskController {
       title,
       normalizedSubject,
       done: existing.done,
-      dueDate: existing.dueDate ?? dueDate,
+      dueDate: dueDate,
     );
   }
 }
