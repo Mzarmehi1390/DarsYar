@@ -16,6 +16,8 @@ class PlannerPage extends StatelessWidget {
     required this.sessions,
     required this.tasks,
     required this.selectedDay,
+    required this.weekStartDate,
+    required this.onWeekOffsetChanged,
     required this.onSelectedDayChanged,
     required this.daysOrder,
     required this.dayLabels,
@@ -35,6 +37,8 @@ class PlannerPage extends StatelessWidget {
   final List<StudySession> sessions;
   final List<StudyTask> tasks;
   final int selectedDay;
+  final DateTime weekStartDate;
+  final ValueChanged<int> onWeekOffsetChanged;
   final ValueChanged<int> onSelectedDayChanged;
   final List<int> daysOrder;
   final List<String> dayLabels;
@@ -49,6 +53,11 @@ class PlannerPage extends StatelessWidget {
   final VoidCallback onAddStudySession;
   final VoidCallback onAddTask;
   final ValueChanged<int> onCopySelectedDayTo;
+
+  DateTime _dateForWeekday(int weekday) {
+    final offset = weekday == 6 ? 0 : weekday + 1;
+    return DateTime(weekStartDate.year, weekStartDate.month, weekStartDate.day + offset);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +79,12 @@ class PlannerPage extends StatelessWidget {
                 icon: Icons.calendar_month_rounded,
               ),
               const SizedBox(height: 18),
+              _PlannerWeekNavigator(
+                weekStartDate: weekStartDate,
+                onPrevious: () => onWeekOffsetChanged(-1),
+                onNext: () => onWeekOffsetChanged(1),
+              ),
+              const SizedBox(height: 14),
               LayoutBuilder(
                 builder: (context, constraints) {
                   final compact = constraints.maxWidth < 390;
@@ -112,8 +127,8 @@ class PlannerPage extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 8),
                       child: DarsYarGlassChoiceChip(
                         key: ValueKey<String>('planner-day-$day'),
-                        label: dayLabels[day],
-                        semanticLabel: dayLabels[day],
+                        label: '${dayLabels[day]} ${_dateForWeekday(day).day}',
+                        semanticLabel: '${dayLabels[day]} ${_dateForWeekday(day).day}',
                         selected: selectedDay == day,
                         selectedColor: DarsYarTokens.accent.withValues(
                           alpha: Theme.of(context).brightness == Brightness.dark ? 0.28 : 0.18,
@@ -266,6 +281,52 @@ class PlannerPage extends StatelessWidget {
           const SliverToBoxAdapter(
             child: SizedBox(height: DarsYarTokens.pageBottomClearance),
           ),
+      ],
+    );
+  }
+}
+
+
+class _PlannerWeekNavigator extends StatelessWidget {
+  const _PlannerWeekNavigator({
+    required this.weekStartDate,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final DateTime weekStartDate;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final end = weekStartDate.add(const Duration(days: 6));
+    String date(DateTime value) => '${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}';
+    return Row(
+      children: [
+        IconButton(
+          tooltip: 'هفته قبل',
+          onPressed: onPrevious,
+          icon: const Icon(Icons.chevron_left_rounded),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Text('هفته برنامه‌ریزی', style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface,
+              )),
+              const SizedBox(height: 3),
+              Text('${date(weekStartDate)} تا ${date(end)}',
+                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'هفته بعد',
+          onPressed: onNext,
+          icon: const Icon(Icons.chevron_right_rounded),
+        ),
       ],
     );
   }
