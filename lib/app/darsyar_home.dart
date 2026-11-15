@@ -127,12 +127,13 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   Set<int> get marked => activeExam.marked;
 
   Future<void> load() async {
+    var needsPlannerMigration = false;
     try {
       final snapshot = await _repository.load();
       tasks
         ..clear()
         ..addAll(snapshot.tasks);
-      final needsPlannerMigration = snapshot.studySessions.any(
+      needsPlannerMigration = snapshot.studySessions.any(
         (session) => session.scheduledDate == null,
       );
       studySessions
