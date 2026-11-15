@@ -30,6 +30,7 @@ import '../features/planner/presentation/planner_week_overview_card.dart';
 import '../features/planner/presentation/planner_weekly_report_card.dart';
 import '../features/planner/presentation/planner_item_tiles.dart';
 import '../features/planner/application/planner_controller.dart';
+import '../features/planner/application/planner_week_copy_service.dart';
 import '../features/planner/domain/planner_calendar.dart';
 import '../features/planner/application/task_controller.dart';
 import '../features/settings/application/backup_service.dart';
@@ -87,6 +88,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   final DarsYarRepository _repository = DarsYarRepository();
   final DarsYarBackupService _backupService = DarsYarBackupService();
   final PlannerController _plannerController = PlannerController();
+  final PlannerWeekCopyService _plannerWeekCopyService = PlannerWeekCopyService();
   final TaskController _taskController = TaskController();
   final tasks = <StudyTask>[];
   final results = <ExamResult>[];
@@ -525,20 +527,26 @@ class _DarsYarHomeState extends State<DarsYarHome> {
   }
 
   Future<void> copySelectedWeekToNext() async {
-    final sourceStart = selectedPlannerWeekStart;
-    final targetStart = sourceStart.add(const Duration(days: 7));
-    final sourceSessions = _plannerController.sessionsForWeek(studySessions, sourceStart);
-    final sourceTasks = tasks.where((task) =>
-      task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, sourceStart)
-    ).toList();
-    if (sourceSessions.isEmpty && sourceTasks.isEmpty) {
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    final plan = _plannerWeekCopyService.createNextWeekPlan(
+      sessions: studySessions,
+      tasks: tasks,
+      sourceWeekStart: selectedPlannerWeekStart,
+      createSessionId: (session) => '$timestamp-copy-${session.id}',
+      createTaskId: (task) => '$timestamp-task-${task.id}',
+    );
+    if (plan.sourceSessions.isEmpty && plan.sourceTasks.isEmpty) {
       _showSnackBar(const SnackBar(content: Text('این هفته برنامه یا وظیفه زمان‌بندی‌شده‌ای برای کپی ندارد.')));
       return;
     }
 
-    final targetSessions = _plannerController.sessionsForWeek(studySessions, targetStart);
+    final targetSessions = _plannerController.sessionsForWeek(
+      studySessions,
+      plan.targetWeekStart,
+    );
     final targetTasks = tasks.where((task) =>
-      task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, targetStart)
+      task.dueDate != null &&
+      PlannerCalendar.isInWeek(task.dueDate!, plan.targetWeekStart)
     ).toList();
     if (targetSessions.isNotEmpty || targetTasks.isNotEmpty) {
       final confirmed = await _confirmGlass(
@@ -550,44 +558,27 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       if (!confirmed || !mounted) return;
     }
 
-    final timestamp = DateTime.now().microsecondsSinceEpoch;
-    final copiedSessions = sourceSessions.map((session) {
-      final nextDate = session.scheduledDate!.add(const Duration(days: 7));
-      return StudySession(
-        id: '$timestamp-copy-${session.id}',
-        title: session.title,
-        subject: session.subject,
-        weekday: session.weekday,
-        startMinutes: session.startMinutes,
-        durationMinutes: session.durationMinutes,
-        scheduledDate: nextDate,
-      );
-    }).toList();
-    final copiedTasks = sourceTasks.map((task) => StudyTask(
-      '$timestamp-task-${task.id}',
-      task.title,
-      task.subject,
-      dueDate: task.dueDate!.add(const Duration(days: 7)),
-    )).toList();
-
     setState(() {
       studySessions.removeWhere((session) =>
-        session.scheduledDate != null && PlannerCalendar.isInWeek(session.scheduledDate!, targetStart)
+        session.scheduledDate != null &&
+        PlannerCalendar.isInWeek(session.scheduledDate!, plan.targetWeekStart)
       );
       tasks.removeWhere((task) =>
-        task.dueDate != null && PlannerCalendar.isInWeek(task.dueDate!, targetStart)
+        task.dueDate != null &&
+        PlannerCalendar.isInWeek(task.dueDate!, plan.targetWeekStart)
       );
-      studySessions.addAll(copiedSessions);
-      tasks.addAll(copiedTasks);
-      selectedPlannerWeekStart = targetStart;
+      studySessions.addAll(plan.copiedSessions);
+      tasks.addAll(plan.copiedTasks);
+      selectedPlannerWeekStart = plan.targetWeekStart;
     });
     final saved = await save(sections: {'studySessions', 'tasks'});
     if (!mounted) return;
     _revealSelectedDay();
     _showSnackBar(SnackBar(
-      content: Text('${copiedSessions.length} جلسه و ${copiedTasks.length} وظیفه به هفته بعد کپی شد${saved ? '' : '؛ ذخیره‌سازی کامل نشد'}. '),
+      content: Text('${plan.copiedSessions.length} جلسه و ${plan.copiedTasks.length} وظیفه به هفته بعد کپی شد${saved ? '' : '؛ ذخیره‌سازی کامل نشد'}. '),
     ));
   }
+
   Widget weekOverviewCard(int day, List<StudySession> sessions) =>
       PlannerWeekOverviewCard(
     dayLabel: weekDays[day],
