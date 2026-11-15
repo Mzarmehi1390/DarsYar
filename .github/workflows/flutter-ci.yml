@@ -40,6 +40,7 @@ jobs:
       # Forked pull requests do not receive repository secrets. They may still
       # validate compilation with the Gradle debug-signing fallback.
       - name: Configure Android release signing
+        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -49,6 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ -z "${KEYSTORE_BASE64}" && "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
             echo "Repository signing secrets are unavailable to this pull request; using debug signing for validation."
             exit 0
           fi
@@ -58,6 +60,7 @@ jobs:
           : "${KEY_PASSWORD:?Missing KEY_PASSWORD repository secret}"
           : "${STORE_PASS:?Missing STORE_PASS repository secret}"
 
+          echo "signed=true" >> "$GITHUB_OUTPUT"
           printf '%s' "${KEYSTORE_BASE64}" | base64 --decode > android/app/darsyar-upload-key.jks
           cat > android/key.properties <<EOF
           storePassword=${STORE_PASS}
@@ -73,9 +76,11 @@ jobs:
         run: flutter build appbundle --release
 
       - name: Verify Android release signatures
-        if: github.event_name != 'pull_request' || env.KEYSTORE_BASE64 != ''
+        if: steps.signing.outputs.signed == 'true'
         run: |
-          apksigner verify --verbose build/app/outputs/flutter-apk/app-release.apk
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose build/app/outputs/flutter-apk/app-release.apk
           jarsigner -verify -verbose -certs build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload Android release artifacts
