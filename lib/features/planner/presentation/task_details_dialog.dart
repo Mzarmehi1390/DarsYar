@@ -6,15 +6,17 @@ import '../../../models/study_task.dart';
 import '../../../design_system/input_focus_behavior.dart';
 
 /// Owns the task editor's temporary form state and modal presentation.
-Future<(String, String)?> showTaskDetailsDialog({
+Future<(String, String, DateTime?)?> showTaskDetailsDialog({
   required BuildContext context,
   required bool reduceMotion,
+  required DateTime initialDueDate,
   StudyTask? existing,
 }) async {
   final titleController = TextEditingController(text: existing?.title ?? '');
   final subjectController = TextEditingController(text: existing?.subject ?? '');
+  final dueDate = ValueNotifier<DateTime?>(existing?.dueDate ?? initialDueDate);
   try {
-    return await showDarsYarGlassDialog<(String, String)>(
+    return await showDarsYarGlassDialog<(String, String, DateTime?)>(
       context: context,
       title: existing == null ? 'وظیفه جدید' : 'ویرایش وظیفه',
       maxWidth: 360,
@@ -41,6 +43,40 @@ Future<(String, String)?> showTaskDetailsDialog({
                   autofocus: false,
                   textInputAction: TextInputAction.next,
                 )),
+              ),
+              const SizedBox(height: 14),
+              ValueListenableBuilder<DateTime?>(
+                valueListenable: dueDate,
+                builder: (context, value, _) => Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          final selected = await showDatePicker(
+                            context: context,
+                            initialDate: value ?? initialDueDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                            helpText: 'انتخاب تاریخ سررسید',
+                          );
+                          if (selected != null) {
+                            dueDate.value = DateTime(selected.year, selected.month, selected.day);
+                          }
+                        },
+                        icon: const Icon(Icons.event_outlined),
+                        label: Text(value == null
+                          ? 'انتخاب تاریخ سررسید'
+                          : 'سررسید: ${value.day.toString().padLeft(2, '0')}/${value.month.toString().padLeft(2, '0')}/${value.year}'),
+                      ),
+                    ),
+                    if (value != null)
+                      IconButton(
+                        tooltip: 'حذف تاریخ سررسید',
+                        onPressed: () => dueDate.value = null,
+                        icon: const Icon(Icons.event_busy_outlined),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 14),
               GlassFormField(
@@ -73,6 +109,7 @@ Future<(String, String)?> showTaskDetailsDialog({
               Navigator.of(context).pop((
                 title,
                 subjectController.text.trim(),
+                dueDate.value,
               ));
             }
           },
@@ -82,5 +119,6 @@ Future<(String, String)?> showTaskDetailsDialog({
   } finally {
     titleController.dispose();
     subjectController.dispose();
+    dueDate.dispose();
   }
 }
