@@ -1014,13 +1014,12 @@ void main() {
     await tester.pumpWidget(const DarsYarApp(initialTab: 1));
     await tester.pumpAndSettle();
 
-    const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     final today = DateTime.now().weekday % 7;
-    final todayChip = find.widgetWithText(GlassChip, weekDays[today]);
+    final todayChip = find.byKey(ValueKey<String>('planner-day-$today'));
 
     expect(todayChip, findsOneWidget);
-    expect(tester.widget<GlassChip>(todayChip).selected, isTrue);
-    expect(find.text(weekDays[today]), findsWidgets);
+    expect(tester.widget<DarsYarGlassChoiceChip>(todayChip).selected, isTrue);
+    expect(find.text('انتخاب روز'), findsOneWidget);
   });
 
 
@@ -1399,7 +1398,7 @@ void main() {
 
     expect(find.text('جلسه‌ها'), findsOneWidget);
     expect(find.text('انجام‌شده'), findsOneWidget);
-    expect(find.text('دقیقه امروز'), findsOneWidget);
+    expect(find.text('دقیقه روز انتخاب‌شده'), findsOneWidget);
     expect(find.text('نمای کلی هفته'), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('planner-week-selected-indicator')), findsOneWidget);
     expect(tester.takeException(), isNull);
