@@ -93,3 +93,33 @@ jobs:
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/bundle/release/*.aab
           if-no-files-found: error
+
+  ios-build-validation:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate platform app icons
+        run: dart run flutter_launcher_icons
+
+      # Compile the iOS release app without Apple signing credentials.
+      # This validates the iOS project but is not an installable/distributable IPA.
+      - name: Build iOS release (no code signing)
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS build validation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: darsyar-ios-build-validation
+          path: build/ios/iphoneos/Runner.app
+          if-no-files-found: error
