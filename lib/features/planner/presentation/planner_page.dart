@@ -99,7 +99,14 @@ class PlannerPage extends StatelessWidget {
                     children: [
                       Icon(Icons.copy_all_rounded, size: 17),
                       SizedBox(width: 7),
-                      Text('کپی این هفته به هفته بعد', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      Flexible(
+                        child: Text(
+                          'کپی این هفته به هفته بعد',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ],
                   ),
                 ),
