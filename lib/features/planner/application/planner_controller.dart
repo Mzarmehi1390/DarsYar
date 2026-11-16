@@ -89,6 +89,18 @@ class PlannerController {
   }) {
     return sessions.any((session) {
       if (session.id == excludingId) return false;
+
+      final candidateDate = candidate.scheduledDate;
+      final sessionDate = session.scheduledDate;
+      if (candidateDate != null && sessionDate != null) {
+        if (PlannerCalendar.dateOnly(candidateDate) !=
+            PlannerCalendar.dateOnly(sessionDate)) {
+          return false;
+        }
+      } else if (session.weekday != candidate.weekday) {
+        return false;
+      }
+
       return studySessionsOverlap(candidate, session);
     });
   }
