@@ -432,7 +432,10 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       for (final day in weekDayOrder) day: <StudySession>[],
     };
     for (final session in weekSessions) {
-      sessionsByDay.putIfAbsent(session.weekday, () => <StudySession>[]).add(session);
+      final day = session.scheduledDate == null
+          ? session.weekday
+          : StudySession.weekdayFor(session.scheduledDate!);
+      sessionsByDay.putIfAbsent(day, () => <StudySession>[]).add(session);
     }
     final weekTasks = tasks.where((task) =>
       task.dueDate == null ||
