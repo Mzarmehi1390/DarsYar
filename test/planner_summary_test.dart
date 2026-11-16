@@ -25,6 +25,19 @@ void main() {
     expect(summary.sessionsForDay(1), isEmpty);
   });
 
+  test('uses the scheduled occurrence date when its legacy weekday is stale', () {
+    final summary = PlannerSummary.fromSessions(const [
+      StudySession(
+        id: 'dated', title: 'جلسه تاریخ‌دار', subject: 'ریاضی', weekday: 5,
+        startMinutes: 600, durationMinutes: 30,
+        scheduledDate: DateTime(2026, 11, 15),
+      ),
+    ]);
+    expect(summary.sessionsForDay(0).single.id, 'dated');
+    expect(summary.sessionsForDay(5), isEmpty);
+    expect(summary.minutesForDay(0), 30);
+  });
+
   test('empty planner has zero progress and no sessions', () {
     final summary = PlannerSummary.fromSessions(const []);
     expect(summary.plannedMinutes, 0);
