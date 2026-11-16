@@ -20,7 +20,7 @@ class PlannerSummary {
         _minutesByDay = Map<int, int>.unmodifiable(minutesByDay);
 
   factory PlannerSummary.fromSessions(Iterable<StudySession> sessions) {
-    final snapshot = List<StudySession>.of(sessions, growable: false);
+    var totalCount = 0;
     final sessionsByDay = <int, List<StudySession>>{};
     final minutesByDay = <int, int>{};
     var completedCount = 0;
@@ -29,7 +29,8 @@ class PlannerSummary {
 
     // Aggregate the complete planner in one pass. The UI can then reuse
     // immutable day buckets instead of filtering the full list on every build.
-    for (final session in snapshot) {
+    for (final session in sessions) {
+      totalCount++;
       planned += session.durationMinutes;
       if (session.completed) {
         completedCount++;
@@ -54,7 +55,7 @@ class PlannerSummary {
     }
 
     return PlannerSummary._(
-      totalSessionCount: snapshot.length,
+      totalSessionCount: totalCount,
       completedSessionCount: completedCount,
       plannedMinutes: planned,
       completedMinutes: completed,
