@@ -14,7 +14,10 @@ void main() {
       for (var weekday = 0; weekday <= 6; weekday++) {
         final date = PlannerCalendar.dateForWeekday(start, weekday);
         expect(date.weekday % 7, weekday);
-        expect(date, DateTime(2026, 11, 15 + weekday));
+        final expected = weekday == 6
+            ? DateTime(2026, 11, 14)
+            : DateTime(2026, 11, 15 + weekday);
+        expect(date, expected);
       }
       expect(PlannerCalendar.dateForWeekday(start, 6), DateTime(2026, 11, 14));
     });
