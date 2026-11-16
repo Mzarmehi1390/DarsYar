@@ -428,15 +428,7 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       studySessions,
       selectedPlannerWeekStart,
     );
-    final sessionsByDay = <int, List<StudySession>>{
-      for (final day in weekDayOrder) day: <StudySession>[],
-    };
-    for (final session in weekSessions) {
-      final day = session.scheduledDate == null
-          ? session.weekday
-          : StudySession.weekdayFor(session.scheduledDate!);
-      sessionsByDay.putIfAbsent(day, () => <StudySession>[]).add(session);
-    }
+    final plannerSummary = PlannerSummary.fromSessions(weekSessions);
     final weekTasks = tasks.where((task) =>
       task.dueDate == null ||
       PlannerCalendar.isInWeek(task.dueDate!, selectedPlannerWeekStart)
@@ -462,10 +454,11 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       dayLabels: weekDays,
       dayKeys: _plannerDayKeys,
       weekKeys: _plannerWeekKeys,
+      plannerSummary: plannerSummary,
       summaryBuilder: summary,
       weekOverviewCardBuilder: (day) => weekOverviewCard(
         day,
-        sessionsByDay[day] ?? const <StudySession>[],
+        plannerSummary.sessionsForDay(day),
       ),
       weeklyReportCardBuilder: weeklyReportCard,
       studySessionTileBuilder: studySessionTile,
