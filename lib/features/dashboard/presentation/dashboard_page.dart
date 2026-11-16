@@ -35,8 +35,9 @@ class DashboardPage extends StatelessWidget {
       icon: Icons.auto_stories_rounded,
     ),
     SizedBox(height: 24),
-    GlassContainer.card(
-      padding: EdgeInsets.zero,
+    RepaintBoundary(
+      child: GlassContainer.card(
+        padding: EdgeInsets.zero,
       shape: const LiquidRoundedSuperellipse(borderRadius: 30),
       useOwnLayer: true,
       quality: GlassQuality.standard,
@@ -250,6 +251,7 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     ),
     SizedBox(height: 24),
