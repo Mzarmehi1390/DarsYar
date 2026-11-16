@@ -26,7 +26,7 @@ void main() {
   });
 
   test('uses the scheduled occurrence date when its legacy weekday is stale', () {
-    final summary = PlannerSummary.fromSessions(const [
+    final summary = PlannerSummary.fromSessions([
       StudySession(
         id: 'dated', title: 'جلسه تاریخ‌دار', subject: 'ریاضی', weekday: 5,
         startMinutes: 600, durationMinutes: 30,
