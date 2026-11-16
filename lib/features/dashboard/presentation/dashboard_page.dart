@@ -26,8 +26,15 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Compute task aggregates once per build instead of repeatedly scanning
     // the same collection for each dashboard label and progress indicator.
-    final completedCount = tasks.where((task) => task.done).length;
-    final pendingTasks = tasks.where((task) => !task.done).take(3).toList(growable: false);
+    var completedCount = 0;
+    final pendingTasks = <StudyTask>[];
+    for (final task in tasks) {
+      if (task.done) {
+        completedCount++;
+      } else if (pendingTasks.length < 3) {
+        pendingTasks.add(task);
+      }
+    }
     return ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
