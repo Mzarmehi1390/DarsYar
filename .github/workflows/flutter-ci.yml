@@ -10,6 +10,7 @@ on:
       - release/android-signing-ci
       - feature/multiweek-planner
       - refactor/modularize-app
+      - fix/planner-dates-and-performance
   pull_request:
     branches:
       - main
