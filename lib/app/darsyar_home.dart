@@ -429,10 +429,14 @@ class _DarsYarHomeState extends State<DarsYarHome> {
       selectedPlannerWeekStart,
     );
     final plannerSummary = PlannerSummary.fromSessions(weekSessions);
-    final weekTasks = tasks.where((task) =>
-      task.dueDate == null ||
-      PlannerCalendar.isInWeek(task.dueDate!, selectedPlannerWeekStart)
-    ).toList();
+    final weekStart = PlannerCalendar.startOfWeek(selectedPlannerWeekStart);
+    final weekEnd = weekStart.add(const Duration(days: 7));
+    final weekTasks = tasks.where((task) {
+      final dueDate = task.dueDate;
+      if (dueDate == null) return true;
+      final date = PlannerCalendar.dateOnly(dueDate);
+      return !date.isBefore(weekStart) && date.isBefore(weekEnd);
+    }).toList(growable: false);
 
     return PlannerPage(
       sessions: weekSessions,
