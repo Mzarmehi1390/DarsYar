@@ -33,7 +33,10 @@ class PlannerController {
     return sessions.map((session) {
       if (session.scheduledDate != null) return session;
       return session.copyWith(
-        scheduledDate: PlannerCalendar.migrateLegacyDate(session.weekday, weekStart),
+        scheduledDate: PlannerCalendar.migrateLegacyDate(
+          session.weekday,
+          weekStart,
+        ),
       );
     }).toList();
   }
@@ -43,21 +46,30 @@ class PlannerController {
     DateTime date,
   ) {
     final target = PlannerCalendar.dateOnly(date);
-    final result = sessions.where((session) =>
-      session.scheduledDate != null &&
-      PlannerCalendar.dateOnly(session.scheduledDate!) == target
-    ).toList()
+    final result = sessions.where((session) {
+      final scheduled = session.scheduledDate;
+      return scheduled != null && PlannerCalendar.dateOnly(scheduled) == target;
+    }).toList()
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     return result;
   }
 
+  /// Filters against one precomputed week range rather than normalizing the
+  /// week start for every session. This also makes the occurrence date, not
+  /// the legacy weekday field, the source of truth.
   List<StudySession> sessionsForWeek(
     Iterable<StudySession> sessions,
     DateTime weekStart,
-  ) => sessions.where((session) =>
-    session.scheduledDate != null &&
-    PlannerCalendar.isInWeek(session.scheduledDate!, weekStart)
-  ).toList();
+  ) {
+    final start = PlannerCalendar.startOfWeek(weekStart);
+    final end = start.add(const Duration(days: 7));
+    return sessions.where((session) {
+      final scheduled = session.scheduledDate;
+      if (scheduled == null) return false;
+      final date = PlannerCalendar.dateOnly(scheduled);
+      return !date.isBefore(start) && date.isBefore(end);
+    }).toList();
+  }
 
   List<StudySession> sessionsForDay(
     Iterable<StudySession> sessions,
@@ -76,9 +88,7 @@ class PlannerController {
     String? excludingId,
   }) {
     return sessions.any((session) {
-      if (session.id == excludingId || session.weekday != candidate.weekday) {
-        return false;
-      }
+      if (session.id == excludingId) return false;
       return studySessionsOverlap(candidate, session);
     });
   }
@@ -96,7 +106,9 @@ class PlannerController {
             id: createId(session),
             title: session.title,
             subject: session.subject,
-            weekday: targetDay,
+            weekday: targetDate == null
+                ? targetDay
+                : StudySession.weekdayFor(targetDate),
             startMinutes: session.startMinutes,
             durationMinutes: session.durationMinutes,
             scheduledDate: targetDate,
