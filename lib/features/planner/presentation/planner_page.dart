@@ -9,6 +9,7 @@ import '../../../design_system/page_header.dart';
 import '../../../models/study_task.dart';
 import '../../../planner_summary.dart';
 import '../../../study_session.dart';
+import '../domain/planner_calendar.dart';
 
 class PlannerPage extends StatelessWidget {
   const PlannerPage({
@@ -56,10 +57,8 @@ class PlannerPage extends StatelessWidget {
   final VoidCallback onAddTask;
   final ValueChanged<int> onCopySelectedDayTo;
 
-  DateTime _dateForWeekday(int weekday) {
-    final offset = weekday == 6 ? 0 : weekday + 1;
-    return DateTime(weekStartDate.year, weekStartDate.month, weekStartDate.day + offset);
-  }
+  DateTime _dateForWeekday(int weekday) =>
+      PlannerCalendar.dateForWeekday(weekStartDate, weekday);
 
   @override
   Widget build(BuildContext context) {
