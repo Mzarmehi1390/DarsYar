@@ -309,7 +309,7 @@ class DashboardPage extends StatelessWidget {
       )]),
     if (pendingTasks.isEmpty)
       emptyStateBuilder(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
-    else ...pendingTasks.map(taskTileBuilder),
+    else ...pendingTasks.map((task) => RepaintBoundary(child: taskTileBuilder(task))),
   ]);
   }
 
