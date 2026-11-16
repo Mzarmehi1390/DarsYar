@@ -75,9 +75,12 @@ class PlannerController {
     Iterable<StudySession> sessions,
     int weekday,
   ) {
-    final result = sessions
-        .where((session) => session.weekday == weekday)
-        .toList()
+    final result = sessions.where((session) {
+      final scheduledDate = session.scheduledDate;
+      return scheduledDate == null
+          ? session.weekday == weekday
+          : StudySession.weekdayFor(scheduledDate) == weekday;
+    }).toList()
       ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     return result;
   }
