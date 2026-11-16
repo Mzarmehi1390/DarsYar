@@ -36,9 +36,12 @@ class PlannerSummary {
         completed += session.durationMinutes;
       }
 
-      (sessionsByDay[session.weekday] ??= <StudySession>[]).add(session);
+      final day = session.scheduledDate == null
+          ? session.weekday
+          : StudySession.weekdayFor(session.scheduledDate!);
+      (sessionsByDay[day] ??= <StudySession>[]).add(session);
       minutesByDay.update(
-        session.weekday,
+        day,
         (minutes) => minutes + session.durationMinutes,
         ifAbsent: () => session.durationMinutes,
       );
