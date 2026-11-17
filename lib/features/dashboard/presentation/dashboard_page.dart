@@ -26,8 +26,15 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // Compute task aggregates once per build instead of repeatedly scanning
     // the same collection for each dashboard label and progress indicator.
-    final completedCount = tasks.where((task) => task.done).length;
-    final pendingTasks = tasks.where((task) => !task.done).take(3).toList(growable: false);
+    var completedCount = 0;
+    final pendingTasks = <StudyTask>[];
+    for (final task in tasks) {
+      if (task.done) {
+        completedCount++;
+      } else if (pendingTasks.length < 3) {
+        pendingTasks.add(task);
+      }
+    }
     return ListView(key: const PageStorageKey<String>('dashboard-scroll'), padding: const EdgeInsets.fromLTRB(20, 20, 20, DarsYarTokens.pageBottomClearance), children: [
     const DarsYarPageHeader(
       title: 'درس‌یار',
@@ -35,8 +42,9 @@ class DashboardPage extends StatelessWidget {
       icon: Icons.auto_stories_rounded,
     ),
     SizedBox(height: 24),
-    GlassContainer.card(
-      padding: EdgeInsets.zero,
+    RepaintBoundary(
+      child: GlassContainer.card(
+        padding: EdgeInsets.zero,
       shape: const LiquidRoundedSuperellipse(borderRadius: 30),
       useOwnLayer: true,
       quality: GlassQuality.standard,
@@ -250,6 +258,7 @@ class DashboardPage extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     ),
     SizedBox(height: 24),
@@ -309,7 +318,7 @@ class DashboardPage extends StatelessWidget {
       )]),
     if (pendingTasks.isEmpty)
       emptyStateBuilder(Icons.event_available_rounded, 'هنوز وظیفه‌ای ثبت نشده', 'از بخش برنامه‌ریزی، اولین وظیفه‌ات را اضافه کن.')
-    else ...pendingTasks.map(taskTileBuilder),
+    else ...pendingTasks.map((task) => RepaintBoundary(child: taskTileBuilder(task))),
   ]);
   }
 

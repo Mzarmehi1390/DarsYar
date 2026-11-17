@@ -9,6 +9,7 @@ import '../../../design_system/page_header.dart';
 import '../../../models/study_task.dart';
 import '../../../planner_summary.dart';
 import '../../../study_session.dart';
+import '../domain/planner_calendar.dart';
 
 class PlannerPage extends StatelessWidget {
   const PlannerPage({
@@ -24,6 +25,7 @@ class PlannerPage extends StatelessWidget {
     required this.dayLabels,
     required this.dayKeys,
     required this.weekKeys,
+    required this.plannerSummary,
     required this.summaryBuilder,
     required this.weekOverviewCardBuilder,
     required this.weeklyReportCardBuilder,
@@ -46,6 +48,7 @@ class PlannerPage extends StatelessWidget {
   final List<String> dayLabels;
   final Map<int, GlobalKey> dayKeys;
   final Map<int, GlobalKey> weekKeys;
+  final PlannerSummary plannerSummary;
   final Widget Function(String label, int? value, IconData icon) summaryBuilder;
   final Widget Function(int day) weekOverviewCardBuilder;
   final Widget Function({required PlannerSummary summary}) weeklyReportCardBuilder;
@@ -56,14 +59,11 @@ class PlannerPage extends StatelessWidget {
   final VoidCallback onAddTask;
   final ValueChanged<int> onCopySelectedDayTo;
 
-  DateTime _dateForWeekday(int weekday) {
-    final offset = weekday == 6 ? 0 : weekday + 1;
-    return DateTime(weekStartDate.year, weekStartDate.month, weekStartDate.day + offset);
-  }
+  DateTime _dateForWeekday(int weekday) =>
+      PlannerCalendar.dateForWeekday(weekStartDate, weekday);
 
   @override
   Widget build(BuildContext context) {
-    final plannerSummary = PlannerSummary.fromSessions(sessions);
     final daySessions = plannerSummary.sessionsForDay(selectedDay);
     final completedSessions = plannerSummary.completedSessionCount;
     final totalMinutes = plannerSummary.minutesForDay(selectedDay);

@@ -46,6 +46,20 @@ void main() {
     );
   });
 
+  test('date-specific overlap checks do not collide across different weeks', () {
+    final first = StudySession(
+      id: 'first-date', title: 'شنبه', subject: 'ریاضی', weekday: 6,
+      startMinutes: 600, durationMinutes: 60,
+      scheduledDate: DateTime(2026, 11, 14),
+    );
+    final nextWeek = StudySession(
+      id: 'next-week', title: 'شنبه بعد', subject: 'ریاضی', weekday: 6,
+      startMinutes: 600, durationMinutes: 60,
+      scheduledDate: DateTime(2026, 11, 21),
+    );
+    expect(planner.hasOverlap([first], nextWeek), isFalse);
+  });
+
   test('session mutations toggle completion, upsert, and remove by id', () {
     final sessions = <StudySession>[
       session(id: 'first', weekday: 1, start: 500),
