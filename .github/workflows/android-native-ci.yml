@@ -30,11 +30,13 @@ jobs:
         with:
           gradle-version: "9.6.0"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        run: sdkmanager "platforms;android-37" "build-tools;37.0.0" "platform-tools"
+      - name: Accept Android SDK licenses and install packages
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
+          test -x "$SDKMANAGER"
+          printf 'y\n%.0s' {1..100} | "$SDKMANAGER" --licenses
+          "$SDKMANAGER" --install "platforms;android-37" "build-tools;36.0.0" "platform-tools"
 
       - name: Build, test and lint native Android project
         working-directory: android
