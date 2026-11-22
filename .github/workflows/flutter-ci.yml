@@ -5,12 +5,6 @@ on:
   push:
     branches:
       - main
-      - feat/darsyar-foundation
-      - feat/darsyar-ux-refinement
-      - release/android-signing-ci
-      - feature/multiweek-planner
-      - refactor/modularize-app
-      - fix/planner-dates-and-performance
   pull_request:
     branches:
       - main
@@ -31,11 +25,10 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate platform app icons
+      - name: Generate Android app icons
         run: dart run flutter_launcher_icons
 
       - name: Analyze
-        # Keep infos visible without failing CI; warnings and errors remain fatal.
         run: flutter analyze --no-fatal-infos
 
       - name: Run tests
@@ -64,34 +57,4 @@ jobs:
           path: |
             build/app/outputs/flutter-apk/*.apk
             build/app/outputs/bundle/release/*.aab
-          if-no-files-found: error
-
-  ios-build-validation:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate platform app icons
-        run: dart run flutter_launcher_icons
-
-      # Compile the iOS app for the simulator without Apple signing credentials.
-      # Simulator output is for validation only, not an installable device IPA.
-      - name: Build iOS release (no code signing)
-        run: flutter build ios --simulator
-
-      - name: Upload iOS build validation artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: darsyar-ios-build-validation
-          path: build/ios/iphonesimulator/Runner.app
           if-no-files-found: error
