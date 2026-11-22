@@ -24,7 +24,11 @@ Rebuild DarsYar as a fully native Android application in Kotlin + Jetpack Compos
 6. `docs/MODULES.md`
 7. `docs/DATA_MIGRATION.md`
 8. `docs/LIQUID_GLASS_ENGINE.md`
-9. `README.md`
+9. `docs/DEPENDENCY_BASELINE.md`
+10. `docs/BUILD_AND_RELEASE.md`
+11. `docs/TESTING.md`
+12. `docs/PERFORMANCE.md`
+13. `README.md`
 
 The first two documents describe the native migration baseline. The existing redesign docs describe current Flutter visuals and behaviors; they are references, not native architecture constraints.
 
@@ -56,16 +60,17 @@ The first two documents describe the native migration baseline. The existing red
 
 - Phase 1 — Repository audit: initial audit and inventory documented in `docs/NATIVE_REBUILD_AUDIT.md` and `docs/FEATURE_INVENTORY.md`.
 - Phase 2 — Architecture and technical design: proposal documented in `docs/ARCHITECTURE.md`, `docs/MODULES.md`, `docs/DATA_MIGRATION.md` and `docs/LIQUID_GLASS_ENGINE.md`.
-- Phase 3 — Native project foundation: not started.
+- Phase 3 — Native project foundation: Gradle project, version catalog, 10 modules, Compose entry point, Hilt application, native CI workflow and build/test/performance docs added. First CI attempt failed during Android SDK action bootstrap; workflow was corrected to install SDK packages directly. A successful Gradle build is still pending.
 - Phases 4–10: not started.
 
 ## Important unresolved decisions
 
-- Explicit minSdk / compileSdk / targetSdk and support matrix.
+- Confirm compileSdk 37.1 compatibility required by Compose BOM 2026.11.01; current project uses compileSdk 37 pending CI validation.
 - Confirm exact legacy Android SharedPreferences file/key representation from the locked plugin and a real installation.
 - Confirm release keystore continuity for in-place updates.
 - Prove AGSL backdrop sampling architecture on supported Android versions.
 - Validate final module graph and Room schema against implementation constraints.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
+- Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
 
 Do not guess these. Investigate and document decisions before implementation.
