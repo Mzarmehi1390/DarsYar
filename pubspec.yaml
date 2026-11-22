@@ -27,13 +27,13 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/branding/darsyar_launcher.jpg
   remove_alpha_ios: true
-  adaptive_icon_background: "#062019"
+  adaptive_icon_background: "#176BD3"
   adaptive_icon_foreground: assets/branding/darsyar_launcher.jpg
   web:
     generate: true
     image_path: assets/branding/darsyar_launcher.jpg
-    background_color: "#062019"
-    theme_color: "#062019"
+    background_color: "#176BD3"
+    theme_color: "#176BD3"
   windows:
     generate: true
     image_path: assets/branding/darsyar_launcher.jpg
