@@ -20,7 +20,11 @@ Rebuild DarsYar as a fully native Android application in Kotlin + Jetpack Compos
 2. `docs/FEATURE_INVENTORY.md`
 3. `docs/REDESIGN_AUDIT.md`
 4. `docs/LIQUID_GLASS_DESIGN_SYSTEM.md`
-5. `README.md`
+5. `docs/ARCHITECTURE.md`
+6. `docs/MODULES.md`
+7. `docs/DATA_MIGRATION.md`
+8. `docs/LIQUID_GLASS_ENGINE.md`
+9. `README.md`
 
 The first two documents describe the native migration baseline. The existing redesign docs describe current Flutter visuals and behaviors; they are references, not native architecture constraints.
 
@@ -51,8 +55,9 @@ The first two documents describe the native migration baseline. The existing red
 ## Phase status
 
 - Phase 1 — Repository audit: initial audit and inventory documented in `docs/NATIVE_REBUILD_AUDIT.md` and `docs/FEATURE_INVENTORY.md`.
-- Phase 2 — Architecture and technical design: next.
-- Phases 3–10: not started.
+- Phase 2 — Architecture and technical design: proposal documented in `docs/ARCHITECTURE.md`, `docs/MODULES.md`, `docs/DATA_MIGRATION.md` and `docs/LIQUID_GLASS_ENGINE.md`.
+- Phase 3 — Native project foundation: not started.
+- Phases 4–10: not started.
 
 ## Important unresolved decisions
 
@@ -60,7 +65,7 @@ The first two documents describe the native migration baseline. The existing red
 - Confirm exact legacy Android SharedPreferences file/key representation from the locked plugin and a real installation.
 - Confirm release keystore continuity for in-place updates.
 - Prove AGSL backdrop sampling architecture on supported Android versions.
-- Final module graph and Room schema.
-- Whether the native app will keep v1 backup export or only v1 import + a newer explicit export schema.
+- Validate final module graph and Room schema against implementation constraints.
+- Decide v1 backup export compatibility after reviewing migration and support requirements.
 
 Do not guess these. Investigate and document decisions before implementation.
