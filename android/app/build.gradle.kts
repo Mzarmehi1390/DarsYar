@@ -1,66 +1,32 @@
-import java.util.Properties
-
 plugins {
-    id("com.android.application")
-    id("dev.flutter.flutter-gradle-plugin")
-}
-
-// Load the private release signing configuration from android/key.properties.
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-val hasReleaseKeystore = keystorePropertiesFile.exists()
-
-if (hasReleaseKeystore) {
-    keystorePropertiesFile.inputStream().use {
-        keystoreProperties.load(it)
-    }
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 android {
     namespace = "com.mzarmehi1390.darsyar"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 37
+
+    defaultConfig {
+        applicationId = "com.mzarmehi1390.darsyar"
+        minSdk = 23
+        targetSdk = 36
+        versionCode = 2
+        versionName = "1.1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        compose = true
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    defaultConfig {
-        applicationId = "com.mzarmehi1390.darsyar"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-    }
-
-    signingConfigs {
-        if (hasReleaseKeystore) {
-            create("release") {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                    ?: error("Missing keyAlias in android/key.properties")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                    ?: error("Missing keyPassword in android/key.properties")
-                storePassword = keystoreProperties.getProperty("storePassword")
-                    ?: error("Missing storePassword in android/key.properties")
-                storeFile = rootProject.file(
-                    keystoreProperties.getProperty("storeFile")
-                        ?: error("Missing storeFile in android/key.properties")
-                )
-            }
-        }
-    }
-
-    buildTypes {
-        release {
-            // A local private keystore may be used when key.properties exists.
-            // Otherwise (including CI test builds), use the standard debug certificate.
-            signingConfig = if (hasReleaseKeystore) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
-        }
     }
 }
 
@@ -70,6 +36,32 @@ kotlin {
     }
 }
 
-flutter {
-    source = "../.."
+dependencies {
+    implementation(project(":core:common"))
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:graphics"))
+    implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
+    implementation(project(":feature:dashboard"))
+    implementation(project(":feature:planner"))
+    implementation(project(":feature:exams"))
+    implementation(project(":feature:settings"))
+
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
