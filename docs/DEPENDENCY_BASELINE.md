@@ -6,18 +6,18 @@
 
 | Component | Pinned version | Basis |
 |---|---:|---|
-| Android Gradle Plugin | 9.5.0 | Current stable AGP example in Android build docs |
+| Android Gradle Plugin | 9.5.0 | Stable AGP release |
 | Gradle | 9.6.0 | Minimum required by AGP 9.5 |
 | Kotlin | 2.4.21 | Current stable Kotlin patch |
 | Compose Compiler Gradle plugin | 2.4.21 | Must match Kotlin compiler plugin |
-| KSP | 2.3.12 | Current KSP quick-start example for Kotlin 2.4.21 |
-| JDK | 17 | AGP 9.5 toolchain baseline |
+| KSP | 2.3.12 | KSP quick-start example for Kotlin 2.4.21 |
+| JDK | 17 | AGP toolchain baseline |
 
 ## AndroidX and libraries
 
 | Library | Pinned version | Notes |
 |---|---:|---|
-| Compose BOM | 2026.11.01 | November 2026 stable Compose release; requires Kotlin 2.2+ and compileSdk 37.1 |
+| Compose BOM | 2026.06.01 | Stable Compose 1.11.x line compatible with API 36 |
 | Navigation Compose | 2.10.2 | Stable Navigation 2.10 line |
 | Room | 2.8.5 | Stable release; use KSP compiler |
 | Preferences DataStore | 1.3.0 | Stable release |
@@ -27,6 +27,7 @@
 | Coil Compose | 3.6.3 | Pinned stable release; only use where image loading is needed |
 | Coroutines | 1.10.2 | Kotlin coroutine runtime |
 | Kotlin Serialization JSON | 1.9.0 | Backup DTOs / typed route serialization |
+| Activity Compose | 1.13.0 | Activity integration |
 | JUnit | 4.13.2 | Local JVM unit tests |
 | AndroidX Test JUnit | 1.3.0 | Instrumented tests |
 | Espresso | 3.7.0 | Instrumented test support |
@@ -34,17 +35,23 @@
 
 Compose libraries are versioned through the BOM. Do not assign independent Compose versions unless a documented compatibility reason requires an override.
 
+## Why the initial build uses API 36
+
+The newest Compose 1.12/1.13 releases require compileSdk 37/37.1. The public Android SDK package feed available to the GitHub runner did not expose `platforms;android-37`; CI stopped before Gradle could run. To establish a reproducible native baseline, the initial build uses stable Compose 1.11.x with compileSdk 36, which is available in the runner. This is a deliberate compatibility choice, not a claim that newer Compose releases are unsuitable. Re-evaluate after API 37 is available in the standard SDK feed and AGP support is verified.
+
 ## Compatibility checks before locking
 
-1. Compose November 2026 release states BOM 2026.11.01 requires compileSdk 37.1 and Kotlin 2.2 or newer. The current AGP stable docs list AGP 9.5.0 and Gradle 9.6.0; confirm SDK 37.1 is accepted by the chosen installed AGP/SDK packages in CI.
-2. Confirm Hilt 2.60.1 plugin + KSP 2.3.12 works with Kotlin 2.4.21 and AGP 9.5.0. If not, pin the latest mutually compatible stable pair; do not force a build through experimental flags.
-3. Verify Coil 3.6.3 resolves from Maven Central and is needed by an actual screen before adding it to feature dependencies.
-4. If any dependency forces an unstable transitive version or toolchain downgrade, stop and document the compatibility decision.
-5. No dynamic dependency selectors (for example `9.5.+`) are allowed.
+1. Confirm Compose BOM 2026.06.01 resolves and its mapped Compose artifacts compile against API 36.
+2. Confirm Hilt 2.60.1 plugin + KSP 2.3.12 works with Kotlin 2.4.21 and AGP 9.5.0.
+3. Verify Room 2.8.5 and DataStore 1.3.0 resolve and compile.
+4. Verify Coil 3.6.3 resolves from Maven Central and add it to feature dependencies only where a real image-loading use case exists.
+5. If any dependency forces an unstable transitive version or toolchain downgrade, stop and document the compatibility decision.
+6. No dynamic dependency selectors (for example `9.5.+`) are allowed.
 
 ## Official references
 
-- Compose November 2026 stable release and BOM requirements: https://developer.android.com/blog/posts/jetpack-compose-november-2026-release
+- Compose stable release and API-level requirements: https://developer.android.com/jetpack/androidx/releases/compose
+- Compose BOM mapping: https://developer.android.com/develop/ui/compose/bom
 - AGP 9.5 / Gradle 9.6 compatibility: https://developer.android.com/build/releases/about-agp
 - Kotlin 2.4.21 release: https://kotlinlang.org/docs/releases.html
 - Room 2.8.5 and KSP compiler setup: https://developer.android.com/jetpack/androidx/releases/room
