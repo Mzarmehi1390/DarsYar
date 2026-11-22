@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.mzarmehi1390.darsyar.feature.planner"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig { minSdk = 23 }
     buildFeatures { compose = true }
 }
