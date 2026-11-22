@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.mzarmehi1390.darsyar.core.database"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig { minSdk = 23 }
 }
 
