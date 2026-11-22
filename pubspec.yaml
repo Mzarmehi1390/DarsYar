@@ -28,7 +28,7 @@ flutter_launcher_icons:
   image_path: assets/branding/darsyar_launcher.jpg
   remove_alpha_ios: true
   adaptive_icon_background: "#176BD3"
-  adaptive_icon_foreground: assets/branding/darsyar_adaptive_foreground.png
+  adaptive_icon_foreground: assets/branding/darsyar_launcher.jpg
   web:
     generate: true
     image_path: assets/branding/darsyar_launcher.jpg
