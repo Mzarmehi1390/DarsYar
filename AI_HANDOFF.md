@@ -65,7 +65,7 @@ The first two documents describe the native migration baseline. The existing red
 
 ## Important unresolved decisions
 
-- Confirm compileSdk 37.1 compatibility required by Compose BOM 2026.11.01; current project uses compileSdk 37 pending CI validation.
+- Standard SDK package feed did not expose API 37 to the GitHub runner. The baseline was adjusted to compileSdk 36 and stable Compose BOM 2026.06.01 (Compose 1.11.x); revisit API 37 after it is available and supported.
 - Confirm exact legacy Android SharedPreferences file/key representation from the locked plugin and a real installation.
 - Confirm release keystore continuity for in-place updates.
 - Prove AGSL backdrop sampling architecture on supported Android versions.
