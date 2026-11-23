@@ -15,6 +15,9 @@ interface ExamSheetDao {
     @Query("SELECT * FROM exam_sheets WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): ExamSheetEntity?
 
+    @Query("SELECT COUNT(*) FROM exam_sheets WHERE name = :name")
+    suspend fun countByName(name: String): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<ExamSheetEntity>)
 

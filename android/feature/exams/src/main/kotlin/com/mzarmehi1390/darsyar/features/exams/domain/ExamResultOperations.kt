@@ -55,27 +55,44 @@ object ExamResultOperations {
         )
     }
 
-    /** Updates only results belonging to this sheet, including legacy name links. */
+    /**
+     * Updates results linked by ID and, only when explicitly safe, legacy
+     * rows linked by name. Duplicate sheet names make name-only links ambiguous.
+     */
     fun synchronizeAnswerKey(
         results: List<ExamResult>,
         sheet: ExamSheet,
+        includeLegacyNameLinks: Boolean = true,
     ): List<ExamResult> = results.map { result ->
-        if (belongsTo(result, sheet)) recalculate(result, sheet.answerKey) else result
+        if (belongsTo(result, sheet, includeLegacyNameLinks)) {
+            recalculate(result, sheet.answerKey)
+        } else {
+            result
+        }
     }
 
-    /** Mirrors a sheet rename in its historical rows without changing score data. */
+    /**
+     * Mirrors a rename in linked history without changing score data.
+     * Name-only legacy rows are changed only when the caller has established
+     * that the old sheet name uniquely identifies this sheet.
+     */
     fun synchronizeName(
         results: List<ExamResult>,
         sheetId: String,
         previousName: String,
         newName: String,
+        includeLegacyNameLinks: Boolean = true,
     ): List<ExamResult> = results.map { result ->
         if (result.examId == sheetId ||
-            (result.examId == null && result.examName == previousName)
+            (includeLegacyNameLinks && result.examId == null && result.examName == previousName)
         ) result.copy(examName = newName) else result
     }
 
-    private fun belongsTo(result: ExamResult, sheet: ExamSheet): Boolean =
+    private fun belongsTo(
+        result: ExamResult,
+        sheet: ExamSheet,
+        includeLegacyNameLinks: Boolean,
+    ): Boolean =
         result.examId == sheet.id ||
-            (result.examId == null && result.examName == sheet.name)
+            (includeLegacyNameLinks && result.examId == null && result.examName == sheet.name)
 }

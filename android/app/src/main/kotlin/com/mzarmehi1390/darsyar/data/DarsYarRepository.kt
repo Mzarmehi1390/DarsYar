@@ -55,26 +55,35 @@ class DarsYarRepository @Inject constructor(
 
     /**
      * Persists a sheet edit and synchronizes linked historical result names and
-     * score snapshots in the same transaction. An unrelated sheet's history
-     * is never recalculated.
+     * score snapshots in the same transaction. Name-only legacy links are
+     * synchronized only when the old name identifies exactly one sheet.
      */
     suspend fun upsertExamSheet(sheet: ExamSheet) {
         database.withTransaction {
             val previous = database.examSheetDao().findById(sheet.id)?.toDomain()
             val existingResults = database.examResultDao().getAll().map { it.toDomain() }
             var synchronized = existingResults
-            // Rename legacy name-linked rows first so answer-key synchronization
-            // can still identify those rows after the sheet's name has changed.
+            val legacyNameIsUnique = previous?.let {
+                database.examSheetDao().countByName(it.name) == 1
+            } ?: false
+
+            // Rename legacy rows before key synchronization so the latter can
+            // still match them by the sheet's new name.
             if (previous != null && previous.name != sheet.name) {
                 synchronized = ExamResultOperations.synchronizeName(
-                    synchronized,
-                    sheet.id,
-                    previous.name,
-                    sheet.name,
+                    results = synchronized,
+                    sheetId = sheet.id,
+                    previousName = previous.name,
+                    newName = sheet.name,
+                    includeLegacyNameLinks = legacyNameIsUnique,
                 )
             }
             if (previous != null && previous.answerKey != sheet.answerKey) {
-                synchronized = ExamResultOperations.synchronizeAnswerKey(synchronized, sheet)
+                synchronized = ExamResultOperations.synchronizeAnswerKey(
+                    results = synchronized,
+                    sheet = sheet,
+                    includeLegacyNameLinks = legacyNameIsUnique,
+                )
             }
             database.examSheetDao().upsertAll(listOf(sheet.toEntity()))
             if (synchronized != existingResults) {
@@ -106,7 +115,13 @@ class DarsYarRepository @Inject constructor(
     suspend fun deleteExamSheet(id: String): Boolean = database.withTransaction {
         val sheet = database.examSheetDao().findById(id) ?: return@withTransaction false
         if (database.examSheetDao().count() <= 1) return@withTransaction false
-        database.examResultDao().deleteForExam(sheet.id, sheet.name)
+
+        // ID-linked history is always safe to remove. Legacy name-only history
+        // is removed only if this name currently resolves to one sheet.
+        database.examResultDao().deleteByExamId(sheet.id)
+        if (database.examSheetDao().countByName(sheet.name) == 1) {
+            database.examResultDao().deleteLegacyByName(sheet.name)
+        }
         database.examSheetDao().deleteById(sheet.id)
         true
     }

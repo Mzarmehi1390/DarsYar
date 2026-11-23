@@ -154,6 +154,77 @@ class DarsYarRepositoryTest {
     }
 
     @Test
+    fun duplicateSheetNames_doNotRenameOrRecalculateAmbiguousLegacyHistory() = runBlocking {
+        val first = ExamSheet(
+            id = "exam-1",
+            name = "Shared name",
+            questionCount = 1,
+            answerKey = mapOf(1 to 0),
+        )
+        repository.upsertExamSheet(first)
+        repository.upsertExamSheet(first.copy(id = "exam-2"))
+
+        val legacy = ExamResult(
+            id = "legacy-result",
+            examId = null,
+            examName = "Shared name",
+            completedAt = "2026-11-22T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+            answers = mapOf(1 to 0),
+            answerKey = mapOf(1 to 0),
+        )
+        database.examResultDao().upsertAll(listOf(legacy.toEntity()))
+
+        repository.upsertExamSheet(
+            first.copy(
+                name = "Renamed first",
+                answerKey = mapOf(1 to 1),
+            ),
+        )
+
+        val persisted = database.examResultDao().findById("legacy-result")?.toDomain()
+        assertEquals("Shared name", persisted?.examName)
+        assertEquals(1, persisted?.correct)
+        assertEquals(0, persisted?.wrong)
+        assertEquals(100.0, persisted?.percentage ?: -1.0, 0.001)
+        assertEquals(mapOf(1 to 0), persisted?.answerKey)
+    }
+
+    @Test
+    fun deletingOneOfDuplicateNamedSheets_preservesAmbiguousLegacyHistory() = runBlocking {
+        val first = ExamSheet(id = "exam-1", name = "Duplicate")
+        repository.upsertExamSheet(first)
+        repository.upsertExamSheet(ExamSheet(id = "exam-2", name = "Duplicate"))
+        repository.completeExam(first.id, "linked-result", "2026-11-23T12:00:00Z")
+
+        val legacy = ExamResult(
+            id = "legacy-result",
+            examId = null,
+            examName = "Duplicate",
+            completedAt = "2026-11-22T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+            answers = mapOf(1 to 0),
+            answerKey = mapOf(1 to 0),
+        )
+        database.examResultDao().upsertAll(listOf(legacy.toEntity()))
+
+        assertTrue(repository.deleteExamSheet(first.id))
+        assertNull(database.examResultDao().findById("linked-result"))
+        assertNotNull(database.examResultDao().findById("legacy-result"))
+        assertNotNull(database.examSheetDao().findById("exam-2"))
+    }
+
+    @Test
     fun deletingSheet_removesItsHistoryAndProtectsLastSheet() = runBlocking {
         repository.upsertExamSheet(ExamSheet(id = "exam-1", name = "First"))
         repository.upsertExamSheet(ExamSheet(id = "exam-2", name = "Second"))
