@@ -60,14 +60,14 @@ The first two documents describe the native migration baseline. The existing red
 
 - Phase 1 — Repository audit: initial audit and inventory documented in `docs/NATIVE_REBUILD_AUDIT.md` and `docs/FEATURE_INVENTORY.md`.
 - Phase 2 — Architecture and technical design: proposal documented in `docs/ARCHITECTURE.md`, `docs/MODULES.md`, `docs/DATA_MIGRATION.md` and `docs/LIQUID_GLASS_ENGINE.md`.
-- Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preference migration, typed domain models, entity mappers, transactional repository and scoring/planner/task domain logic are present. CI has exposed and helped correct several issues: AGP 9 built-in Kotlin plugin conflict, unavailable Lifecycle 2.12.0 version, DataStore migration API usage, and a missing Room DAO import. Latest CI run for `eada5b32` is still in progress; no successful full build is claimed.
+- Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preference migration, typed domain models, entity mappers, transactional repository and initial scoring/planner/task/session rules are present. CI has exposed and helped correct several issues: AGP 9 built-in Kotlin plugin conflict, unavailable Lifecycle 2.12.0 stable version, DataStore migration API usage, a missing Room DAO import, a scoring-test expectation mismatch, and a compileSdk mismatch caused by Lifecycle 2.11.1 requiring API 37. All Android modules now compile against API 37; app targetSdk remains 36. The workflow installs Android SDK Platform 37.0 and Build Tools 37.0.0. Latest run must be checked before claiming a green build.
 - Phase 4 — Liquid Glass: not started; rendering approach remains documented only.
 - Phase 5 — Core data/business logic: initial Room and DataStore foundations plus exam scoring and planner/task rules are present; legacy user-data import and backup codec remain outstanding.
 - Phases 6–10: feature screens, full test suite, device profiling and release artifacts remain outstanding.
 
 ## Important unresolved decisions
 
-- Standard SDK package feed did not expose API 37 to the GitHub runner. The baseline was adjusted to compileSdk 36 and stable Compose BOM 2026.06.01 (Compose 1.11.x); revisit API 37 after it is available and supported.
+- AndroidX Lifecycle 2.11.1 requires compileSdk 37. The project and CI are now pinned to API 37.0 / Build Tools 37.0.0; targetSdk intentionally remains 36 until Android 17 behavior changes are separately reviewed and tested.
 - Verify the assumed `FlutterSharedPreferences` file and `flutter.` key prefix against the exact locked plugin and a real installed Flutter build before enabling user-data import. The DataStore preference migration currently targets the conventional theme/animation keys but is not yet device-verified.
 - Implement transactional one-time import of tasks, sessions, exam sheets, results and active sheet into Room; keep the legacy file untouched until parity is verified.
 - Confirm release keystore continuity for in-place updates.
