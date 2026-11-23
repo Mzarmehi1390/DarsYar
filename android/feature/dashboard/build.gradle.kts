@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.mzarmehi1390.darsyar.feature.dashboard"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig { minSdk = 23 }
     buildFeatures { compose = true }
 }
