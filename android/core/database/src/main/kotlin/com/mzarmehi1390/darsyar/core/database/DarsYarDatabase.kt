@@ -2,6 +2,7 @@ package com.mzarmehi1390.darsyar.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.mzarmehi1390.darsyar.core.database.dao.AppStateDao
 import com.mzarmehi1390.darsyar.core.database.dao.ExamResultDao
 import com.mzarmehi1390.darsyar.core.database.dao.ExamSheetDao
 import com.mzarmehi1390.darsyar.core.database.dao.StudySessionDao
