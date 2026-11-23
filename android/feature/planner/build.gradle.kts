@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.mzarmehi1390.darsyar.feature.planner"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig { minSdk = 23 }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
