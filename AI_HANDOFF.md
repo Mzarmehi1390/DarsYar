@@ -60,16 +60,18 @@ The first two documents describe the native migration baseline. The existing red
 
 - Phase 1 — Repository audit: initial audit and inventory documented in `docs/NATIVE_REBUILD_AUDIT.md` and `docs/FEATURE_INVENTORY.md`.
 - Phase 2 — Architecture and technical design: proposal documented in `docs/ARCHITECTURE.md`, `docs/MODULES.md`, `docs/DATA_MIGRATION.md` and `docs/LIQUID_GLASS_ENGINE.md`.
-- Phase 3 — Native project foundation: Gradle project, version catalog, 10 modules, Compose entry point, Hilt application, native CI workflow and build/test/performance docs added. First CI attempt failed during Android SDK action bootstrap; workflow was corrected to install SDK packages directly. A successful Gradle build is still pending.
-- Phases 4–10: not started.
+- Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preferences repository, typed domain models, entity mappers, transactional repository and initial scoring tests are present. Build has progressed past Gradle configuration and dependency resolution; recent CI failures exposed and corrected the obsolete Kotlin Android plugin, unavailable Lifecycle 2.12.0 artifact, DataStore migration API usage and a missing Room DAO import. The latest run for `d3f4e0c5` is still in progress; no successful full build is claimed yet.
+- Phase 4 — Liquid Glass: not started; rendering approach remains documented only.
+- Phases 5–10 — partial data foundation only; legacy collection import, feature screens, full test suite, device profiling and release artifacts remain outstanding.
 
 ## Important unresolved decisions
 
 - Standard SDK package feed did not expose API 37 to the GitHub runner. The baseline was adjusted to compileSdk 36 and stable Compose BOM 2026.06.01 (Compose 1.11.x); revisit API 37 after it is available and supported.
-- Confirm exact legacy Android SharedPreferences file/key representation from the locked plugin and a real installation.
+- Verify the assumed `FlutterSharedPreferences` file and `flutter.` key prefix against the exact locked plugin and a real installed Flutter build before enabling user-data import. The DataStore preference migration currently targets the conventional theme/animation keys but is not yet device-verified.
+- Implement transactional one-time import of tasks, sessions, exam sheets, results and active sheet into Room; keep the legacy file untouched until parity is verified.
 - Confirm release keystore continuity for in-place updates.
 - Prove AGSL backdrop sampling architecture on supported Android versions.
-- Validate final module graph and Room schema against implementation constraints.
+- Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
 

@@ -1,6 +1,6 @@
 # DarsYar Data Migration Plan
 
-> Design document only. The native importer is not implemented yet. Treat every migration step as release-blocking.
+> Partially implemented. Room schema and preference migration code exist; transactional import of Flutter task/session/exam/result collections is not implemented. Treat user-data migration as release-blocking.
 
 ## 1. Data sources
 
@@ -22,13 +22,17 @@ Logical keys used by Dart:
 | `darsyar.themeMode` | system/light/dark | DataStore |
 | `darsyar.animationsEnabled` | boolean | DataStore |
 
-### Android key representation must be verified
+### Android key representation — verification still required
 
-The Android SharedPreferences plugin commonly uses a preferences file named `FlutterSharedPreferences` and prefixes logical keys with `flutter.`. The migration implementation must inspect the exact locked `shared_preferences_android` package source/version and confirm the actual file and raw key names from a real installed build before relying on them.
+The current DataStore preferences adapter targets the conventional Android SharedPreferences file `FlutterSharedPreferences` and raw keys `flutter.darsyar.themeMode` and `flutter.darsyar.animationsEnabled`. This mapping has not yet been verified against the exact locked `shared_preferences_android` package source or a real installed build. Do not rely on it for a release until verified.
 
-Do not delete or rewrite the legacy preferences during the initial migration.
+The current DataStore migration only handles theme mode and animation preference. It does not import task, session, exam or result collections. No legacy user-data key is deleted by the Room layer. Keep all legacy data intact.
 
-## 2. Room schema proposal
+## 2. Room schema
+
+Implemented baseline currently uses `study_tasks`, `study_sessions`, `exam_sheets`, `exam_results` and singleton `app_state` tables. Task/session dates are retained as ISO local-date strings. Exam answer maps, answer-key maps and marked-question sets are stored as bounded JSON columns in `exam_sheets`; historical result answer/key snapshots are also JSON columns. This is a pragmatic initial storage shape, not a final performance claim. Exported schema JSON and a tested migration importer are still required.
+
+The detailed normalized child-table proposal below remains a future design option, not a description of the current schema.
 
 ### `study_tasks`
 - `id TEXT PRIMARY KEY`
@@ -101,6 +105,8 @@ Do not delete or rewrite the legacy preferences during the initial migration.
 - Preserve original ISO date and timestamp parsing semantics with fixture tests.
 
 ## 3. One-time migration algorithm
+
+Implementation status: not yet implemented for feature collections. The algorithm below is the required acceptance contract.
 
 1. Open native database and inspect migration metadata.
 2. If migration marker is complete, do not read or re-import Flutter data.

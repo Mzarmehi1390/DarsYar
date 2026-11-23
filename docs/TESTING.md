@@ -1,11 +1,12 @@
 # Native Android Testing Strategy
 
-> Strategy and initial CI contract. Tests are added alongside the implementation; no broad native feature test coverage is claimed yet.
+> Strategy and initial CI contract. A first pure Kotlin exam-scoring test suite has been added; broad native feature coverage is not yet available.
 
 ## Test layers
 
 ### Pure Kotlin unit tests
-- Exam scoring: keyed/unkeyed questions, unanswered questions, negative marking, clamping, no-key result.
+- Exam scoring (initial suite added in `feature/exams/src/test/.../AnswerScoringTest.kt`): unkeyed denominator, one-third negative marking, no-key result, invalid answer filtering and lower-bound clamping.
+- Remaining domain tests: keyed/unkeyed questions, unanswered questions, negative marking, clamping, no-key result.
 - Exam sheet operations: create, rename, resize, answer/mark transitions, delete guards.
 - Timer: start, pause, resume, deadline expiry, zero-duration and process recreation contract.
 - Planner calendar: Saturday-Friday boundaries, weekday compatibility, date-only normalization and leap dates.
