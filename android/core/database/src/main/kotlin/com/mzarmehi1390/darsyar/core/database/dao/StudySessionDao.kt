@@ -15,6 +15,9 @@ interface StudySessionDao {
     @Query("SELECT * FROM study_sessions WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): StudySessionEntity?
 
+    @Query("SELECT COUNT(*) FROM study_sessions")
+    suspend fun count(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<StudySessionEntity>)
 
