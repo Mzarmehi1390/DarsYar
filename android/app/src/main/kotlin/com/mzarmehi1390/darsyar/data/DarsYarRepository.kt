@@ -3,6 +3,7 @@ package com.mzarmehi1390.darsyar.data
 import androidx.room.withTransaction
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.core.database.entity.AppStateEntity
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamResultOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
@@ -52,15 +53,51 @@ class DarsYarRepository @Inject constructor(
         database.studySessionDao().deleteById(id)
     }
 
+    /**
+     * Persists a sheet edit and synchronizes linked historical result names and
+     * score snapshots in the same transaction. An unrelated sheet's history
+     * is never recalculated.
+     */
     suspend fun upsertExamSheet(sheet: ExamSheet) {
-        database.examSheetDao().upsertAll(listOf(sheet.toEntity()))
+        database.withTransaction {
+            val previous = database.examSheetDao().findById(sheet.id)?.toDomain()
+            val existingResults = database.examResultDao().getAll().map { it.toDomain() }
+            var synchronized = existingResults
+            if (previous != null && previous.answerKey != sheet.answerKey) {
+                synchronized = ExamResultOperations.synchronizeAnswerKey(synchronized, sheet)
+            }
+            if (previous != null && previous.name != sheet.name) {
+                synchronized = ExamResultOperations.synchronizeName(
+                    synchronized,
+                    sheet.id,
+                    previous.name,
+                    sheet.name,
+                )
+            }
+            database.examSheetDao().upsertAll(listOf(sheet.toEntity()))
+            if (synchronized != existingResults) {
+                database.examResultDao().upsertAll(synchronized.map { it.toEntity() })
+            }
+        }
     }
 
-    suspend fun upsertExamResult(result: ExamResult) {
+    /** Completes the attempt and records its immutable score snapshot atomically. */
+    suspend fun completeExam(
+        sheetId: String,
+        resultId: String,
+        completedAt: String,
+    ): ExamResult? = database.withTransaction {
+        val sheetEntity = database.examSheetDao().findById(sheetId)
+            ?: return@withTransaction null
+        val sheet = sheetEntity.toDomain()
+        val result = ExamResultOperations.create(sheet, resultId, completedAt)
+        database.examSheetDao().upsertAll(
+            listOf(sheet.copy(isCompleted = true).toEntity()),
+        )
         database.examResultDao().upsertAll(listOf(result.toEntity()))
+        result
     }
 
-    /** Prevents deleting the final answer sheet and removes its linked history atomically. */
     suspend fun deleteExamSheet(id: String): Boolean = database.withTransaction {
         val sheet = database.examSheetDao().findById(id) ?: return@withTransaction false
         if (database.examSheetDao().count() <= 1) return@withTransaction false
