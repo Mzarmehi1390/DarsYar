@@ -13,8 +13,6 @@ import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,7 +49,6 @@ class ExamViewModel @Inject constructor(
     private val actionError = MutableStateFlow<String?>(null)
     private val takingState = MutableStateFlow(ExamTakingState())
     internal var nowEpochMillis: () -> Long = System::currentTimeMillis
-    private var timerJob: Job? = null
     private var restoredExamId: String? = null
 
     val uiState: StateFlow<ExamUiState> = combine(
@@ -154,7 +151,6 @@ class ExamViewModel @Inject constructor(
         takingState.value = restored
         restoredExamId = examId
         persistTakingState()
-        if (restored.isTaking) startTicker()
     }
 
     fun selectQuestion(number: Int) {
@@ -165,33 +161,25 @@ class ExamViewModel @Inject constructor(
 
     fun pauseExam() {
         takingState.update { ExamTakingOperations.pause(it, nowEpochMillis()) }
-        stopTicker()
         viewModelScope.launch { persistTakingState() }
     }
 
     fun resumeExam() {
         takingState.update { ExamTakingOperations.resume(it, nowEpochMillis()) }
-        viewModelScope.launch { persistTakingState(); startTicker() }
+        viewModelScope.launch { persistTakingState() }
     }
 
-    private fun startTicker() {
-        if (timerJob?.isActive == true) return
-        timerJob = viewModelScope.launch {
-            while (takingState.value.isTaking) {
-                val tick = ExamTakingOperations.tick(takingState.value, nowEpochMillis())
-                takingState.value = tick.state
-                if (tick.expired) {
-                    persistTakingState()
-                    break
-                }
-                delay(250)
-            }
-        }
-    }
-
-    private fun stopTicker() {
-        timerJob?.cancel()
-        timerJob = null
+    /**
+     * Refreshes the deadline-derived timer while the exam UI is visible.
+     * The persisted deadline remains authoritative while the UI is backgrounded.
+     * Avoiding a perpetual ViewModel coroutine keeps coroutine-test schedulers idle.
+     */
+    fun refreshTimer() {
+        val current = takingState.value
+        if (!current.isTaking || current.isFinishing) return
+        val tick = ExamTakingOperations.tick(current, nowEpochMillis())
+        if (tick.state != current) takingState.value = tick.state
+        if (tick.expired) viewModelScope.launch { persistTakingState() }
     }
 
     private suspend fun persistTakingState(): Boolean {
@@ -213,7 +201,6 @@ class ExamViewModel @Inject constructor(
             try {
                 repository.clearActiveExam(sheetId)
                 if (sheetId == null || takingState.value.examId == sheetId) {
-                    stopTicker()
                     takingState.value = ExamTakingState()
                     restoredExamId = null
                 }
@@ -240,7 +227,6 @@ class ExamViewModel @Inject constructor(
             try {
                 val result = repository.completeExam(sheetId, resultId, completedAt)
                 if (result != null && takingState.value.examId == sheetId) {
-                    stopTicker()
                     takingState.value = ExamTakingState()
                     restoredExamId = null
                 }
@@ -267,7 +253,6 @@ class ExamViewModel @Inject constructor(
             try {
                 val deleted = repository.deleteExamSheet(id)
                 if (deleted && takingState.value.examId == id) {
-                    stopTicker()
                     takingState.value = ExamTakingState()
                     restoredExamId = null
                 }

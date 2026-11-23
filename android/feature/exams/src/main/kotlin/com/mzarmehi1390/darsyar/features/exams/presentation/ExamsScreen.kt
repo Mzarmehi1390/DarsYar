@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.util.UUID
 
 @Composable
@@ -48,6 +49,15 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var showAddSheet by remember { mutableStateOf(false) }
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
+
+    LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
+        if (takingSheet != null && state.takingState.isTaking) {
+            while (true) {
+                delay(1_000)
+                viewModel.refreshTimer()
+            }
+        }
+    }
 
     LaunchedEffect(state.activeExamId, state.isLoading) {
         val activeId = state.activeExamId
@@ -183,6 +193,9 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     takingSheet?.let { sheet ->
         ExamTakingDialog(
             sheet = sheet,
+            takingState = state.takingState,
+            onPause = viewModel::pauseExam,
+            onResume = viewModel::resumeExam,
             onDismiss = { takingSheet = null },
             onDraftChanged = { updated -> viewModel.saveSheet(updated) },
             onFinish = { updated ->
@@ -262,6 +275,9 @@ private fun ExamActionResult.toMessage(): String = when (this) {
 @Composable
 private fun ExamTakingDialog(
     sheet: ExamSheet,
+    takingState: com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onDismiss: () -> Unit,
     onDraftChanged: (ExamSheet) -> Unit,
     onFinish: (ExamSheet) -> Unit,
@@ -275,11 +291,32 @@ private fun ExamTakingDialog(
     val answeredCount = answers.size
     val unansweredCount = (sheet.questionCount - answeredCount).coerceAtLeast(0)
 
+    LaunchedEffect(takingState.isFinishing) {
+        if (takingState.isFinishing) showFinishConfirmation = true
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(sheet.name, style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val totalSeconds = takingState.remainingSeconds.coerceAtLeast(0)
+                    val minutes = totalSeconds / 60
+                    val seconds = totalSeconds % 60
+                    Text(
+                        "زمان باقی‌مانده: %02d:%02d".format(minutes, seconds),
+                        color = if (totalSeconds <= 60) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    TextButton(onClick = if (takingState.isTaking) onPause else onResume) {
+                        Text(if (takingState.isTaking) "توقف موقت" else "ادامهٔ زمان")
+                    }
+                }
                 Text(
                     "${answeredCount} پاسخ ثبت‌شده · ${unansweredCount} بی‌پاسخ · ${marked.size} علامت‌دار",
                     style = MaterialTheme.typography.bodySmall,

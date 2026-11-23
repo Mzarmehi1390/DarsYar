@@ -205,6 +205,71 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun startExam_newSessionPersistsDeadline() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 120)))
+        val viewModel = ExamViewModel(repository)
+        viewModel.nowEpochMillis = { 1_000_000L }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        assertEquals(1_120_000L, repository.examSession.value?.deadlineEpochMillis)
+        assertEquals(false, repository.examSession.value?.isPaused)
+    }
+
+    @Test
+    fun pauseAndResumePersistDeadlineDerivedRemainingTime() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 120)))
+        val viewModel = ExamViewModel(repository)
+        var now = 1_000_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        now += 25_000L
+        viewModel.pauseExam()
+        advanceUntilIdle()
+        assertEquals(95, repository.examSession.value?.remainingSeconds)
+        assertEquals(null, repository.examSession.value?.deadlineEpochMillis)
+        assertEquals(true, repository.examSession.value?.isPaused)
+        now += 10_000L
+        viewModel.resumeExam()
+        advanceUntilIdle()
+        assertEquals(now + 95_000L, repository.examSession.value?.deadlineEpochMillis)
+        assertEquals(false, repository.examSession.value?.isPaused)
+    }
+
+    @Test
+    fun refreshTimer_marksExpiredSessionOnce() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 10)))
+        val viewModel = ExamViewModel(repository)
+        var now = 5_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        now += 10_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+        assertEquals(false, viewModel.uiState.value.takingState.isTaking)
+        assertEquals(true, viewModel.uiState.value.takingState.isFinishing)
+        assertEquals(0, repository.examSession.value?.remainingSeconds)
+        val expiredSnapshot = repository.examSession.value
+        now += 5_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+        assertEquals(expiredSnapshot, repository.examSession.value)
+    }
+
+    @Test
+    fun selectQuestion_persistsCurrentQuestion() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)))
+        val viewModel = ExamViewModel(repository)
+        viewModel.nowEpochMillis = { 10_000L }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        viewModel.selectQuestion(6)
+        advanceUntilIdle()
+        assertEquals(6, repository.examSession.value?.currentQuestionNumber)
+    }
+
+    @Test
     fun saveExamSession_rejectsInactiveExamAndOutOfRangeQuestion() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(
             initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5)),
