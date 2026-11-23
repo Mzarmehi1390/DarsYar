@@ -137,4 +137,19 @@ class LegacyPreferencesImporterTest {
         assertEquals(null, database.studyTaskDao().findById("legacy-task"))
         assertTrue(database.appStateDao().get()?.legacyImportCompleted == true)
     }
+    @Test
+    fun recalculatesPercentageWhenLegacyValueIsMissingOrInvalid() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.results",
+                """[{"id":"missing-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0},{"id":"invalid-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0,"percentage":"invalid","negativeMarking":true}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        val results = database.examResultDao().getAll().associateBy { it.id }
+        assertEquals(200.0 / 3.0, results["missing-percentage"]?.percentage!!, 0.0001)
+        assertEquals(100.0 / 3.0, results["invalid-percentage"]?.percentage!!, 0.0001)
+    }
+
 }
