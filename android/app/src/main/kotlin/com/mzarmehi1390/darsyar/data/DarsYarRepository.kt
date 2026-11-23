@@ -143,6 +143,10 @@ class DarsYarRepository @Inject constructor(
     override suspend fun setActiveExam(id: String): Boolean = database.withTransaction {
         if (database.examSheetDao().findById(id) == null) return@withTransaction false
         val current = database.appStateDao().get()
+        // Re-selecting the current exam is a resume/navigation action, not a new session.
+        // Preserve its durable timer and question progress in that case.
+        if (current?.activeExamId == id) return@withTransaction true
+
         database.appStateDao().upsert(
             (current ?: AppStateEntity(
                 activeExamId = null,

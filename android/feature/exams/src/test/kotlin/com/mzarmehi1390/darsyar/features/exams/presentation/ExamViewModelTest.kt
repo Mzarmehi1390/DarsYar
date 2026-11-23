@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar.features.exams.presentation
 
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamRepository
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.Dispatchers
@@ -176,6 +177,46 @@ class ExamViewModelTest {
         stateJob.cancel()
     }
 
+    @Test
+    fun startExam_sameExamPreservesPersistedSession() = runTest(mainDispatcher) {
+        val sheet = ExamSheet(id = "exam-1", name = "آزمون ریاضی", questionCount = 12)
+        val repository = FakeExamRepository(initialSheets = listOf(sheet))
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        val saved = ExamSessionSnapshot(
+            examId = "exam-1",
+            currentQuestionNumber = 7,
+            deadlineEpochMillis = 1_800_000_000_000,
+            remainingSeconds = 900,
+            isPaused = false,
+        )
+        assertTrue(repository.saveExamSession(saved))
+
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        assertEquals(saved, repository.examSession.value)
+        stateJob.cancel()
+    }
+
+    @Test
+    fun saveExamSession_rejectsInactiveExamAndOutOfRangeQuestion() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5)),
+        )
+        repository.setActiveExam("exam-1")
+        val inactive = ExamSessionSnapshot("other", 1, null, 0, true)
+        val invalidQuestion = ExamSessionSnapshot("exam-1", 6, null, 0, true)
+
+        assertEquals(false, repository.saveExamSession(inactive))
+        assertEquals(false, repository.saveExamSession(invalidQuestion))
+    }
+
     private class FakeExamRepository(
         initialSheets: List<ExamSheet> = emptyList(),
         private val completion: ExamResult? = null,
@@ -188,14 +229,35 @@ class ExamViewModelTest {
         override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
         private val activeExam = MutableStateFlow<String?>(null)
+        private val examSession = MutableStateFlow<ExamSessionSnapshot?>(null)
         override fun observeActiveExamId(): Flow<String?> = activeExam.asStateFlow()
+        override fun observeExamSession(): Flow<ExamSessionSnapshot?> = examSession.asStateFlow()
         override suspend fun setActiveExam(id: String): Boolean {
             if (sheets.value.none { it.id == id }) return false
-            activeExam.value = id
+            if (activeExam.value != id) {
+                activeExam.value = id
+                examSession.value = ExamSessionSnapshot(
+                    examId = id,
+                    currentQuestionNumber = 1,
+                    deadlineEpochMillis = null,
+                    remainingSeconds = 0,
+                    isPaused = true,
+                )
+            }
+            return true
+        }
+        override suspend fun saveExamSession(session: ExamSessionSnapshot): Boolean {
+            val sheet = sheets.value.firstOrNull { it.id == session.examId } ?: return false
+            if (activeExam.value != session.examId) return false
+            if (session.currentQuestionNumber !in 1..sheet.questionCount) return false
+            examSession.value = session
             return true
         }
         override suspend fun clearActiveExam(id: String?) {
-            if (id == null || activeExam.value == id) activeExam.value = null
+            if (id == null || activeExam.value == id) {
+                activeExam.value = null
+                examSession.value = null
+            }
         }
 
         override suspend fun upsertExamSheet(sheet: ExamSheet) {
