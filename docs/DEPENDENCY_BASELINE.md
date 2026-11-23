@@ -18,7 +18,7 @@
 | Library | Pinned version | Notes |
 |---|---:|---|
 | Compose BOM | 2026.06.01 | Stable Compose 1.11.x line compatible with API 36 |
-| Navigation Compose | 2.10.2 | Stable Navigation 2.10 line |
+| Navigation Compose | 2.9.8 | Keeps the API 23 minimum; Navigation 2.10 moved Android minSdk to API 24 |
 | Room | 2.8.5 | Stable release; use KSP compiler |
 | Preferences DataStore | 1.3.0 | Stable release |
 | Lifecycle | 2.11.1 | Stable release for lifecycle-aware Compose collection/ViewModel integration |
@@ -35,7 +35,7 @@
 
 Compose libraries are versioned through the BOM. Do not assign independent Compose versions unless a documented compatibility reason requires an override.
 
-## Why the initial build uses API 36
+## Navigation and minimum Android version\n\nNavigation 2.10 moved Android minSdk to API 24. DarsYar currently retains minSdk 23 to preserve the existing device-support contract, so the pinned Navigation Compose version is 2.9.8. Do not raise minSdk to 24 merely to accommodate a library upgrade without a separate product compatibility decision.\n\n## Why the initial build uses API 36
 
 The newest Compose 1.12/1.13 releases require compileSdk 37/37.1. The public Android SDK package feed available to the GitHub runner did not expose `platforms;android-37`; CI stopped before Gradle could run. To establish a reproducible native baseline, the initial build uses stable Compose 1.11.x with compileSdk 36, which is available in the runner. This is a deliberate compatibility choice, not a claim that newer Compose releases are unsuitable. Re-evaluate after API 37 is available in the standard SDK feed and AGP support is verified.
 
@@ -56,7 +56,7 @@ The newest Compose 1.12/1.13 releases require compileSdk 37/37.1. The public And
 - Kotlin 2.4.21 release: https://kotlinlang.org/docs/releases.html
 - Room 2.8.5 and KSP compiler setup: https://developer.android.com/jetpack/androidx/releases/room
 - DataStore 1.3.0: https://developer.android.com/jetpack/androidx/releases/datastore
-- Navigation 2.10.2: https://developer.android.com/jetpack/androidx/releases/navigation
+- Navigation 2.9.8: https://developer.android.com/jetpack/androidx/releases/navigation
 - KSP setup: https://kotlinlang.org/docs/ksp-quickstart.html
 - Dagger/Hilt releases: https://github.com/google/dagger/releases
 
