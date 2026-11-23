@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -96,7 +97,7 @@ class PlannerViewModelTest {
             existing.copy(
                 id = "session-2",
                 title = "مطالعه دوم",
-                startMinutes = 9 * 30 + 15,
+                startMinutes = 9 * 60 + 15,
                 durationMinutes = 45,
             ),
         ) { result = it }
