@@ -12,6 +12,9 @@ interface ExamResultDao {
     @Query("SELECT * FROM exam_results ORDER BY completedAt DESC, id")
     fun observeAll(): Flow<List<ExamResultEntity>>
 
+    @Query("SELECT * FROM exam_results")
+    suspend fun getAll(): List<ExamResultEntity>
+
     @Query("SELECT * FROM exam_results WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): ExamResultEntity?
 
