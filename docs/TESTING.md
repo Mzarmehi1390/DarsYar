@@ -9,8 +9,10 @@
 - Planner calendar/scheduling (initial suite added in `feature/planner/src/test/.../PlannerCalendarTest.kt`): Saturday week boundary, Dart weekday mapping, legacy session migration, date-aware overlap and next-week copy semantics.
 - Task operations (initial suite added in `feature/planner/src/test/.../TaskOperationsTest.kt`): default subject, incomplete new tasks, completion preservation on edit, and unknown-ID no-op.
 - Remaining domain tests: keyed/unkeyed questions, unanswered questions, negative marking, clamping, no-key result.
-- Exam sheet operations (initial suite added in `feature/exams/src/test/.../ExamSheetOperationsTest.kt`): creation bounds, rename preservation, resize cleanup, answer/review-mark transitions, invalid answer rejection and answer-key filtering. Delete guards and linked-history deletion are repository responsibilities and still need dedicated Room tests.
-- Timer: start, pause, resume, deadline expiry, zero-duration and process recreation contract.
+- Exam sheet operations (`ExamSheetOperationsTest.kt`): creation bounds, rename preservation, resize cleanup, answer/review-mark transitions, invalid answer rejection and answer-key filtering.
+- Exam-taking operations (`ExamTakingOperationsTest.kt`): bounded question navigation, start/reset behavior, injected-clock deadline calculation, pause/resume, expiry transition and duplicate finish/save guards.
+- Exam-result operations (`ExamResultOperationsTest.kt`): result snapshots, score recalculation after answer-key edits, null percentage for an empty key, synchronization of ID-linked and legacy name-linked results, and result-name updates.
+- Remaining timer coverage: zero-duration behavior, persisted process-recreation contract and clock-change behavior.
 - Planner calendar: Saturday-Friday boundaries, weekday compatibility, date-only normalization and leap dates.
 - Session overlap: adjacent sessions, same-day overlap, different dates, legacy weekday fallback.
 - Week/day copy: new IDs, due-date offsets, completion reset and conflict policy.
