@@ -240,6 +240,9 @@ class ExamViewModelTest {
     fun refreshTimer_marksExpiredSessionOnce() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 10)))
         val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
         var now = 5_000L
         viewModel.nowEpochMillis = { now }
         viewModel.startExam("exam-1")
@@ -256,6 +259,7 @@ class ExamViewModelTest {
         viewModel.refreshTimer()
         advanceUntilIdle()
         assertEquals(expiredSnapshot, repository.examSession.value)
+        stateJob.cancel()
     }
 
     @Test
