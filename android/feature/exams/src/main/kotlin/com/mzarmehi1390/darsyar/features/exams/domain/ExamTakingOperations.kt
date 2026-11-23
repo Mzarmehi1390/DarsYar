@@ -94,14 +94,16 @@ object ExamTakingOperations {
         return ExamTimerTick(state.copy(remainingSeconds = remaining), expired = false)
     }
 
+    /** Opens the manual finish confirmation without pausing the active countdown. */
     fun beginFinish(state: ExamTakingState): ExamTakingState? {
         if (!state.isTaking || state.isFinishing) return null
-        return state.copy(isFinishing = true, isTaking = false, deadlineEpochMillis = null)
+        return state.copy(isFinishing = true)
     }
 
+    /** Dismissing manual finish confirmation leaves the active exam and deadline intact. */
     fun cancelFinish(state: ExamTakingState): ExamTakingState =
-        if (state.examId == null || state.remainingSeconds <= 0) state
-        else state.copy(isFinishing = false, isTaking = false, deadlineEpochMillis = null)
+        if (!state.isTaking || !state.isFinishing) state
+        else state.copy(isFinishing = false)
 
     fun beginSavingResult(state: ExamTakingState): ExamTakingState? =
         if (!state.isFinishing || state.isSavingResult) null
