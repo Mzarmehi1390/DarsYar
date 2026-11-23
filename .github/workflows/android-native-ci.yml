@@ -1,9 +1,16 @@
 name: Native Android CI
 
+concurrency:
+  group: native-android-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches:
       - feat/native-android-rebuild
+    paths:
+      - 'android/**'
+      - '.github/workflows/android-native-ci.yml'
   pull_request:
     branches:
       - main
