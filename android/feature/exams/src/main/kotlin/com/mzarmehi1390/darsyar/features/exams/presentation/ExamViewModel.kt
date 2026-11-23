@@ -109,11 +109,19 @@ class ExamViewModel @Inject constructor(
             onResult(ExamActionResult.Invalid("شناسهٔ آزمون معتبر نیست"))
             return
         }
+        val knownSheets = uiState.value.sheets
+        val sheetExists = knownSheets.any { it.id == id }
+        val isLastKnownSheet = sheetExists && knownSheets.size == 1
         viewModelScope.launch {
             try {
                 val deleted = repository.deleteExamSheet(id)
                 actionError.update { null }
-                onResult(if (deleted) ExamActionResult.Success else ExamActionResult.CannotDeleteLastSheet)
+                val result = when {
+                    deleted -> ExamActionResult.Success
+                    isLastKnownSheet -> ExamActionResult.CannotDeleteLastSheet
+                    else -> ExamActionResult.SheetNotFound
+                }
+                onResult(result)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
