@@ -50,6 +50,7 @@ class ExamViewModel @Inject constructor(
     private val takingState = MutableStateFlow(ExamTakingState())
     internal var nowEpochMillis: () -> Long = System::currentTimeMillis
     private var restoredExamId: String? = null
+    private val completionInFlight = mutableSetOf<String>()
 
     val uiState: StateFlow<ExamUiState> = combine(
         repository.observeExamSheets(),
@@ -184,7 +185,12 @@ class ExamViewModel @Inject constructor(
         if (!current.isTaking || current.isFinishing) return
         val tick = ExamTakingOperations.tick(current, nowEpochMillis())
         if (tick.state != current) takingState.value = tick.state
-        if (tick.expired) viewModelScope.launch { persistTakingState() }
+        if (tick.expired) {
+            viewModelScope.launch {
+                persistTakingState()
+                completeExam(current.examId.orEmpty())
+            }
+        }
     }
 
     private suspend fun persistTakingState(): Boolean {
@@ -228,6 +234,7 @@ class ExamViewModel @Inject constructor(
             onResult(ExamActionResult.Invalid("اطلاعات ثبت نتیجهٔ آزمون معتبر نیست"))
             return
         }
+        if (!completionInFlight.add(sheetId)) return
         viewModelScope.launch {
             try {
                 val result = repository.completeExam(sheetId, resultId, completedAt)
@@ -242,6 +249,8 @@ class ExamViewModel @Inject constructor(
             } catch (failure: Throwable) {
                 actionError.update { failure.message ?: "ثبت نتیجهٔ آزمون با خطا روبه‌رو شد" }
                 onResult(ExamActionResult.Failure(failure))
+            } finally {
+                completionInFlight.remove(sheetId)
             }
         }
     }

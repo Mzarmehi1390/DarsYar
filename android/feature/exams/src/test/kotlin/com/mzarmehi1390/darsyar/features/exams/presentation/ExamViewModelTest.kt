@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -152,6 +153,35 @@ class ExamViewModelTest {
 
         assertEquals(ExamActionResult.Completed(expected), result)
         assertEquals("exam-1", repository.completedSheetId)
+    }
+
+    @Test
+    fun completeExam_ignoresConcurrentDuplicateSubmission() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-1",
+            examId = "exam-1",
+            examName = "آزمون ریاضی",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون ریاضی")),
+            completion = expected,
+        )
+        val viewModel = ExamViewModel(repository)
+        var callbacks = 0
+
+        viewModel.completeExam("exam-1", expected.completedAt, "result-1") { callbacks++ }
+        viewModel.completeExam("exam-1", expected.completedAt, "result-2") { callbacks++ }
+        advanceUntilIdle()
+
+        assertEquals(1, repository.completionCalls)
+        assertEquals(1, callbacks)
     }
 
     @Test
@@ -314,6 +344,7 @@ class ExamViewModelTest {
         private val results = MutableStateFlow<List<ExamResult>>(emptyList())
         val savedSheets = mutableListOf<ExamSheet>()
         var completedSheetId: String? = null
+        var completionCalls: Int = 0
 
         override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
@@ -359,6 +390,7 @@ class ExamViewModelTest {
             resultId: String,
             completedAt: String,
         ): ExamResult? {
+            completionCalls++
             completedSheetId = sheetId
             return completion
         }
