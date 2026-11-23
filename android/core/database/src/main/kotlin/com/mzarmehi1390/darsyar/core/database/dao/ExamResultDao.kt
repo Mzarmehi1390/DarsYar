@@ -21,6 +21,9 @@ interface ExamResultDao {
     @Query("DELETE FROM exam_results WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("DELETE FROM exam_results WHERE examId = :examId OR (examId IS NULL AND examName = :legacyName)")
+    suspend fun deleteForExam(examId: String, legacyName: String)
+
     @Query("DELETE FROM exam_results")
     suspend fun deleteAll()
 }

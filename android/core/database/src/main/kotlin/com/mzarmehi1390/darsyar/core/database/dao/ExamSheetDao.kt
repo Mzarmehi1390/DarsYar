@@ -21,6 +21,9 @@ interface ExamSheetDao {
     @Query("DELETE FROM exam_sheets WHERE id = :id")
     suspend fun deleteById(id: String)
 
+    @Query("SELECT COUNT(*) FROM exam_sheets")
+    suspend fun count(): Int
+
     @Query("DELETE FROM exam_sheets")
     suspend fun deleteAll()
 }
