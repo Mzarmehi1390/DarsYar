@@ -259,6 +259,25 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun refreshTimer_persistsExpiredDeadlineForProcessRestoration() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 10)),
+        )
+        val viewModel = ExamViewModel(repository)
+        var now = 5_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        now += 10_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+        val snapshot = repository.examSession.value
+        assertEquals(15_000L, snapshot?.deadlineEpochMillis)
+        assertEquals(0, snapshot?.remainingSeconds)
+        assertEquals(false, snapshot?.isPaused)
+    }
+
+    @Test
     fun selectQuestion_persistsCurrentQuestion() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)))
         val viewModel = ExamViewModel(repository)

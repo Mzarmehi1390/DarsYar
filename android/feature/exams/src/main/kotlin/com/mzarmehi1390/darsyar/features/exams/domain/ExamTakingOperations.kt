@@ -86,7 +86,8 @@ object ExamTakingOperations {
                     remainingSeconds = 0,
                     isTaking = false,
                     isFinishing = true,
-                    deadlineEpochMillis = null,
+                    // Retain the expired deadline so it can be recognized after process recreation.
+                    deadlineEpochMillis = state.deadlineEpochMillis,
                 ),
                 expired = true,
             )

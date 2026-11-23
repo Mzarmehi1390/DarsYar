@@ -154,9 +154,14 @@ class ExamViewModel @Inject constructor(
     }
 
     fun selectQuestion(number: Int) {
-        val sheet = uiState.value.sheets.firstOrNull { it.id == takingState.value.examId } ?: return
-        takingState.update { ExamTakingOperations.selectQuestion(it, number, sheet.questionCount) }
-        viewModelScope.launch { persistTakingState() }
+        viewModelScope.launch {
+            val current = takingState.value
+            val examId = current.examId ?: return@launch
+            val sheet = repository.observeExamSheets().first().firstOrNull { it.id == examId }
+                ?: return@launch
+            takingState.update { ExamTakingOperations.selectQuestion(it, number, sheet.questionCount) }
+            persistTakingState()
+        }
     }
 
     fun pauseExam() {
@@ -179,8 +184,7 @@ class ExamViewModel @Inject constructor(
         if (!current.isTaking || current.isFinishing) return
         val tick = ExamTakingOperations.tick(current, nowEpochMillis())
         if (tick.state != current) takingState.value = tick.state
-        // Keep the last persisted deadline: after process recreation it will still
-        // be recognized as expired instead of looking like a fresh paused session.
+        if (tick.expired) viewModelScope.launch { persistTakingState() }
     }
 
     private suspend fun persistTakingState(): Boolean {
@@ -192,7 +196,7 @@ class ExamViewModel @Inject constructor(
                 currentQuestionNumber = current.currentQuestionNumber,
                 deadlineEpochMillis = current.deadlineEpochMillis,
                 remainingSeconds = current.remainingSeconds,
-                isPaused = !current.isTaking,
+                isPaused = !current.isTaking && !current.isFinishing,
             ),
         )
     }
