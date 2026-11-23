@@ -1,7 +1,6 @@
 package com.mzarmehi1390.darsyar.data
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.room.withTransaction
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.core.database.entity.AppStateEntity
@@ -232,8 +231,8 @@ class LegacyPreferencesImporter @Inject constructor(
             keyedQuestions = keyed,
             percentage = rawPercentage,
             negativeMarking = json.optBoolean("negativeMarking", false),
-            answersJson = filteredAnswers(json.optJSONObject("answers"), 200).toJson(),
-            answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), 200).toJson(),
+            answersJson = filteredAnswers(json.optJSONObject("answers"), questionCount).toJson(),
+            answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), questionCount).toJson(),
         )
     }
 
@@ -271,7 +270,7 @@ class LegacyPreferencesImporter @Inject constructor(
     }.toString()
 
     private fun Set<Int>.toJson() = JSONArray().apply {
-        sorted().forEach(::put)
+        sorted().forEach { put(it) }
     }.toString()
 
     private fun JSONObject.stringOrNull(key: String): String? =
