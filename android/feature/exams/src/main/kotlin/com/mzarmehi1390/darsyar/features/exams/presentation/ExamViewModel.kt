@@ -237,16 +237,23 @@ class ExamViewModel @Inject constructor(
         if (!completionInFlight.add(sheetId)) return
         viewModelScope.launch {
             try {
+                if (takingState.value.examId == sheetId && takingState.value.isFinishing) {
+                    takingState.update { ExamTakingOperations.beginSavingResult(it) ?: it }
+                }
                 val result = repository.completeExam(sheetId, resultId, completedAt)
                 if (result != null && takingState.value.examId == sheetId) {
                     takingState.value = ExamTakingState()
                     restoredExamId = null
+                    actionError.update { null }
+                } else if (result == null) {
+                    takingState.update { if (it.examId == sheetId) it.copy(isSavingResult = false) else it }
+                    actionError.update { "نتیجهٔ آزمون ثبت نشد؛ می‌توانی دوباره تلاش کنی" }
                 }
-                actionError.update { null }
                 onResult(result?.let(ExamActionResult::Completed) ?: ExamActionResult.SheetNotFound)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
+                takingState.update { if (it.examId == sheetId) it.copy(isSavingResult = false) else it }
                 actionError.update { failure.message ?: "ثبت نتیجهٔ آزمون با خطا روبه‌رو شد" }
                 onResult(ExamActionResult.Failure(failure))
             } finally {

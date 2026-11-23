@@ -431,7 +431,16 @@ private fun ExamTakingDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { showFinishConfirmation = true }) { Text("پایان و ثبت نتیجه") }
+            if (takingState.isFinishing && takingState.remainingSeconds == 0) {
+                Button(
+                    onClick = { onFinish(updatedSheet) },
+                    enabled = !takingState.isSavingResult,
+                ) {
+                    Text(if (takingState.isSavingResult) "در حال ثبت نتیجه..." else "تلاش دوباره برای ثبت نتیجه")
+                }
+            } else {
+                Button(onClick = { showFinishConfirmation = true }) { Text("پایان و ثبت نتیجه") }
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("ذخیره و خروج") }

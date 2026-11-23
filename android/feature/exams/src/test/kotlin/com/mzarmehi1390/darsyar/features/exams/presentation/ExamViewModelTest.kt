@@ -19,7 +19,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -182,6 +181,123 @@ class ExamViewModelTest {
 
         assertEquals(1, repository.completionCalls)
         assertEquals(1, callbacks)
+    }
+
+    @Test
+    fun refreshTimer_autoSubmitsExpiredExamAndResetsSession() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-expired",
+            examId = "exam-1",
+            examName = "آزمون زمان‌دار",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", questionCount = 1, durationSeconds = 10)),
+            completion = expected,
+        )
+        val viewModel = ExamViewModel(repository)
+        var now = 5_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        now += 10_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+
+        assertEquals(1, repository.completionCalls)
+        assertEquals(null, repository.activeExam.value)
+        assertEquals(null, repository.examSession.value)
+    }
+
+    @Test
+    fun restoreExpiredSession_autoSubmitsAfterProcessRecreation() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-restored",
+            examId = "exam-1",
+            examName = "آزمون بازیابی‌شده",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 0,
+            wrong = 0,
+            unanswered = 1,
+            keyedQuestions = 1,
+            percentage = 0.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون بازیابی‌شده", questionCount = 1, durationSeconds = 10)),
+            completion = expected,
+        )
+        repository.setActiveExam("exam-1")
+        repository.saveExamSession(
+            ExamSessionSnapshot(
+                examId = "exam-1",
+                currentQuestionNumber = 1,
+                deadlineEpochMillis = 15_000L,
+                remainingSeconds = 0,
+                isPaused = false,
+            ),
+        )
+        val viewModel = ExamViewModel(repository)
+        viewModel.nowEpochMillis = { 20_000L }
+        advanceUntilIdle()
+
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+
+        assertEquals(1, repository.completionCalls)
+        assertEquals(null, repository.activeExam.value)
+        assertEquals(null, repository.examSession.value)
+    }
+
+    @Test
+    fun failedAutoSubmissionCanBeRetried() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-retry",
+            examId = "exam-1",
+            examName = "آزمون قابل تکرار",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون قابل تکرار", questionCount = 1, durationSeconds = 10)),
+            completion = expected,
+        )
+        repository.completionFailure = IllegalStateException("temporary storage failure")
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        var now = 5_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        now += 10_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+        assertEquals(1, repository.completionCalls)
+        assertEquals(true, viewModel.uiState.value.takingState.isFinishing)
+        assertEquals(false, viewModel.uiState.value.takingState.isSavingResult)
+
+        repository.completionFailure = null
+        viewModel.completeExam("exam-1", expected.completedAt, "result-retry")
+        advanceUntilIdle()
+
+        assertEquals(2, repository.completionCalls)
+        assertEquals(null, viewModel.uiState.value.takingState.examId)
+        stateJob.cancel()
     }
 
     @Test
