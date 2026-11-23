@@ -461,10 +461,11 @@ class ExamViewModelTest {
         val savedSheets = mutableListOf<ExamSheet>()
         var completedSheetId: String? = null
         var completionCalls: Int = 0
+        var completionFailure: Throwable? = null
 
         override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
-        private val activeExam = MutableStateFlow<String?>(null)
+        val activeExam = MutableStateFlow<String?>(null)
         val examSession = MutableStateFlow<ExamSessionSnapshot?>(null)
         override fun observeActiveExamId(): Flow<String?> = activeExam.asStateFlow()
         override fun observeExamSession(): Flow<ExamSessionSnapshot?> = examSession.asStateFlow()
@@ -508,6 +509,11 @@ class ExamViewModelTest {
         ): ExamResult? {
             completionCalls++
             completedSheetId = sheetId
+            completionFailure?.let { throw it }
+            if (completion != null && activeExam.value == sheetId) {
+                activeExam.value = null
+                examSession.value = null
+            }
             return completion
         }
 
