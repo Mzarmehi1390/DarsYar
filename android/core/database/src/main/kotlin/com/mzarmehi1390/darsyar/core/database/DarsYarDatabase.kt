@@ -21,7 +21,7 @@ import com.mzarmehi1390.darsyar.core.database.entity.StudyTaskEntity
         ExamSheetEntity::class,
         ExamResultEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class DarsYarDatabase : RoomDatabase() {
