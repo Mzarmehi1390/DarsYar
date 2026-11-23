@@ -3,6 +3,8 @@ package com.mzarmehi1390.darsyar.features.exams.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,6 +43,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showAddSheet by remember { mutableStateOf(false) }
+    var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -80,6 +83,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                     Text(sheet.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                     Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Button(onClick = { takingSheet = sheet }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
                                         Button(onClick = {
                                             viewModel.completeExam(sheet.id) { result ->
                                                 scope.launch { snackbar.showSnackbar(result.toMessage()) }
@@ -122,6 +126,26 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                 }
             }
         }
+    }
+
+    takingSheet?.let { sheet ->
+        ExamTakingDialog(
+            sheet = sheet,
+            onDismiss = { takingSheet = null },
+            onDraftChanged = { updated -> viewModel.saveSheet(updated) },
+            onFinish = { updated ->
+                viewModel.saveSheet(updated) { saveResult ->
+                    if (saveResult == ExamActionResult.Success) {
+                        viewModel.completeExam(updated.id) { result ->
+                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                        }
+                        takingSheet = null
+                    } else {
+                        scope.launch { snackbar.showSnackbar(saveResult.toMessage()) }
+                    }
+                }
+            },
+        )
     }
 
     if (showAddSheet) {
@@ -180,4 +204,155 @@ private fun ExamActionResult.toMessage(): String = when (this) {
     ExamActionResult.CannotDeleteLastSheet -> "آخرین برگهٔ آزمون قابل حذف نیست"
     is ExamActionResult.Invalid -> reason
     is ExamActionResult.Failure -> cause.message ?: "عملیات ناموفق بود"
+}
+
+
+@Composable
+private fun ExamTakingDialog(
+    sheet: ExamSheet,
+    onDismiss: () -> Unit,
+    onDraftChanged: (ExamSheet) -> Unit,
+    onFinish: (ExamSheet) -> Unit,
+) {
+    var currentQuestion by remember(sheet.id) { mutableStateOf(1) }
+    var answers by remember(sheet.id) { mutableStateOf(sheet.answers) }
+    var marked by remember(sheet.id) { mutableStateOf(sheet.marked) }
+    var showFinishConfirmation by remember { mutableStateOf(false) }
+
+    val updatedSheet = sheet.copy(answers = answers, marked = marked)
+    val answeredCount = answers.size
+    val unansweredCount = (sheet.questionCount - answeredCount).coerceAtLeast(0)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(sheet.name, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "${answeredCount} پاسخ ثبت‌شده · ${unansweredCount} بی‌پاسخ · ${marked.size} علامت‌دار",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text("انتخاب شمارهٔ سؤال", style = MaterialTheme.typography.labelLarge)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(sheet.questionCount) { index ->
+                        val number = index + 1
+                        val isAnswered = answers.containsKey(number)
+                        val isMarked = number in marked
+                        val container = when {
+                            number == currentQuestion -> MaterialTheme.colorScheme.primary
+                            isMarked -> MaterialTheme.colorScheme.tertiaryContainer
+                            isAnswered -> MaterialTheme.colorScheme.secondaryContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
+                        val content = when {
+                            number == currentQuestion -> MaterialTheme.colorScheme.onPrimary
+                            isMarked -> MaterialTheme.colorScheme.onTertiaryContainer
+                            isAnswered -> MaterialTheme.colorScheme.onSecondaryContainer
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        androidx.compose.material3.FilledTonalButton(
+                            onClick = { currentQuestion = number },
+                            colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
+                                containerColor = container,
+                                contentColor = content,
+                            ),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        ) { Text(number.toString()) }
+                    }
+                }
+
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("سؤال $currentQuestion از ${sheet.questionCount}", fontWeight = FontWeight.Bold)
+                            TextButton(onClick = {
+                                marked = if (currentQuestion in marked) marked - currentQuestion else marked + currentQuestion
+                                onDraftChanged(sheet.copy(answers = answers, marked = marked))
+                            }) {
+                                Text(if (currentQuestion in marked) "حذف علامت" else "علامت برای بازگشت")
+                            }
+                        }
+                        (0..3).forEach { option ->
+                            val selected = answers[currentQuestion] == option
+                            androidx.compose.material3.OutlinedButton(
+                                onClick = {
+                                    answers = answers + (currentQuestion to option)
+                                    onDraftChanged(sheet.copy(answers = answers, marked = marked))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                                    contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                ),
+                            ) {
+                                Text(
+                                    text = listOf("گزینهٔ ۱", "گزینهٔ ۲", "گزینهٔ ۳", "گزینهٔ ۴")[option],
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
+                        if (currentQuestion in answers) {
+                            TextButton(onClick = {
+                                answers = answers - currentQuestion
+                                onDraftChanged(sheet.copy(answers = answers, marked = marked))
+                            }) { Text("پاک‌کردن پاسخ") }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(
+                        onClick = { currentQuestion = (currentQuestion - 1).coerceAtLeast(1) },
+                        enabled = currentQuestion > 1,
+                    ) { Text("سؤال قبلی") }
+                    TextButton(
+                        onClick = { currentQuestion = (currentQuestion + 1).coerceAtMost(sheet.questionCount) },
+                        enabled = currentQuestion < sheet.questionCount,
+                    ) { Text("سؤال بعدی") }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { showFinishConfirmation = true }) { Text("پایان و ثبت نتیجه") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("ذخیره و خروج") }
+        },
+    )
+
+    if (showFinishConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showFinishConfirmation = false },
+            title = { Text("ثبت نهایی آزمون؟") },
+            text = {
+                Text(
+                    "${answeredCount} پاسخ داده شده و ${unansweredCount} سؤال بی‌پاسخ باقی مانده است. پس از ثبت، نتیجه در تاریخچه ذخیره می‌شود.",
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showFinishConfirmation = false
+                    onFinish(updatedSheet)
+                }) { Text("ثبت نتیجه") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinishConfirmation = false }) { Text("بازگشت به آزمون") }
+            },
+        )
+    }
 }
