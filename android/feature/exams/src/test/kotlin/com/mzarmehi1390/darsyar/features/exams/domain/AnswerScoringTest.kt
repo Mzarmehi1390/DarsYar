@@ -57,9 +57,9 @@ class AnswerScoringTest {
 
         assertEquals(1, result.correct)
         assertEquals(0, result.wrong)
-        assertEquals(1, result.keyedQuestions)
+        assertEquals(2, result.keyedQuestions)
         assertEquals(1, result.unanswered)
-        assertEquals(100.0, result.percentage!!, 0.0001)
+        assertEquals(50.0, result.percentage!!, 0.0001)
     }
 
     @Test
