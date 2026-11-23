@@ -9,10 +9,17 @@ android {
     namespace = "com.mzarmehi1390.darsyar.feature.planner"
     compileSdk = 36
     defaultConfig { minSdk = 23 }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
     buildFeatures { compose = true }
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+    testImplementation(libs.junit)
     implementation(project(":core:common"))
     implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
