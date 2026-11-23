@@ -25,13 +25,13 @@ import javax.inject.Singleton
 class LegacyPreferencesImporter @Inject constructor(
     @ApplicationContext context: Context,
     private val database: DarsYarDatabase,
-) {
+) : LegacyDataMigration {
     private val preferences = context.getSharedPreferences(
         LEGACY_PREFERENCES_FILE,
         Context.MODE_PRIVATE,
     )
 
-    suspend fun importIfNeeded(): LegacyImportOutcome = database.withTransaction {
+    override suspend fun importIfNeeded(): LegacyImportOutcome = database.withTransaction {
         val current = database.appStateDao().get()
         if (current?.legacyImportCompleted == true) {
             return@withTransaction LegacyImportOutcome.ALREADY_IMPORTED

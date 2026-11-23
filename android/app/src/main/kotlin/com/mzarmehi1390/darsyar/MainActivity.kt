@@ -22,41 +22,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mzarmehi1390.darsyar.core.designsystem.DarsYarTheme
-import com.mzarmehi1390.darsyar.data.LegacyPreferencesImporter
+import com.mzarmehi1390.darsyar.data.AppStartupCoordinator
+import com.mzarmehi1390.darsyar.data.AppStartupState
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
-    lateinit var legacyPreferencesImporter: LegacyPreferencesImporter
+    lateinit var startupCoordinator: AppStartupCoordinator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             DarsYarTheme {
-                var startupAttempt by remember { mutableStateOf(0) }
-                var startupComplete by remember { mutableStateOf(false) }
-                var startupFailed by remember { mutableStateOf(false) }
+                val startupState by startupCoordinator.state.collectAsStateWithLifecycle()
+                var retryAttempt by remember { mutableStateOf(0) }
 
-                LaunchedEffect(startupAttempt) {
-                    startupFailed = false
-                    startupComplete = false
-                    startupFailed = runCatching {
-                        legacyPreferencesImporter.importIfNeeded()
-                    }.isFailure
-                    startupComplete = !startupFailed
+                LaunchedEffect(startupCoordinator, retryAttempt) {
+                    startupCoordinator.ensureReady()
                 }
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    when {
-                        startupComplete -> NativeHomePlaceholder()
-                        startupFailed -> StartupErrorContent(
-                            onRetry = { startupAttempt++ },
+                    when (startupState) {
+                        AppStartupState.NotStarted,
+                        AppStartupState.Migrating -> StartupLoadingContent()
+                        AppStartupState.Ready -> NativeHomePlaceholder()
+                        is AppStartupState.Failed -> StartupErrorContent(
+                            onRetry = { retryAttempt++ },
                         )
-                        else -> StartupLoadingContent()
                     }
                 }
             }
