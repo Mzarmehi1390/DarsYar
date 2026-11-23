@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.mzarmehi1390.darsyar.core.graphics"
-    compileSdk = 36
+    compileSdk = 37
     defaultConfig { minSdk = 23 }
     buildFeatures { compose = true }
 }
