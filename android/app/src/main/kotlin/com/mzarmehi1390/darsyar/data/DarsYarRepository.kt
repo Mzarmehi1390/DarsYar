@@ -5,6 +5,7 @@ import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.core.database.entity.AppStateEntity
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamRepository
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamResultOperations
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
@@ -41,6 +42,18 @@ class DarsYarRepository @Inject constructor(
 
     override fun observeActiveExamId(): Flow<String?> =
         database.appStateDao().observe().map { it?.activeExamId }
+
+    override fun observeExamSession(): Flow<ExamSessionSnapshot?> =
+        database.appStateDao().observe().map { state ->
+            val id = state?.activeExamId ?: return@map null
+            ExamSessionSnapshot(
+                examId = id,
+                currentQuestionNumber = state.activeExamQuestionNumber,
+                deadlineEpochMillis = state.activeExamDeadlineEpochMillis,
+                remainingSeconds = state.activeExamRemainingSeconds,
+                isPaused = state.activeExamIsPaused,
+            )
+        }
 
     override suspend fun upsertTask(task: StudyTask) {
         database.studyTaskDao().upsertAll(listOf(task.toEntity()))
@@ -107,7 +120,7 @@ class DarsYarRepository @Inject constructor(
         database.examResultDao().upsertAll(listOf(result.toEntity()))
         val appState = database.appStateDao().get()
         if (appState?.activeExamId == sheetId) {
-            database.appStateDao().upsert(appState.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+            database.appStateDao().upsert(appState.clearExamSession())
         }
         result
     }
@@ -122,7 +135,7 @@ class DarsYarRepository @Inject constructor(
         database.examSheetDao().deleteById(sheet.id)
         val appState = database.appStateDao().get()
         if (appState?.activeExamId == id) {
-            database.appStateDao().upsert(appState.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+            database.appStateDao().upsert(appState.clearExamSession())
         }
         true
     }
@@ -131,19 +144,44 @@ class DarsYarRepository @Inject constructor(
         if (database.examSheetDao().findById(id) == null) return@withTransaction false
         val current = database.appStateDao().get()
         database.appStateDao().upsert(
-            AppStateEntity(
+            (current ?: AppStateEntity(
+                activeExamId = null,
+                updatedAtEpochMillis = System.currentTimeMillis(),
+            )).copy(
                 activeExamId = id,
-                legacyImportCompleted = current?.legacyImportCompleted ?: false,
+                activeExamQuestionNumber = 1,
+                activeExamDeadlineEpochMillis = null,
+                activeExamRemainingSeconds = 0,
+                activeExamIsPaused = true,
                 updatedAtEpochMillis = System.currentTimeMillis(),
             ),
         )
         true
     }
 
+    override suspend fun saveExamSession(session: ExamSessionSnapshot): Boolean =
+        database.withTransaction {
+            val current = database.appStateDao().get() ?: return@withTransaction false
+            if (current.activeExamId != session.examId) return@withTransaction false
+            val sheet = database.examSheetDao().findById(session.examId)
+                ?: return@withTransaction false
+            if (session.currentQuestionNumber !in 1..sheet.questionCount) return@withTransaction false
+            database.appStateDao().upsert(
+                current.copy(
+                    activeExamQuestionNumber = session.currentQuestionNumber,
+                    activeExamDeadlineEpochMillis = session.deadlineEpochMillis,
+                    activeExamRemainingSeconds = session.remainingSeconds,
+                    activeExamIsPaused = session.isPaused,
+                    updatedAtEpochMillis = System.currentTimeMillis(),
+                ),
+            )
+            true
+        }
+
     override suspend fun clearActiveExam(id: String?) = database.withTransaction {
         val current = database.appStateDao().get() ?: return@withTransaction
         if (id == null || current.activeExamId == id) {
-            database.appStateDao().upsert(current.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+            database.appStateDao().upsert(current.clearExamSession())
         }
     }
 
@@ -166,10 +204,20 @@ class DarsYarRepository @Inject constructor(
             database.appStateDao().upsert(
                 AppStateEntity(
                     activeExamId = activeId,
+                    activeExamIsPaused = true,
                     legacyImportCompleted = current?.legacyImportCompleted ?: false,
                     updatedAtEpochMillis = System.currentTimeMillis(),
                 ),
             )
         }
     }
+
+    private fun AppStateEntity.clearExamSession(): AppStateEntity = copy(
+        activeExamId = null,
+        activeExamQuestionNumber = 1,
+        activeExamDeadlineEpochMillis = null,
+        activeExamRemainingSeconds = 0,
+        activeExamIsPaused = false,
+        updatedAtEpochMillis = System.currentTimeMillis(),
+    )
 }
