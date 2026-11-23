@@ -3,6 +3,9 @@ package com.mzarmehi1390.darsyar.features.exams.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamRepository
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingOperations
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,11 +13,14 @@ import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -24,6 +30,7 @@ data class ExamUiState(
     val sheets: List<ExamSheet> = emptyList(),
     val results: List<ExamResult> = emptyList(),
     val activeExamId: String? = null,
+    val takingState: ExamTakingState = ExamTakingState(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
 )
@@ -42,17 +49,23 @@ class ExamViewModel @Inject constructor(
     private val repository: ExamRepository,
 ) : ViewModel() {
     private val actionError = MutableStateFlow<String?>(null)
+    private val takingState = MutableStateFlow(ExamTakingState())
+    internal var nowEpochMillis: () -> Long = System::currentTimeMillis
+    private var timerJob: Job? = null
+    private var restoredExamId: String? = null
 
     val uiState: StateFlow<ExamUiState> = combine(
         repository.observeExamSheets(),
         repository.observeExamResults(),
         repository.observeActiveExamId(),
+        takingState,
         actionError,
-    ) { sheets, results, activeExamId, error ->
+    ) { sheets, results, activeExamId, taking, error ->
         ExamUiState(
             sheets = sheets,
             results = results,
             activeExamId = activeExamId,
+            takingState = taking,
             isLoading = false,
             errorMessage = error,
         )
@@ -62,6 +75,13 @@ class ExamViewModel @Inject constructor(
             emit(ExamUiState(isLoading = false, errorMessage = throwable.message ?: "خطا در دریافت اطلاعات آزمون‌ها"))
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExamUiState())
+
+    init {
+        viewModelScope.launch {
+            val activeId = repository.observeActiveExamId().first()
+            if (activeId != null) restoreExamSession(activeId)
+        }
+    }
 
     fun saveSheet(sheet: ExamSheet, onResult: (ExamActionResult) -> Unit = {}) {
         val invalid = when {
@@ -91,8 +111,15 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val started = repository.setActiveExam(sheetId)
+                if (!started) {
+                    onResult(ExamActionResult.SheetNotFound)
+                    return@launch
+                }
+                val sheet = repository.observeExamSheets().first().firstOrNull { it.id == sheetId }
+                    ?: run { onResult(ExamActionResult.SheetNotFound); return@launch }
+                restoreExamSession(sheetId, sheet)
                 actionError.update { null }
-                onResult(if (started) ExamActionResult.Success else ExamActionResult.SheetNotFound)
+                onResult(ExamActionResult.Success)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
@@ -102,10 +129,94 @@ class ExamViewModel @Inject constructor(
         }
     }
 
+    private suspend fun restoreExamSession(examId: String, knownSheet: ExamSheet? = null) {
+        val sheet = knownSheet ?: repository.observeExamSheets().first().firstOrNull { it.id == examId }
+            ?: return
+        if (restoredExamId == examId && takingState.value.examId == examId) return
+        val saved = repository.observeExamSession().first()?.takeIf { it.examId == examId }
+        val now = nowEpochMillis()
+        val restored = when {
+            saved == null || (saved.isPaused && saved.remainingSeconds == 0 && saved.deadlineEpochMillis == null) ->
+                ExamTakingOperations.begin(ExamTakingState(), examId, sheet.durationSeconds, sheet.questionCount, now)
+            saved.isPaused -> ExamTakingState(
+                examId = examId,
+                currentQuestionNumber = saved.currentQuestionNumber.coerceIn(1, sheet.questionCount),
+                remainingSeconds = saved.remainingSeconds,
+            )
+            else -> ExamTakingState(
+                examId = examId,
+                currentQuestionNumber = saved.currentQuestionNumber.coerceIn(1, sheet.questionCount),
+                isTaking = true,
+                remainingSeconds = saved.remainingSeconds,
+                deadlineEpochMillis = saved.deadlineEpochMillis,
+            )
+        }
+        takingState.value = restored
+        restoredExamId = examId
+        persistTakingState()
+        if (restored.isTaking) startTicker()
+    }
+
+    fun selectQuestion(number: Int) {
+        val sheet = uiState.value.sheets.firstOrNull { it.id == takingState.value.examId } ?: return
+        takingState.update { ExamTakingOperations.selectQuestion(it, number, sheet.questionCount) }
+        viewModelScope.launch { persistTakingState() }
+    }
+
+    fun pauseExam() {
+        takingState.update { ExamTakingOperations.pause(it, nowEpochMillis()) }
+        stopTicker()
+        viewModelScope.launch { persistTakingState() }
+    }
+
+    fun resumeExam() {
+        takingState.update { ExamTakingOperations.resume(it, nowEpochMillis()) }
+        viewModelScope.launch { persistTakingState(); startTicker() }
+    }
+
+    private fun startTicker() {
+        if (timerJob?.isActive == true) return
+        timerJob = viewModelScope.launch {
+            while (takingState.value.isTaking) {
+                val tick = ExamTakingOperations.tick(takingState.value, nowEpochMillis())
+                takingState.value = tick.state
+                if (tick.expired) {
+                    persistTakingState()
+                    break
+                }
+                delay(250)
+            }
+        }
+    }
+
+    private fun stopTicker() {
+        timerJob?.cancel()
+        timerJob = null
+    }
+
+    private suspend fun persistTakingState(): Boolean {
+        val current = takingState.value
+        val examId = current.examId ?: return false
+        return repository.saveExamSession(
+            ExamSessionSnapshot(
+                examId = examId,
+                currentQuestionNumber = current.currentQuestionNumber,
+                deadlineEpochMillis = current.deadlineEpochMillis,
+                remainingSeconds = current.remainingSeconds,
+                isPaused = !current.isTaking,
+            ),
+        )
+    }
+
     fun clearActiveExam(sheetId: String? = null) {
         viewModelScope.launch {
             try {
                 repository.clearActiveExam(sheetId)
+                if (sheetId == null || takingState.value.examId == sheetId) {
+                    stopTicker()
+                    takingState.value = ExamTakingState()
+                    restoredExamId = null
+                }
                 actionError.update { null }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -128,6 +239,11 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = repository.completeExam(sheetId, resultId, completedAt)
+                if (result != null && takingState.value.examId == sheetId) {
+                    stopTicker()
+                    takingState.value = ExamTakingState()
+                    restoredExamId = null
+                }
                 actionError.update { null }
                 onResult(result?.let(ExamActionResult::Completed) ?: ExamActionResult.SheetNotFound)
             } catch (cancelled: CancellationException) {
@@ -150,6 +266,11 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val deleted = repository.deleteExamSheet(id)
+                if (deleted && takingState.value.examId == id) {
+                    stopTicker()
+                    takingState.value = ExamTakingState()
+                    restoredExamId = null
+                }
                 actionError.update { null }
                 val result = when {
                     deleted -> ExamActionResult.Success
