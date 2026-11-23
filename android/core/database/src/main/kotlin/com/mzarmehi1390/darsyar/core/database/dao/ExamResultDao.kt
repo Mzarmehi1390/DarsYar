@@ -18,6 +18,9 @@ interface ExamResultDao {
     @Query("SELECT * FROM exam_results WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): ExamResultEntity?
 
+    @Query("SELECT COUNT(*) FROM exam_results")
+    suspend fun count(): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(items: List<ExamResultEntity>)
 
