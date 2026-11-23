@@ -205,8 +205,10 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     if (saveResult == ExamActionResult.Success) {
                         viewModel.completeExam(updated.id) { result ->
                             scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                            if (result is ExamActionResult.Completed) {
+                                takingSheet = null
+                            }
                         }
-                        takingSheet = null
                     } else {
                         scope.launch { snackbar.showSnackbar(saveResult.toMessage()) }
                     }
