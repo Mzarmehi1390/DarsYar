@@ -63,9 +63,8 @@ class DarsYarRepository @Inject constructor(
             val previous = database.examSheetDao().findById(sheet.id)?.toDomain()
             val existingResults = database.examResultDao().getAll().map { it.toDomain() }
             var synchronized = existingResults
-            if (previous != null && previous.answerKey != sheet.answerKey) {
-                synchronized = ExamResultOperations.synchronizeAnswerKey(synchronized, sheet)
-            }
+            // Rename legacy name-linked rows first so answer-key synchronization
+            // can still identify those rows after the sheet's name has changed.
             if (previous != null && previous.name != sheet.name) {
                 synchronized = ExamResultOperations.synchronizeName(
                     synchronized,
@@ -73,6 +72,9 @@ class DarsYarRepository @Inject constructor(
                     previous.name,
                     sheet.name,
                 )
+            }
+            if (previous != null && previous.answerKey != sheet.answerKey) {
+                synchronized = ExamResultOperations.synchronizeAnswerKey(synchronized, sheet)
             }
             database.examSheetDao().upsertAll(listOf(sheet.toEntity()))
             if (synchronized != existingResults) {
@@ -89,6 +91,9 @@ class DarsYarRepository @Inject constructor(
     ): ExamResult? = database.withTransaction {
         val sheetEntity = database.examSheetDao().findById(sheetId)
             ?: return@withTransaction null
+        require(database.examResultDao().findById(resultId) == null) {
+            "Result ID already exists."
+        }
         val sheet = sheetEntity.toDomain()
         val result = ExamResultOperations.create(sheet, resultId, completedAt)
         database.examSheetDao().upsertAll(
