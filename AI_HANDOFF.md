@@ -60,9 +60,10 @@ The first two documents describe the native migration baseline. The existing red
 
 - Phase 1 — Repository audit: initial audit and inventory documented in `docs/NATIVE_REBUILD_AUDIT.md` and `docs/FEATURE_INVENTORY.md`.
 - Phase 2 — Architecture and technical design: proposal documented in `docs/ARCHITECTURE.md`, `docs/MODULES.md`, `docs/DATA_MIGRATION.md` and `docs/LIQUID_GLASS_ENGINE.md`.
-- Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preferences repository, typed domain models, entity mappers, transactional repository and initial scoring tests are present. Build has progressed past Gradle configuration and dependency resolution; recent CI failures exposed and corrected the obsolete Kotlin Android plugin, unavailable Lifecycle 2.12.0 artifact, DataStore migration API usage and a missing Room DAO import. The latest run for `d3f4e0c5` is still in progress; no successful full build is claimed yet.
+- Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preference migration, typed domain models, entity mappers, transactional repository and scoring/planner/task domain logic are present. CI has exposed and helped correct several issues: AGP 9 built-in Kotlin plugin conflict, unavailable Lifecycle 2.12.0 version, DataStore migration API usage, and a missing Room DAO import. Latest CI run for `eada5b32` is still in progress; no successful full build is claimed.
 - Phase 4 — Liquid Glass: not started; rendering approach remains documented only.
-- Phases 5–10 — partial data foundation only; legacy collection import, feature screens, full test suite, device profiling and release artifacts remain outstanding.
+- Phase 5 — Core data/business logic: initial Room and DataStore foundations plus exam scoring and planner/task rules are present; legacy user-data import and backup codec remain outstanding.
+- Phases 6–10: feature screens, full test suite, device profiling and release artifacts remain outstanding.
 
 ## Important unresolved decisions
 
@@ -74,5 +75,6 @@ The first two documents describe the native migration baseline. The existing red
 - Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
+- Confirm all tests and lint pass on the latest head before moving into full screen implementation.
 
 Do not guess these. Investigate and document decisions before implementation.

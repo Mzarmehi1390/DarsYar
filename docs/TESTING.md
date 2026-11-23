@@ -6,6 +6,8 @@
 
 ### Pure Kotlin unit tests
 - Exam scoring (initial suite added in `feature/exams/src/test/.../AnswerScoringTest.kt`): unkeyed denominator, one-third negative marking, no-key result, invalid answer filtering and lower-bound clamping.
+- Planner calendar/scheduling (initial suite added in `feature/planner/src/test/.../PlannerCalendarTest.kt`): Saturday week boundary, Dart weekday mapping, legacy session migration, date-aware overlap and next-week copy semantics.
+- Task operations (initial suite added in `feature/planner/src/test/.../TaskOperationsTest.kt`): default subject, incomplete new tasks, completion preservation on edit, and unknown-ID no-op.
 - Remaining domain tests: keyed/unkeyed questions, unanswered questions, negative marking, clamping, no-key result.
 - Exam sheet operations: create, rename, resize, answer/mark transitions, delete guards.
 - Timer: start, pause, resume, deadline expiry, zero-duration and process recreation contract.

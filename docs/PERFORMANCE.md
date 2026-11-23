@@ -1,6 +1,6 @@
 # Native Performance Engineering Plan
 
-> Targets and measurement plan only. No native performance result has been measured yet.
+> Targets and measurement plan only. No native performance result has been measured yet. The current code is still a foundation build; no on-device profile exists.
 
 ## Principles
 
