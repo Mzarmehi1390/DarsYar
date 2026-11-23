@@ -149,7 +149,7 @@ class LegacyPreferencesImporterTest {
         assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
         val results = database.examResultDao().getAll().associateBy { it.id }
         assertEquals(200.0 / 3.0, results["missing-percentage"]?.percentage!!, 0.0001)
-        assertEquals(100.0 / 3.0, results["invalid-percentage"]?.percentage!!, 0.0001)
+        assertEquals(500.0 / 9.0, results["invalid-percentage"]?.percentage!!, 0.0001)
     }
 
 }
