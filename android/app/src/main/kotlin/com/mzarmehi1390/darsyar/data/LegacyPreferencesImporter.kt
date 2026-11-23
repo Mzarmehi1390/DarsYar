@@ -166,7 +166,7 @@ class LegacyPreferencesImporter @Inject constructor(
             name = name,
             questionCount = count,
             durationSeconds = json.optInt("durationSeconds", 1800).coerceIn(1, 86400),
-            negativeMarking = negativeMarking,
+            negativeMarking = json.optBoolean("negativeMarking", false),
             isCompleted = json.optBoolean("isCompleted", false),
             answersJson = filteredAnswers(json.optJSONObject("answers"), count).toJson(),
             answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), count).toJson(),
