@@ -16,7 +16,7 @@ internal fun StudyTask.toEntity() = StudyTaskEntity(
     title = title,
     subject = subject,
     isDone = done,
-    dueDate = dueDate?.let(::formatLocalDate),
+    dueDate = dueDate,
 )
 
 internal fun StudyTaskEntity.toDomain() = StudyTask(
@@ -24,7 +24,7 @@ internal fun StudyTaskEntity.toDomain() = StudyTask(
     title = title,
     subject = subject,
     done = isDone,
-    dueDate = dueDate?.let(::parseLocalDate),
+    dueDate = dueDate,
 )
 
 internal fun StudySession.toEntity() = StudySessionEntity(
@@ -35,7 +35,7 @@ internal fun StudySession.toEntity() = StudySessionEntity(
     startMinutes = startMinutes,
     durationMinutes = durationMinutes,
     completed = completed,
-    scheduledDate = scheduledDate?.let(::formatLocalDate),
+    scheduledDate = scheduledDate,
 )
 
 internal fun StudySessionEntity.toDomain() = StudySession(
@@ -46,7 +46,7 @@ internal fun StudySessionEntity.toDomain() = StudySession(
     startMinutes = startMinutes,
     durationMinutes = durationMinutes,
     completed = completed,
-    scheduledDate = scheduledDate?.let(::parseLocalDate),
+    scheduledDate = scheduledDate,
 )
 
 internal fun ExamSheet.toEntity() = ExamSheetEntity(
@@ -110,7 +110,7 @@ private fun Map<Int, Int>.toJsonObject(): String = JSONObject().apply {
 }.toString()
 
 private fun Set<Int>.toJsonArray(): String = JSONArray().apply {
-    this@toJsonArray.sorted().forEach(::put)
+    this@toJsonArray.sorted().forEach { put(it) }
 }.toString()
 
 private fun String.toIntMap(): Map<Int, Int> = runCatching {
@@ -118,9 +118,9 @@ private fun String.toIntMap(): Map<Int, Int> = runCatching {
     buildMap {
         val keys = json.keys()
         while (keys.hasNext()) {
-            val key = keys.next().toIntOrNull() ?: continue
-            val value = json.optInt(keys.next(), Int.MIN_VALUE)
-            if (value != Int.MIN_VALUE) put(key, value)
+            val rawKey = keys.next()
+            val question = rawKey.toIntOrNull() ?: continue
+            if (!json.isNull(rawKey)) put(question, json.getInt(rawKey))
         }
     }
 }.getOrDefault(emptyMap())
@@ -133,12 +133,3 @@ private fun String.toIntSet(): Set<Int> = runCatching {
         }
     }
 }.getOrDefault(emptySet())
-
-private fun formatLocalDate(date: java.time.LocalDate): String =
-    "%04d-%02d-%02d".format(java.util.Locale.ROOT, date.year, date.monthValue, date.dayOfMonth)
-
-private fun parseLocalDate(value: String): java.time.LocalDate? = runCatching {
-    val parts = value.split('-')
-    require(parts.size == 3)
-    java.time.LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
-}.getOrNull()
