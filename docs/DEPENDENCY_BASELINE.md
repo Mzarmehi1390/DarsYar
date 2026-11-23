@@ -20,7 +20,7 @@
 | Compose BOM | 2026.06.01 | Stable Compose 1.11.x line compatible with API 36 |
 | Navigation Compose | 2.9.8 | Keeps the API 23 minimum; Navigation 2.10 moved Android minSdk to API 24 |
 | Room | 2.8.5 | Stable release; use KSP compiler |
-| Preferences DataStore | 1.3.0 | Stable release |
+| Preferences DataStore | 1.2.1 | Retained to support minSdk 23; 1.3.0 requires API 24 |
 | Lifecycle | 2.11.1 | Stable release for lifecycle-aware Compose collection/ViewModel integration |
 | WorkManager | 2.12.0 | Add only for genuine deferrable background work |
 | Hilt | 2.60.1 | Pinned stable artifact version; validate Gradle plugin + KSP integration in CI |
@@ -43,7 +43,7 @@ The newest Compose 1.12/1.13 releases require compileSdk 37/37.1. The public And
 
 1. Confirm Compose BOM 2026.06.01 resolves and its mapped Compose artifacts compile against API 36.
 2. Confirm Hilt 2.60.1 plugin + KSP 2.3.12 works with Kotlin 2.4.21 and AGP 9.5.0.
-3. Verify Room 2.8.5 and DataStore 1.3.0 resolve and compile.
+3. Verify Room 2.8.5 and DataStore 1.2.1 resolve and compile against minSdk 23.
 4. Verify Coil 3.6.3 resolves from Maven Central and add it to feature dependencies only where a real image-loading use case exists.
 5. If any dependency forces an unstable transitive version or toolchain downgrade, stop and document the compatibility decision.
 6. No dynamic dependency selectors (for example `9.5.+`) are allowed.
@@ -55,7 +55,7 @@ The newest Compose 1.12/1.13 releases require compileSdk 37/37.1. The public And
 - AGP 9.5 / Gradle 9.6 compatibility: https://developer.android.com/build/releases/about-agp
 - Kotlin 2.4.21 release: https://kotlinlang.org/docs/releases.html
 - Room 2.8.5 and KSP compiler setup: https://developer.android.com/jetpack/androidx/releases/room
-- DataStore 1.3.0: https://developer.android.com/jetpack/androidx/releases/datastore
+- DataStore 1.2.1: https://developer.android.com/jetpack/androidx/releases/datastore
 - Navigation 2.9.8: https://developer.android.com/jetpack/androidx/releases/navigation
 - KSP setup: https://kotlinlang.org/docs/ksp-quickstart.html
 - Dagger/Hilt releases: https://github.com/google/dagger/releases
