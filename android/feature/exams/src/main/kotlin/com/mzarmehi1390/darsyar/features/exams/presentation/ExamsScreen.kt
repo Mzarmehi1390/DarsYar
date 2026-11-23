@@ -15,6 +15,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -44,6 +46,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     val scope = rememberCoroutineScope()
     var showAddSheet by remember { mutableStateOf(false) }
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
+    var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -84,6 +87,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                     Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Button(onClick = { takingSheet = sheet }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
+                                        TextButton(onClick = { answerKeySheet = sheet }) { Text("کلید پاسخ") }
                                         Button(onClick = {
                                             viewModel.completeExam(sheet.id) { result ->
                                                 scope.launch { snackbar.showSnackbar(result.toMessage()) }
@@ -126,6 +130,19 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                 }
             }
         }
+    }
+
+    answerKeySheet?.let { sheet ->
+        AnswerKeyDialog(
+            sheet = sheet,
+            onDismiss = { answerKeySheet = null },
+            onSave = { updated ->
+                viewModel.saveSheet(updated) { result ->
+                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                }
+                answerKeySheet = null
+            },
+        )
     }
 
     takingSheet?.let { sheet ->
@@ -355,4 +372,81 @@ private fun ExamTakingDialog(
             },
         )
     }
+}
+
+
+@Composable
+private fun AnswerKeyDialog(
+    sheet: ExamSheet,
+    onDismiss: () -> Unit,
+    onSave: (ExamSheet) -> Unit,
+) {
+    var answerKey by remember(sheet.id) { mutableStateOf(sheet.answerKey) }
+    var negativeMarking by remember(sheet.id) { mutableStateOf(sheet.negativeMarking) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("کلید پاسخ")
+                Text(sheet.name, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = negativeMarking, onCheckedChange = { negativeMarking = it })
+                    Text("اعمال نمرهٔ منفی (هر ۳ غلط = ۱ درست)")
+                }
+                Text(
+                    "${answerKey.size} پاسخ از ${sheet.questionCount} سؤال کلیدگذاری شده",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(sheet.questionCount) { index ->
+                        val question = index + 1
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                            Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text("سؤال $question", fontWeight = FontWeight.SemiBold)
+                                    TextButton(onClick = { answerKey = answerKey - question }) {
+                                        Text("بدون کلید")
+                                    }
+                                }
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    (0..3).forEach { option ->
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            RadioButton(
+                                                selected = answerKey[question] == option,
+                                                onClick = { answerKey = answerKey + (question to option) },
+                                            )
+                                            Text(listOf("۱", "۲", "۳", "۴")[option], style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                onSave(sheet.copy(answerKey = answerKey, negativeMarking = negativeMarking))
+            }) { Text("ذخیرهٔ کلید") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
+    )
 }
