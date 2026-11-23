@@ -249,7 +249,8 @@ class ExamViewModelTest {
         advanceUntilIdle()
         assertEquals(false, viewModel.uiState.value.takingState.isTaking)
         assertEquals(true, viewModel.uiState.value.takingState.isFinishing)
-        assertEquals(0, repository.examSession.value?.remainingSeconds)
+        assertEquals(15_000L, repository.examSession.value?.deadlineEpochMillis)
+        assertEquals(false, repository.examSession.value?.isPaused)
         val expiredSnapshot = repository.examSession.value
         now += 5_000L
         viewModel.refreshTimer()

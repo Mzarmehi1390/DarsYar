@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -196,6 +197,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
             takingState = state.takingState,
             onPause = viewModel::pauseExam,
             onResume = viewModel::resumeExam,
+            onQuestionSelected = viewModel::selectQuestion,
             onDismiss = { takingSheet = null },
             onDraftChanged = { updated -> viewModel.saveSheet(updated) },
             onFinish = { updated ->
@@ -275,14 +277,15 @@ private fun ExamActionResult.toMessage(): String = when (this) {
 @Composable
 private fun ExamTakingDialog(
     sheet: ExamSheet,
-    takingState: com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState,
+    takingState: ExamTakingState,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    onQuestionSelected: (Int) -> Unit,
     onDismiss: () -> Unit,
     onDraftChanged: (ExamSheet) -> Unit,
     onFinish: (ExamSheet) -> Unit,
 ) {
-    var currentQuestion by remember(sheet.id) { mutableStateOf(1) }
+    var currentQuestion by remember(sheet.id) { mutableStateOf(takingState.currentQuestionNumber) }
     var answers by remember(sheet.id) { mutableStateOf(sheet.answers) }
     var marked by remember(sheet.id) { mutableStateOf(sheet.marked) }
     var showFinishConfirmation by remember { mutableStateOf(false) }
@@ -290,6 +293,16 @@ private fun ExamTakingDialog(
     val updatedSheet = sheet.copy(answers = answers, marked = marked)
     val answeredCount = answers.size
     val unansweredCount = (sheet.questionCount - answeredCount).coerceAtLeast(0)
+
+    LaunchedEffect(takingState.currentQuestionNumber) {
+        currentQuestion = takingState.currentQuestionNumber.coerceIn(1, sheet.questionCount)
+    }
+
+    fun selectQuestion(number: Int) {
+        val selected = number.coerceIn(1, sheet.questionCount)
+        currentQuestion = selected
+        onQuestionSelected(selected)
+    }
 
     LaunchedEffect(takingState.isFinishing) {
         if (takingState.isFinishing) showFinishConfirmation = true
@@ -348,7 +361,7 @@ private fun ExamTakingDialog(
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                         androidx.compose.material3.FilledTonalButton(
-                            onClick = { currentQuestion = number },
+                            onClick = { selectQuestion(number) },
                             colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(
                                 containerColor = container,
                                 contentColor = content,
@@ -406,11 +419,11 @@ private fun ExamTakingDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(
-                        onClick = { currentQuestion = (currentQuestion - 1).coerceAtLeast(1) },
+                        onClick = { selectQuestion(currentQuestion - 1) },
                         enabled = currentQuestion > 1,
                     ) { Text("سؤال قبلی") }
                     TextButton(
-                        onClick = { currentQuestion = (currentQuestion + 1).coerceAtMost(sheet.questionCount) },
+                        onClick = { selectQuestion(currentQuestion + 1) },
                         enabled = currentQuestion < sheet.questionCount,
                     ) { Text("سؤال بعدی") }
                 }

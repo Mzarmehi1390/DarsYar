@@ -179,7 +179,8 @@ class ExamViewModel @Inject constructor(
         if (!current.isTaking || current.isFinishing) return
         val tick = ExamTakingOperations.tick(current, nowEpochMillis())
         if (tick.state != current) takingState.value = tick.state
-        if (tick.expired) viewModelScope.launch { persistTakingState() }
+        // Keep the last persisted deadline: after process recreation it will still
+        // be recognized as expired instead of looking like a fresh paused session.
     }
 
     private suspend fun persistTakingState(): Boolean {
