@@ -21,7 +21,7 @@
 | Navigation Compose | 2.10.2 | Stable Navigation 2.10 line |
 | Room | 2.8.5 | Stable release; use KSP compiler |
 | Preferences DataStore | 1.3.0 | Stable release |
-| Lifecycle | 2.12.0 | Lifecycle-aware Compose collection/ViewModel integration |
+| Lifecycle | 2.11.1 | Stable release for lifecycle-aware Compose collection/ViewModel integration |
 | WorkManager | 2.12.0 | Add only for genuine deferrable background work |
 | Hilt | 2.60.1 | Pinned stable artifact version; validate Gradle plugin + KSP integration in CI |
 | Coil Compose | 3.6.3 | Pinned stable release; only use where image loading is needed |
