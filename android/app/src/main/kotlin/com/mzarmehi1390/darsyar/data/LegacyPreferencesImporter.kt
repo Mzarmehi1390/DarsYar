@@ -19,7 +19,7 @@ import javax.inject.Singleton
  *
  * Flutter's Android plugin stores keys in "FlutterSharedPreferences" with a
  * "flutter." prefix. The old store is deliberately read-only: a successful
- * import never removes or rewrites the source values.
+ * import never removes or rewrites the source values. Missing or invalid result percentages are recalculated using the legacy scoring rule.
  */
 @Singleton
 class LegacyPreferencesImporter @Inject constructor(
