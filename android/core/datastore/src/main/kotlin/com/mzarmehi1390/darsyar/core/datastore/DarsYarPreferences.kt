@@ -7,7 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.toMutablePreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.migrations.SharedPreferencesMigration
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +31,9 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
                 migrate = { legacy, current ->
-                    val migrated = current.toMutablePreferences()
+                    val migrated = mutablePreferencesOf()
+                    current[themeModeKey]?.let { migrated[themeModeKey] = it }
+                    current[animationsEnabledKey]?.let { migrated[animationsEnabledKey] = it }
                     if (!migrated.contains(themeModeKey)) {
                         when (legacy.getString(LEGACY_THEME_KEY, null)) {
                             "light", "dark", "system" ->
