@@ -69,10 +69,23 @@ class ExamTakingOperationsTest {
         val running = ExamTakingOperations.begin(ExamTakingState(), "exam-1", 30, 5, 0L)
         val finishing = ExamTakingOperations.beginFinish(running)!!
 
+        assertTrue(finishing.isTaking)
+        assertTrue(finishing.isFinishing)
         assertNull(ExamTakingOperations.beginFinish(finishing))
         val saving = ExamTakingOperations.beginSavingResult(finishing)!!
         assertNull(ExamTakingOperations.beginSavingResult(saving))
         assertFalse(ExamTakingOperations.complete(saving).isSavingResult)
+    }
+
+    @Test
+    fun cancelManualFinishKeepsCountdownRunning() {
+        val running = ExamTakingOperations.begin(ExamTakingState(), "exam-1", 30, 5, 0L)
+        val confirmation = ExamTakingOperations.beginFinish(running)!!
+        val cancelled = ExamTakingOperations.cancelFinish(confirmation)
+
+        assertTrue(cancelled.isTaking)
+        assertFalse(cancelled.isFinishing)
+        assertEquals(running.deadlineEpochMillis, cancelled.deadlineEpochMillis)
     }
 
     @Test
