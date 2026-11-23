@@ -20,6 +20,7 @@ android {
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     implementation(project(":core:common"))
     implementation(project(":core:database"))
     implementation(project(":core:designsystem"))
@@ -29,6 +30,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
