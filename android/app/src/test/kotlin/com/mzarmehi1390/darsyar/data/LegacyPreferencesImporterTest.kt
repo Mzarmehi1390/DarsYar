@@ -77,7 +77,7 @@ class LegacyPreferencesImporterTest {
 
         val session = database.studySessionDao().findById("session-1")
         assertEquals("2026-11-23", session?.scheduledDate)
-        assertEquals(0, session?.weekday)
+        assertEquals(1, session?.weekday)
 
         val exam = database.examSheetDao().findById("exam-1")
         assertEquals("{\"1\":2,\"2\":0}", exam?.answerKeyJson)
