@@ -229,7 +229,7 @@ class ExamViewModelTest {
         override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
         private val activeExam = MutableStateFlow<String?>(null)
-        private val examSession = MutableStateFlow<ExamSessionSnapshot?>(null)
+        val examSession = MutableStateFlow<ExamSessionSnapshot?>(null)
         override fun observeActiveExamId(): Flow<String?> = activeExam.asStateFlow()
         override fun observeExamSession(): Flow<ExamSessionSnapshot?> = examSession.asStateFlow()
         override suspend fun setActiveExam(id: String): Boolean {
