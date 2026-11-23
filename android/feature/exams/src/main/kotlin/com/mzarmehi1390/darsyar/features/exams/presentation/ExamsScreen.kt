@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,18 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var showAddSheet by remember { mutableStateOf(false) }
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
+
+    LaunchedEffect(state.activeExamId, state.isLoading) {
+        val activeId = state.activeExamId
+        if (!state.isLoading && activeId != null && takingSheet == null) {
+            val activeSheet = state.sheets.firstOrNull { it.id == activeId }
+            if (activeSheet == null) {
+                viewModel.clearActiveExam(activeId)
+            } else {
+                takingSheet = activeSheet
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -76,6 +89,20 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    item {
+                        state.activeExamId?.let { activeId ->
+                            state.sheets.firstOrNull { it.id == activeId }?.let { activeSheet ->
+                                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text("آزمون فعال", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                        Text(activeSheet.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
+                                        Text("پاسخ‌های ثبت‌شده محفوظ‌اند؛ می‌توانی ادامه بدهی.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                        Button(onClick = { takingSheet = activeSheet }) { Text("بازگشت به آزمون") }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     item { Text("برگه‌های ذخیره‌شده", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
                     if (state.sheets.isEmpty()) {
                         item { EmptyExamCard("هنوز برگه‌ای ثبت نشده است.") }
@@ -86,7 +113,15 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                     Text(sheet.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                     Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Button(onClick = { takingSheet = sheet }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
+                                        Button(onClick = {
+                                            viewModel.startExam(sheet.id) { result ->
+                                                if (result == ExamActionResult.Success) {
+                                                    takingSheet = state.sheets.firstOrNull { it.id == sheet.id } ?: sheet
+                                                } else {
+                                                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                                }
+                                            }
+                                        }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
                                         TextButton(onClick = { answerKeySheet = sheet }) { Text("کلید پاسخ") }
                                         Button(onClick = {
                                             viewModel.completeExam(sheet.id) { result ->

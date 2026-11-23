@@ -42,6 +42,33 @@ class DarsYarRepositoryTest {
     }
 
     @Test
+    fun activeExamSelection_isObservableAndClearedOnlyForMatchingId() = runBlocking {
+        repository.upsertExamSheet(ExamSheet(id = "exam-1", name = "First"))
+        repository.upsertExamSheet(ExamSheet(id = "exam-2", name = "Second"))
+
+        assertTrue(repository.setActiveExam("exam-1"))
+        assertEquals("exam-1", database.appStateDao().get()?.activeExamId)
+
+        repository.clearActiveExam("exam-2")
+        assertEquals("exam-1", database.appStateDao().get()?.activeExamId)
+
+        repository.clearActiveExam("exam-1")
+        assertNull(database.appStateDao().get()?.activeExamId)
+        assertFalse(repository.setActiveExam("missing"))
+    }
+
+    @Test
+    fun completingActiveExam_clearsActiveSelectionAtomically() = runBlocking {
+        repository.upsertExamSheet(ExamSheet(id = "exam-1", name = "Active"))
+        assertTrue(repository.setActiveExam("exam-1"))
+
+        repository.completeExam("exam-1", "result-1", "2026-11-23T12:00:00Z")
+
+        assertNull(database.appStateDao().get()?.activeExamId)
+        assertNotNull(database.examResultDao().findById("result-1"))
+    }
+
+    @Test
     fun completeExam_atomicallyMarksSheetAndPersistsScoreSnapshot() = runBlocking {
         val sheet = ExamSheet(
             id = "exam-1",

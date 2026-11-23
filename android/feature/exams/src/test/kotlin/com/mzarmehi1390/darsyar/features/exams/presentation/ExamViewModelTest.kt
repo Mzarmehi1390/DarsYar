@@ -79,6 +79,49 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun startExam_persistsExistingSheetAsActiveAndRejectsMissingSheet() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون ریاضی")),
+        )
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+
+        var started: ExamActionResult? = null
+        viewModel.startExam("exam-1") { started = it }
+        advanceUntilIdle()
+        assertEquals(ExamActionResult.Success, started)
+        assertEquals("exam-1", viewModel.uiState.value.activeExamId)
+
+        var missing: ExamActionResult? = null
+        viewModel.startExam("missing") { missing = it }
+        advanceUntilIdle()
+        assertEquals(ExamActionResult.SheetNotFound, missing)
+        assertEquals("exam-1", viewModel.uiState.value.activeExamId)
+        stateJob.cancel()
+    }
+
+    @Test
+    fun clearActiveExam_clearsPersistedSelection() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون ریاضی")),
+        )
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+        viewModel.clearActiveExam("exam-1")
+        advanceUntilIdle()
+        assertEquals(null, viewModel.uiState.value.activeExamId)
+        stateJob.cancel()
+    }
+
+    @Test
     fun completeExam_returnsPersistedResult() = runTest(mainDispatcher) {
         val expected = ExamResult(
             id = "result-1",
