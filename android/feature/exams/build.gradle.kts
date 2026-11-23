@@ -10,10 +10,16 @@ android {
     namespace = "com.mzarmehi1390.darsyar.feature.exams"
     compileSdk = 37
     defaultConfig { minSdk = 23 }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
     buildFeatures { compose = true }
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(project(":core:common"))
