@@ -144,6 +144,16 @@ class ExamViewModelTest {
 
         override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
+        private val activeExam = MutableStateFlow<String?>(null)
+        override fun observeActiveExamId(): Flow<String?> = activeExam.asStateFlow()
+        override suspend fun setActiveExam(id: String): Boolean {
+            if (sheets.value.none { it.id == id }) return false
+            activeExam.value = id
+            return true
+        }
+        override suspend fun clearActiveExam(id: String?) {
+            if (id == null || activeExam.value == id) activeExam.value = null
+        }
 
         override suspend fun upsertExamSheet(sheet: ExamSheet) {
             savedSheets += sheet

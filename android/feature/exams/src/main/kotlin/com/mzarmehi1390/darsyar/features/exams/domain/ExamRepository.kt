@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 interface ExamRepository {
     fun observeExamSheets(): Flow<List<ExamSheet>>
     fun observeExamResults(): Flow<List<ExamResult>>
+    fun observeActiveExamId(): Flow<String?>
+    suspend fun setActiveExam(id: String): Boolean
+    suspend fun clearActiveExam(id: String? = null)
     suspend fun upsertExamSheet(sheet: ExamSheet)
     /** Returns null when the requested sheet no longer exists. */
     suspend fun completeExam(sheetId: String, resultId: String, completedAt: String): ExamResult?

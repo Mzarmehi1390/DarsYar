@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 data class ExamUiState(
     val sheets: List<ExamSheet> = emptyList(),
     val results: List<ExamResult> = emptyList(),
+    val activeExamId: String? = null,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
 )
@@ -45,11 +46,13 @@ class ExamViewModel @Inject constructor(
     val uiState: StateFlow<ExamUiState> = combine(
         repository.observeExamSheets(),
         repository.observeExamResults(),
+        repository.observeActiveExamId(),
         actionError,
-    ) { sheets, results, error ->
+    ) { sheets, results, activeExamId, error ->
         ExamUiState(
             sheets = sheets,
             results = results,
+            activeExamId = activeExamId,
             isLoading = false,
             errorMessage = error,
         )
@@ -78,6 +81,38 @@ class ExamViewModel @Inject constructor(
             return
         }
         performAction(onResult) { repository.upsertExamSheet(sheet) }
+    }
+
+    fun startExam(sheetId: String, onResult: (ExamActionResult) -> Unit = {}) {
+        if (sheetId.isBlank()) {
+            onResult(ExamActionResult.Invalid("شناسهٔ آزمون معتبر نیست"))
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val started = repository.setActiveExam(sheetId)
+                actionError.update { null }
+                onResult(if (started) ExamActionResult.Success else ExamActionResult.SheetNotFound)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                actionError.update { failure.message ?: "شروع آزمون با خطا روبه‌رو شد" }
+                onResult(ExamActionResult.Failure(failure))
+            }
+        }
+    }
+
+    fun clearActiveExam(sheetId: String? = null) {
+        viewModelScope.launch {
+            try {
+                repository.clearActiveExam(sheetId)
+                actionError.update { null }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                actionError.update { failure.message ?: "پاک‌کردن وضعیت آزمون فعال ناموفق بود" }
+            }
+        }
     }
 
     fun completeExam(

@@ -39,6 +39,9 @@ class DarsYarRepository @Inject constructor(
     override fun observeExamResults(): Flow<List<ExamResult>> =
         database.examResultDao().observeAll().map { rows -> rows.map { it.toDomain() } }
 
+    override fun observeActiveExamId(): Flow<String?> =
+        database.appStateDao().observe().map { it?.activeExamId }
+
     override suspend fun upsertTask(task: StudyTask) {
         database.studyTaskDao().upsertAll(listOf(task.toEntity()))
     }
@@ -102,6 +105,10 @@ class DarsYarRepository @Inject constructor(
         val result = ExamResultOperations.create(sheet, resultId, completedAt)
         database.examSheetDao().upsertAll(listOf(sheet.copy(isCompleted = true).toEntity()))
         database.examResultDao().upsertAll(listOf(result.toEntity()))
+        val appState = database.appStateDao().get()
+        if (appState?.activeExamId == sheetId) {
+            database.appStateDao().upsert(appState.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+        }
         result
     }
 
@@ -113,10 +120,14 @@ class DarsYarRepository @Inject constructor(
             database.examResultDao().deleteLegacyByName(sheet.name)
         }
         database.examSheetDao().deleteById(sheet.id)
+        val appState = database.appStateDao().get()
+        if (appState?.activeExamId == id) {
+            database.appStateDao().upsert(appState.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+        }
         true
     }
 
-    suspend fun setActiveExam(id: String): Boolean = database.withTransaction {
+    override suspend fun setActiveExam(id: String): Boolean = database.withTransaction {
         if (database.examSheetDao().findById(id) == null) return@withTransaction false
         val current = database.appStateDao().get()
         database.appStateDao().upsert(
@@ -127,6 +138,13 @@ class DarsYarRepository @Inject constructor(
             ),
         )
         true
+    }
+
+    override suspend fun clearActiveExam(id: String?) = database.withTransaction {
+        val current = database.appStateDao().get() ?: return@withTransaction
+        if (id == null || current.activeExamId == id) {
+            database.appStateDao().upsert(current.copy(activeExamId = null, updatedAtEpochMillis = System.currentTimeMillis()))
+        }
     }
 
     suspend fun replaceAll(snapshot: DarsYarSnapshot) {
