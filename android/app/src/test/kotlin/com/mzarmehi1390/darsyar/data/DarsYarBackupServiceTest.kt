@@ -80,6 +80,26 @@ class DarsYarBackupServiceTest {
     }
 
     @Test
+    fun restoreBackup_rejectsInvalidInputWithoutMutatingExistingData() = runBlocking {
+        val task = StudyTask("task-preserved", "اطلاعات محفوظ", "ریاضی", true)
+        val exam = ExamSheet(id = "exam-preserved", name = "آزمون محفوظ")
+        repository.upsertTask(task)
+        repository.upsertExamSheet(exam)
+        repository.setActiveExam(exam.id)
+        val before = repository.createBackupSnapshot()
+
+        assertThrows(BackupFormatException::class.java) {
+            runBlocking {
+                backupService.restoreBackup(
+                    """{"app":"DarsYar","schemaVersion":1,"tasks":[{"id":"broken"}]}""",
+                )
+            }
+        }
+
+        assertEquals(before, repository.createBackupSnapshot())
+    }
+
+    @Test
     fun validateBackup_rejectsInvalidInputBeforeAnyRestoreCanOccur() = runBlocking {
         val task = StudyTask("task-1", "کار محفوظ", "عمومی")
         repository.upsertTask(task)
