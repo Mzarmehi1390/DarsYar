@@ -70,4 +70,18 @@ class DarsYarBackupFileReaderTest {
 
         assertEquals("backup", DarsYarBackupFileReader.read(input))
     }
+    @Test
+    fun read_fallsBackToSingleByteReadsWhenBulkReadsAlwaysReturnZero() {
+        val expected = "پشتیبان".toByteArray(Charsets.UTF_8)
+        val input = object : InputStream() {
+            private val delegate = ByteArrayInputStream(expected)
+
+            override fun read(): Int = delegate.read()
+
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int = 0
+        }
+
+        assertEquals("پشتیبان", DarsYarBackupFileReader.read(input))
+    }
+
 }
