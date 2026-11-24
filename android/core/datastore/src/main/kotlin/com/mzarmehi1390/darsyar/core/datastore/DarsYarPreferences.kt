@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar.core.datastore
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -22,6 +23,28 @@ private const val LEGACY_ANIMATIONS_KEY = "flutter.darsyar.animationsEnabled"
 private val themeModeKey = stringPreferencesKey("theme_mode")
 private val animationsEnabledKey = booleanPreferencesKey("animations_enabled")
 
+internal fun migrateLegacyAppearancePreferences(
+    legacy: SharedPreferences,
+    current: Preferences,
+): Preferences {
+    val migrated = mutablePreferencesOf()
+    current[themeModeKey]?.let { migrated[themeModeKey] = it }
+    current[animationsEnabledKey]?.let { migrated[animationsEnabledKey] = it }
+
+    if (!migrated.contains(themeModeKey)) {
+        when (legacy.getString(LEGACY_THEME_KEY, null)) {
+            "light", "dark", "system" ->
+                migrated[themeModeKey] = legacy.getString(LEGACY_THEME_KEY, "system") ?: "system"
+            else -> Unit
+        }
+    }
+
+    if (!migrated.contains(animationsEnabledKey) && legacy.contains(LEGACY_ANIMATIONS_KEY)) {
+        migrated[animationsEnabledKey] = legacy.getBoolean(LEGACY_ANIMATIONS_KEY, true)
+    }
+    return migrated
+}
+
 private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "darsyar_preferences",
     produceMigrations = { context ->
@@ -30,22 +53,7 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 context = context,
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
-                migrate = { legacy, current ->
-                    val migrated = mutablePreferencesOf()
-                    current[themeModeKey]?.let { migrated[themeModeKey] = it }
-                    current[animationsEnabledKey]?.let { migrated[animationsEnabledKey] = it }
-                    if (!migrated.contains(themeModeKey)) {
-                        when (legacy.getString(LEGACY_THEME_KEY, null)) {
-                            "light", "dark", "system" ->
-                                migrated[themeModeKey] = legacy.getString(LEGACY_THEME_KEY, "system") ?: "system"
-                            else -> Unit
-                        }
-                    }
-                    if (!migrated.contains(animationsEnabledKey) && legacy.contains(LEGACY_ANIMATIONS_KEY)) {
-                        migrated[animationsEnabledKey] = legacy.getBoolean(LEGACY_ANIMATIONS_KEY, true)
-                    }
-                    migrated
-                },
+                migrate = ::migrateLegacyAppearancePreferences,
             ),
         )
     },
