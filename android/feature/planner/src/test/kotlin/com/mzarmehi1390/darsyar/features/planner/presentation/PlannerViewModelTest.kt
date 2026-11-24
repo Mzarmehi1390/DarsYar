@@ -76,6 +76,26 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun saveTask_normalizesBlankSubjectAndTrimsTextBeforePersistence() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.saveTask(
+            StudyTask(
+                id = "task-normalize",
+                title = "  مرور فصل  ",
+                subject = "   ",
+            ),
+        ) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals("مرور فصل", repository.tasks.value.single().title)
+        assertEquals("عمومی", repository.tasks.value.single().subject)
+    }
+
+    @Test
     fun concurrentOverlappingSessionSaves_areSerializedAndOnlyOnePersists() = runTest(mainDispatcher) {
         val repository = FakePlannerRepository()
         val viewModel = PlannerViewModel(repository)

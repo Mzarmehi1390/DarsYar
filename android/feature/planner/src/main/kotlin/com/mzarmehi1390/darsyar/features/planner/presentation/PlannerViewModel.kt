@@ -63,17 +63,22 @@ class PlannerViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PlannerUiState())
 
     fun saveTask(task: StudyTask, onResult: (PlannerActionResult) -> Unit = {}) {
+        val normalizedTask = task.copy(
+            title = task.title.trim(),
+            subject = task.subject.trim().ifBlank { "عمومی" },
+        )
         val invalid = when {
-            task.id.isBlank() -> "شناسهٔ کار معتبر نیست"
-            task.title.isBlank() -> "عنوان کار نمی‌تواند خالی باشد"
-            task.dueDate != null && PlannerCalendar.parseDateKey(task.dueDate) == null -> "تاریخ کار معتبر نیست"
+            normalizedTask.id.isBlank() -> "شناسهٔ کار معتبر نیست"
+            normalizedTask.title.isBlank() -> "عنوان کار نمی‌تواند خالی باشد"
+            normalizedTask.dueDate != null &&
+                PlannerCalendar.parseDateKey(normalizedTask.dueDate) == null -> "تاریخ کار معتبر نیست"
             else -> null
         }
         if (invalid != null) {
             onResult(PlannerActionResult.Invalid(invalid))
             return
         }
-        performAction(onResult) { repository.upsertTask(task) }
+        performAction(onResult) { repository.upsertTask(normalizedTask) }
     }
 
     fun deleteTask(id: String, onResult: (PlannerActionResult) -> Unit = {}) {

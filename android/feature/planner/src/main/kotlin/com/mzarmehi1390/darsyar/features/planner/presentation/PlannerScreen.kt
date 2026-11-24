@@ -26,6 +26,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -178,11 +179,13 @@ private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (S
     var subject by remember(task?.id) { mutableStateOf(task?.subject.orEmpty()) }
     var dueDate by remember(task?.id) { mutableStateOf(task?.dueDate) }
     var showDatePicker by remember { mutableStateOf(false) }
-    val pickerState = rememberDatePickerState(
-        initialSelectedDateMillis = dueDate?.let { date ->
-            runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
-        },
-    )
+    val pickerState = key(dueDate) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = dueDate?.let { date ->
+                runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
+            },
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -190,7 +193,7 @@ private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (S
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان کار") }, singleLine = true)
-                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس") }, singleLine = true)
+                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس (اختیاری)") }, singleLine = true)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("تاریخ سررسید", style = MaterialTheme.typography.labelLarge)
@@ -212,7 +215,7 @@ private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (S
                         dueDate = dueDate,
                     ))
                 },
-                enabled = title.isNotBlank() && subject.isNotBlank(),
+                enabled = title.isNotBlank(),
             ) { Text("ذخیره") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
