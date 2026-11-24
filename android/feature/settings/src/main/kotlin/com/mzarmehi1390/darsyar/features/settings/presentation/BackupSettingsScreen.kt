@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,6 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mzarmehi1390.darsyar.core.datastore.DarsYarPreferences
+import com.mzarmehi1390.darsyar.core.datastore.DarsYarPreferencesRepository
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,9 +34,15 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 @Composable
-fun BackupSettingsScreen(gateway: BackupSettingsGateway) {
+fun BackupSettingsScreen(
+    gateway: BackupSettingsGateway,
+    preferencesRepository: DarsYarPreferencesRepository,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val preferences by preferencesRepository.preferences.collectAsStateWithLifecycle(
+        initialValue = DarsYarPreferences(),
+    )
     var busy by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var pendingBackup by remember { mutableStateOf<ValidatedBackup?>(null) }
@@ -119,6 +129,52 @@ fun BackupSettingsScreen(gateway: BackupSettingsGateway) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text("تنظیمات", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+        Text("ظاهر برنامه", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text("پوستهٔ برنامه", style = MaterialTheme.typography.titleMedium)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf("system" to "سیستم", "light" to "روشن", "dark" to "تیره").forEach { (mode, label) ->
+                if (preferences.themeMode == mode) {
+                    Button(
+                        onClick = { scope.launch { preferencesRepository.setThemeMode(mode) } },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(label) }
+                } else {
+                    OutlinedButton(
+                        onClick = { scope.launch { preferencesRepository.setThemeMode(mode) } },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(label) }
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("انیمیشن‌های برنامه", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (preferences.animationsEnabled) "تنظیم انیمیشن‌ها روشن است."
+                    else "تنظیم انیمیشن‌ها خاموش است.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = preferences.animationsEnabled,
+                onCheckedChange = { enabled ->
+                    scope.launch { preferencesRepository.setAnimationsEnabled(enabled) }
+                },
+            )
+        }
+        Text(
+            "اطلاعات درس‌یار به‌صورت محلی روی همین دستگاه ذخیره می‌شود. فایل پشتیبان را خودتان انتخاب و مدیریت می‌کنید.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text("پشتیبان‌گیری و بازیابی", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
         Text(
             "از کارها، جلسات مطالعه، آزمون‌ها و نتایج خود یک فایل JSON بسازید. " +
