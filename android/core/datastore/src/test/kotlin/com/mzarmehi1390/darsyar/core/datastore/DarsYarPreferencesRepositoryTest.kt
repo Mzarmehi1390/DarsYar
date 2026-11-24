@@ -46,7 +46,11 @@ class DarsYarPreferencesRepositoryTest {
             .putBoolean("flutter.darsyar.animationsEnabled", false)
             .commit()
 
-        val migrated = migrateLegacyAppearancePreferences(legacy, emptyPreferences())
+        val migrated = migrateLegacyAppearancePreferences(
+            legacyThemeMode = legacy.getString("flutter.darsyar.themeMode", null),
+            legacyAnimationsEnabled = if (legacy.contains("flutter.darsyar.animationsEnabled")) legacy.getBoolean("flutter.darsyar.animationsEnabled", true) else null,
+            current = emptyPreferences(),
+        )
 
         assertEquals("light", migrated.asMap().entries.first { it.key.name == "theme_mode" }.value)
         assertEquals(false, migrated.asMap().entries.first { it.key.name == "animations_enabled" }.value)
@@ -64,7 +68,11 @@ class DarsYarPreferencesRepositoryTest {
             androidx.datastore.preferences.core.stringPreferencesKey("theme_mode") to "dark",
             androidx.datastore.preferences.core.booleanPreferencesKey("animations_enabled") to true,
         )
-        val migrated = migrateLegacyAppearancePreferences(legacy, current)
+        val migrated = migrateLegacyAppearancePreferences(
+            legacyThemeMode = legacy.getString("flutter.darsyar.themeMode", null),
+            legacyAnimationsEnabled = if (legacy.contains("flutter.darsyar.animationsEnabled")) legacy.getBoolean("flutter.darsyar.animationsEnabled", true) else null,
+            current = current,
+        )
 
         assertEquals("dark", migrated.asMap().entries.first { it.key.name == "theme_mode" }.value)
         assertEquals(true, migrated.asMap().entries.first { it.key.name == "animations_enabled" }.value)
