@@ -4,8 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -37,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
@@ -113,7 +117,17 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            SectionHeading(title = "جلسات مطالعه", detail = "${state.sessions.size} جلسه")
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                            ) {
+                                Text("جلسات مطالعه", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text(
+                                    "${state.sessions.size} جلسه",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             TextButton(onClick = {
                                 editingSession = null
                                 showSessionEditor = true
@@ -325,7 +339,13 @@ private fun SessionEditorDialog(
 ) {
     var title by remember(session?.id) { mutableStateOf(session?.title.orEmpty()) }
     var subject by remember(session?.id) { mutableStateOf(session?.subject.orEmpty()) }
-    var weekday by remember(session?.id) { mutableStateOf(session?.weekday ?: 0) }
+    var weekday by remember(session?.id) {
+        mutableStateOf(
+            session?.scheduledDate?.let(PlannerCalendar::parseDateKey)?.let(PlannerCalendar::weekdayForDate)
+                ?: session?.weekday
+                ?: 0,
+        )
+    }
     var weekdayMenuExpanded by remember { mutableStateOf(false) }
     var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "09:00") }
     var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "60") }
@@ -347,7 +367,10 @@ private fun SessionEditorDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (session == null) "جلسهٔ جدید" else "ویرایش جلسه") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان جلسه") }, singleLine = true)
                 OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس") }, singleLine = true)
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -421,6 +444,9 @@ private fun SessionEditorDialog(
                     onClick = {
                         scheduledDate = pickerState.selectedDateMillis?.let { millis ->
                             Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
+                        }
+                        scheduledDate?.let(PlannerCalendar::parseDateKey)?.let(PlannerCalendar::weekdayForDate)?.let {
+                            weekday = it
                         }
                         showDatePicker = false
                     },

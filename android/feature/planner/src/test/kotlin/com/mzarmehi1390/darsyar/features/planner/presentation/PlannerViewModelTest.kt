@@ -124,6 +124,50 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun saveSession_persistsDatedSessionWithItsConcreteWeekday() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val session = StudySession(
+            id = "dated-session",
+            title = "مطالعه تاریخ‌دار",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 10 * 60,
+            durationMinutes = 45,
+            scheduledDate = "2026-11-24",
+        )
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(session) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(session, repository.sessionsSnapshot().single())
+    }
+
+    @Test
+    fun saveSession_persistsWeeklyLegacySessionWithoutDate() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val session = StudySession(
+            id = "weekly-session",
+            title = "مطالعه هفتگی",
+            subject = "علوم",
+            weekday = 4,
+            startMinutes = 16 * 60,
+            durationMinutes = 30,
+        )
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(session) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(session, repository.sessionsSnapshot().single())
+        assertEquals(null, repository.sessionsSnapshot().single().scheduledDate)
+    }
+
+    @Test
     fun saveSession_rejectsOverlappingOccurrence() = runTest(mainDispatcher) {
         val existing = StudySession(
             id = "session-1",
