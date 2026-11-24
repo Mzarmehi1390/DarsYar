@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
@@ -174,6 +175,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                             }
                         }
                     }
+                    item { ExamPercentageCalculatorCard() }
                 }
             }
         }
@@ -547,4 +549,84 @@ private fun AnswerKeyDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
     )
+}
+
+
+@Composable
+private fun ExamPercentageCalculatorCard() {
+    var correct by remember { mutableStateOf("0") }
+    var wrong by remember { mutableStateOf("0") }
+    var unanswered by remember { mutableStateOf("0") }
+
+    fun parseCount(value: String): Int = value.fold(0) { total, char ->
+        total * 10 + (char.digitToIntOrNull() ?: 0)
+    }
+
+    fun sanitize(value: String): String = value.filter { it.digitToIntOrNull() != null }.take(3)
+
+    val correctCount = parseCount(correct)
+    val wrongCount = parseCount(wrong)
+    val unansweredCount = parseCount(unanswered)
+    val result = ExamPercentageCalculator.calculate(correctCount, wrongCount, unansweredCount)
+    val valid = result.withoutPenalty != null
+
+    Card(modifier = Modifier.fillMaxWidth().darsYarAnimateContentSize()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text("ماشین‌حساب درصد آزمون", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "تعداد پاسخ‌های درست، غلط و بی‌پاسخ را وارد کن؛ مجموع باید بین ۱ تا ۲۰۰ باشد.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = correct,
+                    onValueChange = { correct = sanitize(it) },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("درست") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = wrong,
+                    onValueChange = { wrong = sanitize(it) },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("غلط") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = unanswered,
+                    onValueChange = { unanswered = sanitize(it) },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("بی‌پاسخ") },
+                    singleLine = true,
+                )
+            }
+            if (!valid) {
+                Text(
+                    "مجموع تعدادها باید حداقل ۱ و حداکثر ۲۰۰ باشد.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("بدون نمرهٔ منفی", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    result.withoutPenalty?.let { "%.1f٪".format(it) } ?: "—",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("با نمرهٔ منفی (هر ۳ غلط = ۱ درست)", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    result.withPenalty?.let { "%.1f٪".format(it) } ?: "—",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
 }
