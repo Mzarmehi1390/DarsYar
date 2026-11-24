@@ -19,6 +19,20 @@ class DarsYarBackupFileReaderTest {
     }
 
     @Test
+    fun read_acceptsInputExactlyAtTenMegabyteLimit() {
+        val boundary = ByteArray(DarsYarBackupFileReader.MAX_BACKUP_BYTES) { 'a'.code.toByte() }
+
+        val actual = DarsYarBackupFileReader.read(ByteArrayInputStream(boundary))
+
+        assertEquals(DarsYarBackupFileReader.MAX_BACKUP_BYTES, actual.length)
+    }
+
+    @Test
+    fun read_acceptsEmptyInput() {
+        assertEquals("", DarsYarBackupFileReader.read(ByteArrayInputStream(byteArrayOf())))
+    }
+
+    @Test
     fun read_rejectsInputLargerThanTenMegabytes() {
         val oversized = ByteArray(DarsYarBackupFileReader.MAX_BACKUP_BYTES + 1)
 
