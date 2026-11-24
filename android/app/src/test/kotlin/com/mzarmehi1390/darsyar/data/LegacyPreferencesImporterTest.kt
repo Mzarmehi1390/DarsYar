@@ -93,6 +93,34 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun malformedLegacyCollectionDoesNotCompleteImportAndCanBeRetried() = runBlocking {
+        preferences.edit()
+            .putString("flutter.darsyar.tasks", """[{invalid-json]""")
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("Malformed legacy JSON must fail the import.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("darsyar.tasks"))
+        }
+
+        assertEquals(null, database.appStateDao().get())
+        assertEquals(0, database.studyTaskDao().count())
+
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"recovered-task","title":"Recovered task"}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        assertEquals("Recovered task", database.studyTaskDao().findById("recovered-task")?.title)
+        assertTrue(database.appStateDao().get()?.legacyImportCompleted == true)
+    }
+
+    @Test
     fun importsLegacySingleSheetWhenMultiSheetKeyWasNeverCreated() = runBlocking {
         preferences.edit()
             .putInt("flutter.darsyar.count", 3)

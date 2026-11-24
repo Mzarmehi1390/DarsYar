@@ -90,8 +90,12 @@ class LegacyPreferencesImporter @Inject constructor(
 
     private fun prefKey(key: String) = FLUTTER_KEY_PREFIX + key
 
-    private fun readString(key: String): String? =
-        runCatching { preferences.getString(prefKey(key), null) }.getOrNull()
+    private fun readString(key: String): String? {
+        val fullKey = prefKey(key)
+        if (!preferences.contains(fullKey)) return null
+        return preferences.getString(fullKey, null)
+            ?: throw IllegalStateException("Legacy preference '$key' is not a string.")
+    }
 
     private fun readInt(key: String, fallback: Int): Int =
         runCatching { preferences.getInt(prefKey(key), fallback) }.getOrDefault(fallback)
@@ -101,7 +105,11 @@ class LegacyPreferencesImporter @Inject constructor(
         parser: (JSONObject, Int) -> T?,
     ): List<T> {
         val raw = readString(key) ?: return emptyList()
-        val array = runCatching { JSONArray(raw) }.getOrNull() ?: return emptyList()
+        val array = try {
+            JSONArray(raw)
+        } catch (exception: Exception) {
+            throw IllegalStateException("Unable to parse legacy collection '$key'.", exception)
+        }
         val parsed = ArrayList<T>(array.length())
         val seenIds = mutableSetOf<String>()
         for (index in 0 until array.length()) {
@@ -243,11 +251,21 @@ class LegacyPreferencesImporter @Inject constructor(
         )
     }
 
-    private fun readJsonObject(key: String) =
-        readString(key)?.let { runCatching { JSONObject(it) }.getOrNull() }
+    private fun readJsonObject(key: String) = readString(key)?.let { raw ->
+        try {
+            JSONObject(raw)
+        } catch (exception: Exception) {
+            throw IllegalStateException("Unable to parse legacy object '$key'.", exception)
+        }
+    }
 
-    private fun readJsonArray(key: String) =
-        readString(key)?.let { runCatching { JSONArray(it) }.getOrNull() }
+    private fun readJsonArray(key: String) = readString(key)?.let { raw ->
+        try {
+            JSONArray(raw)
+        } catch (exception: Exception) {
+            throw IllegalStateException("Unable to parse legacy array '$key'.", exception)
+        }
+    }
 
     private fun filteredAnswers(source: JSONObject?, questionCount: Int): Map<Int, Int> {
         if (source == null) return emptyMap()
