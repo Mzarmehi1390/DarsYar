@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar
 
 import android.net.Uri
+import java.io.IOException
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,6 +47,10 @@ import androidx.navigation.compose.rememberNavController
 import com.mzarmehi1390.darsyar.core.designsystem.DarsYarTheme
 import com.mzarmehi1390.darsyar.data.AppStartupCoordinator
 import com.mzarmehi1390.darsyar.data.AppStartupState
+import com.mzarmehi1390.darsyar.data.BackupFileEncodingException
+import com.mzarmehi1390.darsyar.data.BackupFileTooLargeException
+import com.mzarmehi1390.darsyar.data.BackupFormatException
+import com.mzarmehi1390.darsyar.data.DarsYarBackupFileReader
 import com.mzarmehi1390.darsyar.data.DarsYarBackupService
 import com.mzarmehi1390.darsyar.data.DarsYarBackupSummary
 import com.mzarmehi1390.darsyar.features.exams.presentation.ExamViewModel
@@ -173,13 +178,20 @@ private fun BackupSettingsScreen(backupService: DarsYarBackupService) {
             busy = true
             statusMessage = null
             try {
-                val input = context.contentResolver.openInputStream(uri) ?: error("امکان خواندن فایل انتخاب‌شده وجود ندارد.")
-                val json = input.bufferedReader(Charsets.UTF_8).use { it.readText() }
+                val json = context.contentResolver.openInputStream(uri)?.use { input ->
+                    DarsYarBackupFileReader.read(input)
+                } ?: throw IOException("Unable to open selected backup file.")
                 val summary = backupService.validateBackup(json)
                 pendingBackup = json
                 pendingSummary = summary
             } catch (exception: Exception) {
-                statusMessage = exception.localizedMessage?.takeIf { it.isNotBlank() } ?: "فایل انتخاب‌شده معتبر نیست."
+                statusMessage = when (exception) {
+                    is BackupFileTooLargeException -> "حجم فایل پشتیبان بیشتر از حد مجاز ۱۰ مگابایت است."
+                    is BackupFileEncodingException -> "فایل پشتیبان قالب متنی معتبر ندارد."
+                    is BackupFormatException -> "ساختار فایل پشتیبان معتبر نیست یا با این نسخهٔ برنامه سازگار نیست."
+                    is IOException -> "خواندن فایل پشتیبان ممکن نشد."
+                    else -> "فایل انتخاب‌شده قابل بازیابی نیست."
+                }
             } finally { busy = false }
         }
     }
