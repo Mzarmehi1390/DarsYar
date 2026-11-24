@@ -25,7 +25,19 @@ internal object DarsYarBackupFileReader {
         while (true) {
             val count = input.read(buffer)
             if (count < 0) break
-            if (count == 0) continue
+            if (count == 0) {
+                // InputStream implementations may legally return zero for a
+                // non-empty buffer request. Fall back to a single-byte read
+                // so a non-conforming provider cannot cause a busy loop.
+                val singleByte = input.read()
+                if (singleByte < 0) break
+                totalBytes++
+                if (totalBytes > MAX_BACKUP_BYTES) {
+                    throw BackupFileTooLargeException(MAX_BACKUP_BYTES)
+                }
+                output.write(singleByte)
+                continue
+            }
 
             totalBytes += count
             if (totalBytes > MAX_BACKUP_BYTES) {
