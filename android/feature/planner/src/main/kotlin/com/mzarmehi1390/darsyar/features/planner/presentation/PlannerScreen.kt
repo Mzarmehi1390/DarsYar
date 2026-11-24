@@ -15,6 +15,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -106,12 +109,26 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                     if (state.sessions.isEmpty()) {
                         item { EmptyPlannerCard("جلسه‌ای برای نمایش وجود ندارد.") }
                     } else {
-                        items(state.sessions.sortedWith(compareBy({ it.weekday }, { it.startMinutes })), key = { it.id }) { session ->
+                        items(
+                            state.sessions.sortedWith(
+                                compareBy<StudySession>(
+                                    { it.scheduledDate == null },
+                                    { it.scheduledDate.orEmpty() },
+                                    { it.weekday },
+                                    { it.startMinutes },
+                                ),
+                            ),
+                            key = { it.id },
+                        ) { session ->
                             Card {
                                 Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                         Text(session.title, fontWeight = FontWeight.SemiBold)
-                                        Text("${session.subject} · ${weekdayName(session.weekday)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(
+                                            "${session.subject} · ${session.scheduledDate?.let(::formatDueDate) ?: weekdayName(session.weekday)}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
                                         Text("${formatTime(session.startMinutes)} · ${session.durationMinutes} دقیقه", style = MaterialTheme.typography.bodySmall)
                                     }
                                     TextButton(onClick = {
@@ -152,6 +169,7 @@ private fun SectionHeading(title: String, detail: String) {
 
 @Composable
 private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
+    var actionsExpanded by remember(task.id) { mutableStateOf(false) }
     Card {
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -159,9 +177,35 @@ private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, 
                 Text(task.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(task.dueDate?.let { "سررسید: ${formatDueDate(it)}" } ?: "بدون تاریخ سررسید", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            TextButton(onClick = onEdit) { Text("ویرایش") }
-            TextButton(onClick = onToggle) { Text(if (task.done) "بازگردانی" else "انجام شد") }
-            TextButton(onClick = onDelete) { Text("حذف", color = MaterialTheme.colorScheme.error) }
+            Column(horizontalAlignment = Alignment.End) {
+                TextButton(onClick = { actionsExpanded = true }) { Text("عملیات") }
+                DropdownMenu(
+                    expanded = actionsExpanded,
+                    onDismissRequest = { actionsExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("ویرایش") },
+                        onClick = {
+                            actionsExpanded = false
+                            onEdit()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(if (task.done) "بازگردانی" else "انجام شد") },
+                        onClick = {
+                            actionsExpanded = false
+                            onToggle()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("حذف", color = MaterialTheme.colorScheme.error) },
+                        onClick = {
+                            actionsExpanded = false
+                            onDelete()
+                        },
+                    )
+                }
+            }
         }
     }
 }
