@@ -315,7 +315,7 @@ internal object DarsYarBackupCodec {
 
     private fun JsonObject.toJsonObject(): JsonObject = buildJsonObject {
         this@toJsonObject.toSortedMap().forEach { (question, answer) ->
-            put(question.toString(), JsonPrimitive(answer))
+            put(question.toString(), answer)
         }
     }
 
