@@ -136,6 +136,50 @@ class PlannerViewModelTest {
         stateJob.cancel()
     }
 
+    @Test
+    fun saveTask_updatesExistingTaskAndPreservesCompletionAndDueDate() = runTest(mainDispatcher) {
+        val existing = StudyTask(
+            id = "task-edit",
+            title = "عنوان قبلی",
+            subject = "ریاضی",
+            done = true,
+            dueDate = "2026-11-24",
+        )
+        val repository = FakePlannerRepository()
+        repository.tasks.value = listOf(existing)
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.saveTask(
+            existing.copy(title = "عنوان جدید", subject = "علوم", dueDate = "2026-11-26"),
+        ) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(1, repository.tasks.value.size)
+        assertEquals("عنوان جدید", repository.tasks.value.single().title)
+        assertEquals("علوم", repository.tasks.value.single().subject)
+        assertTrue(repository.tasks.value.single().done)
+        assertEquals("2026-11-26", repository.tasks.value.single().dueDate)
+        assertEquals(1, repository.savedTasks.size)
+    }
+
+    @Test
+    fun saveTask_rejectsMalformedDueDateWithoutCallingRepository() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.saveTask(
+            StudyTask("task-bad-date", "تمرین", "ریاضی", dueDate = "24-11-2026"),
+        ) { result = it }
+        advanceUntilIdle()
+
+        assertTrue(result is PlannerActionResult.Invalid)
+        assertTrue(repository.savedTasks.isEmpty())
+        assertTrue(repository.tasks.value.isEmpty())
+    }
+
     private class FakePlannerRepository(
         initialSessions: List<StudySession> = emptyList(),
     ) : PlannerRepository {
