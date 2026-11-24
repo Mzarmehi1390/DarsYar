@@ -326,7 +326,11 @@ internal object DarsYarBackupCodec {
     }
 
     private fun JsonObjectBuilder.putNullable(key: String, value: String?) {
-        put(key, value?.let(::JsonPrimitive) ?: JsonNull)
+        if (value == null) {
+            put(key, JsonNull)
+        } else {
+            put(key, JsonPrimitive(value))
+        }
     }
 
     private fun validateUniqueIds(ids: List<String>, collection: String) {
