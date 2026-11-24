@@ -52,6 +52,8 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     val scope = rememberCoroutineScope()
     var showTaskEditor by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
+    var showSessionEditor by remember { mutableStateOf(false) }
+    var editingSession by remember { mutableStateOf<StudySession?>(null) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -105,9 +107,21 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             )
                         }
                     }
-                    item { SectionHeading(title = "جلسات مطالعه", detail = "${state.sessions.size} جلسهٔ برنامه‌ریزی‌شده") }
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            SectionHeading(title = "جلسات مطالعه", detail = "${state.sessions.size} جلسه")
+                            TextButton(onClick = {
+                                editingSession = null
+                                showSessionEditor = true
+                            }) { Text("افزودن جلسه") }
+                        }
+                    }
                     if (state.sessions.isEmpty()) {
-                        item { EmptyPlannerCard("جلسه‌ای برای نمایش وجود ندارد.") }
+                        item { EmptyPlannerCard("جلسه‌ای ثبت نشده است. برای برنامه‌ریزی مطالعه، جلسهٔ جدید اضافه کن.") }
                     } else {
                         items(
                             state.sessions.sortedWith(
@@ -120,24 +134,23 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             ),
                             key = { it.id },
                         ) { session ->
-                            Card {
-                                Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        Text(session.title, fontWeight = FontWeight.SemiBold)
-                                        Text(
-                                            "${session.subject} · ${session.scheduledDate?.let(::formatDueDate) ?: weekdayName(session.weekday)}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                        Text("${formatTime(session.startMinutes)} · ${session.durationMinutes} دقیقه", style = MaterialTheme.typography.bodySmall)
+                            SessionCard(
+                                session = session,
+                                onToggle = {
+                                    viewModel.toggleSession(session) { result ->
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
                                     }
-                                    TextButton(onClick = {
-                                        viewModel.toggleSession(session) { result ->
-                                            if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                        }
-                                    }) { Text(if (session.completed) "انجام شد" else "انجام نشده") }
-                                }
-                            }
+                                },
+                                onEdit = {
+                                    editingSession = session
+                                    showSessionEditor = true
+                                },
+                                onDelete = {
+                                    viewModel.deleteSession(session.id) { result ->
+                                        scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                    }
+                                },
+                            )
                         }
                     }
                 }
@@ -153,6 +166,19 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 viewModel.saveTask(task) { result ->
                     scope.launch { snackbar.showSnackbar(result.toMessage()) }
                     if (result is PlannerActionResult.Success) showTaskEditor = false
+                }
+            },
+        )
+    }
+
+    if (showSessionEditor) {
+        SessionEditorDialog(
+            session = editingSession,
+            onDismiss = { showSessionEditor = false },
+            onSave = { session ->
+                viewModel.saveSession(session) { result ->
+                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                    if (result is PlannerActionResult.Success) showSessionEditor = false
                 }
             },
         )
@@ -179,31 +205,41 @@ private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, 
             }
             Column(horizontalAlignment = Alignment.End) {
                 TextButton(onClick = { actionsExpanded = true }) { Text("عملیات") }
-                DropdownMenu(
-                    expanded = actionsExpanded,
-                    onDismissRequest = { actionsExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("ویرایش") },
-                        onClick = {
-                            actionsExpanded = false
-                            onEdit()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(if (task.done) "بازگردانی" else "انجام شد") },
-                        onClick = {
-                            actionsExpanded = false
-                            onToggle()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("حذف", color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            actionsExpanded = false
-                            onDelete()
-                        },
-                    )
+                DropdownMenu(expanded = actionsExpanded, onDismissRequest = { actionsExpanded = false }) {
+                    DropdownMenuItem(text = { Text("ویرایش") }, onClick = { actionsExpanded = false; onEdit() })
+                    DropdownMenuItem(text = { Text(if (task.done) "بازگردانی" else "انجام شد") }, onClick = { actionsExpanded = false; onToggle() })
+                    DropdownMenuItem(text = { Text("حذف", color = MaterialTheme.colorScheme.error) }, onClick = { actionsExpanded = false; onDelete() })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SessionCard(
+    session: StudySession,
+    onToggle: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    var actionsExpanded by remember(session.id) { mutableStateOf(false) }
+    Card {
+        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(session.title, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "${session.subject} · ${session.scheduledDate?.let(::formatDueDate) ?: weekdayName(session.weekday)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text("${formatTime(session.startMinutes)} · ${session.durationMinutes} دقیقه", style = MaterialTheme.typography.bodySmall)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                TextButton(onClick = onToggle) { Text(if (session.completed) "انجام شد" else "انجام نشده") }
+                TextButton(onClick = { actionsExpanded = true }) { Text("عملیات") }
+                DropdownMenu(expanded = actionsExpanded, onDismissRequest = { actionsExpanded = false }) {
+                    DropdownMenuItem(text = { Text("ویرایش") }, onClick = { actionsExpanded = false; onEdit() })
+                    DropdownMenuItem(text = { Text("حذف", color = MaterialTheme.colorScheme.error) }, onClick = { actionsExpanded = false; onDelete() })
                 }
             }
         }
@@ -281,8 +317,132 @@ private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (S
     }
 }
 
-private fun weekdayName(day: Int): String = listOf("یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه").getOrElse(day) { "روز نامشخص" }
+@Composable
+private fun SessionEditorDialog(
+    session: StudySession?,
+    onDismiss: () -> Unit,
+    onSave: (StudySession) -> Unit,
+) {
+    var title by remember(session?.id) { mutableStateOf(session?.title.orEmpty()) }
+    var subject by remember(session?.id) { mutableStateOf(session?.subject.orEmpty()) }
+    var weekday by remember(session?.id) { mutableStateOf(session?.weekday ?: 0) }
+    var weekdayMenuExpanded by remember { mutableStateOf(false) }
+    var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "09:00") }
+    var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "60") }
+    var scheduledDate by remember(session?.id) { mutableStateOf(session?.scheduledDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val pickerState = key(scheduledDate) {
+        rememberDatePickerState(
+            initialSelectedDateMillis = scheduledDate?.let { date ->
+                runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
+            },
+        )
+    }
+    val parsedTime = parseTime(startTime)
+    val parsedDuration = duration.toIntOrNull()
+    val validTime = parsedTime != null && parsedDuration != null && parsedDuration > 0 &&
+        parsedTime in 0 until 1440 && parsedDuration <= 1440 - parsedTime
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (session == null) "جلسهٔ جدید" else "ویرایش جلسه") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان جلسه") }, singleLine = true)
+                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس") }, singleLine = true)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("روز هفته", style = MaterialTheme.typography.labelLarge)
+                        Text(weekdayName(weekday), style = MaterialTheme.typography.bodySmall)
+                    }
+                    TextButton(onClick = { weekdayMenuExpanded = true }) { Text("انتخاب روز") }
+                    DropdownMenu(expanded = weekdayMenuExpanded, onDismissRequest = { weekdayMenuExpanded = false }) {
+                        weekdayNames.forEachIndexed { index, name ->
+                            DropdownMenuItem(
+                                text = { Text(name) },
+                                onClick = { weekday = index; weekdayMenuExpanded = false },
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = startTime,
+                    onValueChange = { startTime = it.filter { char -> char.isDigit() || char == ':' }.take(5) },
+                    label = { Text("زمان شروع (HH:mm)") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = duration,
+                    onValueChange = { duration = it.filter(Char::isDigit).take(4) },
+                    label = { Text("مدت (دقیقه)") },
+                    singleLine = true,
+                )
+                Text(
+                    scheduledDate?.let { "تاریخ مشخص: ${formatDueDate(it)}" } ?: "جلسهٔ هفتگی بر اساس روز انتخاب‌شده",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { showDatePicker = true }) { Text("تعیین تاریخ") }
+                    if (scheduledDate != null) TextButton(onClick = { scheduledDate = null }) { Text("حذف تاریخ") }
+                }
+                if (startTime.isNotBlank() && !validTime) {
+                    Text("زمان یا مدت جلسه معتبر نیست.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                enabled = title.isNotBlank() && subject.isNotBlank() && validTime,
+                onClick = {
+                    onSave(
+                        StudySession(
+                            id = session?.id ?: UUID.randomUUID().toString(),
+                            title = title.trim(),
+                            subject = subject.trim(),
+                            weekday = weekday,
+                            startMinutes = parsedTime!!,
+                            durationMinutes = parsedDuration!!,
+                            completed = session?.completed ?: false,
+                            scheduledDate = scheduledDate,
+                        ),
+                    )
+                },
+            ) { Text("ذخیره") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scheduledDate = pickerState.selectedDateMillis?.let { millis ->
+                            Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
+                        }
+                        showDatePicker = false
+                    },
+                    enabled = pickerState.selectedDateMillis != null,
+                ) { Text("تأیید") }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } },
+        ) { DatePicker(state = pickerState) }
+    }
+}
+
+private val weekdayNames = listOf("یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه")
+private fun weekdayName(day: Int): String = weekdayNames.getOrElse(day) { "روز نامشخص" }
 private fun formatTime(minutes: Int): String = "%02d:%02d".format(minutes / 60, minutes % 60)
+private fun parseTime(value: String): Int? {
+    val parts = value.split(":")
+    if (parts.size != 2) return null
+    val hour = parts[0].toIntOrNull() ?: return null
+    val minute = parts[1].toIntOrNull() ?: return null
+    if (hour !in 0..23 || minute !in 0..59) return null
+    return hour * 60 + minute
+}
 private fun formatDueDate(value: String): String = runCatching {
     val date = LocalDate.parse(value)
     "%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth)
