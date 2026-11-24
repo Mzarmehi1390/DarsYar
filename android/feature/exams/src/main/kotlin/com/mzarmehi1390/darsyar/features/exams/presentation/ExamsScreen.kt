@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                 Text("برگه‌ها را مدیریت کن و نتیجهٔ آزمون‌هایت را نگه دار.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             state.errorMessage?.let { message ->
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                     Text(message, modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
@@ -103,7 +104,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     item {
                         state.activeExamId?.let { activeId ->
                             state.sheets.firstOrNull { it.id == activeId }?.let { activeSheet ->
-                                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                                Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                         Text("آزمون فعال", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
                                         Text(activeSheet.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Bold)
@@ -119,7 +120,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                         item { EmptyExamCard("هنوز برگه‌ای ثبت نشده است.") }
                     } else {
                         items(state.sheets, key = { it.id }) { sheet ->
-                            Card {
+                            Card(modifier = Modifier.darsYarAnimateContentSize()) {
                                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(sheet.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                     Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -159,7 +160,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                         item { EmptyExamCard("پس از ثبت نتیجه، کارنامه‌ها در این بخش نمایش داده می‌شوند.") }
                     } else {
                         items(state.results.sortedByDescending { it.completedAt }, key = { it.id }) { result ->
-                            Card {
+                            Card(modifier = Modifier.darsYarAnimateContentSize()) {
                                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(result.examName, fontWeight = FontWeight.SemiBold)
                                     Text("${result.correct} درست · ${result.wrong} نادرست · ${result.unanswered} بی‌پاسخ", style = MaterialTheme.typography.bodySmall)
@@ -238,7 +239,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
 
 @Composable
 private fun EmptyExamCard(message: String) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Text(message, modifier = Modifier.fillMaxWidth().padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -374,7 +375,7 @@ private fun ExamTakingDialog(
                     }
                 }
 
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -506,7 +507,7 @@ private fun AnswerKeyDialog(
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(sheet.questionCount) { index ->
                         val question = index + 1
-                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                        Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                             Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),

@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerSummary
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
@@ -95,7 +96,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 Text("کارها و جلسات مطالعه‌ات را در یک نگاه مدیریت کن.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             state.errorMessage?.let { message ->
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                     Text(message, modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.onErrorContainer)
                 }
             }
@@ -308,7 +309,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
 private fun WeeklyPlannerReport(summary: PlannerSummary) {
     val progress = summary.completion.toFloat().coerceIn(0f, 1f)
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().darsYarAnimateContentSize(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column(
@@ -360,7 +361,7 @@ private fun SectionHeading(title: String, detail: String) {
 @Composable
 private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     var actionsExpanded by remember(task.id) { mutableStateOf(false) }
-    Card {
+    Card(modifier = Modifier.darsYarAnimateContentSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(task.title, fontWeight = FontWeight.SemiBold, color = if (task.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
@@ -387,7 +388,7 @@ private fun SessionCard(
     onDelete: () -> Unit,
 ) {
     var actionsExpanded by remember(session.id) { mutableStateOf(false) }
-    Card {
+    Card(modifier = Modifier.darsYarAnimateContentSize()) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(session.title, fontWeight = FontWeight.SemiBold)
@@ -412,7 +413,7 @@ private fun SessionCard(
 
 @Composable
 private fun EmptyPlannerCard(message: String) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+    Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Text(message, modifier = Modifier.fillMaxWidth().padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

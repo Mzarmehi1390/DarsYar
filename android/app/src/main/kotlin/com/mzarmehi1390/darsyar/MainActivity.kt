@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                 "dark" -> true
                 else -> androidx.compose.foundation.isSystemInDarkTheme()
             }
-            DarsYarTheme(darkTheme = darkTheme) {
+            DarsYarTheme(darkTheme = darkTheme, animationsEnabled = preferences.animationsEnabled) {
                 val startupState by startupCoordinator.state.collectAsStateWithLifecycle()
                 var retryAttempt by remember { mutableStateOf(0) }
                 LaunchedEffect(startupCoordinator, retryAttempt) { startupCoordinator.ensureReady() }
