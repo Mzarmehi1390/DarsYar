@@ -121,6 +121,33 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun malformedLegacySingleExamPayloadRollsBackAndCanBeRetried() = runBlocking {
+        preferences.edit()
+            .putInt("flutter.darsyar.count", 3)
+            .putString("flutter.darsyar.answers", """{"1":1""")
+            .putString("flutter.darsyar.answerKey", """{"1":1}""")
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("Malformed legacy exam answers must fail the import.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("darsyar.answers"))
+        }
+
+        assertEquals(null, database.appStateDao().get())
+        assertEquals(0, database.examSheetDao().count())
+
+        preferences.edit()
+            .putString("flutter.darsyar.answers", """{"1":1,"2":0}""")
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        assertEquals("""{"1":1,"2":0}""", database.examSheetDao().findById("default")?.answersJson)
+        assertTrue(database.appStateDao().get()?.legacyImportCompleted == true)
+    }
+
+    @Test
     fun importsLegacySingleSheetWhenMultiSheetKeyWasNeverCreated() = runBlocking {
         preferences.edit()
             .putInt("flutter.darsyar.count", 3)
