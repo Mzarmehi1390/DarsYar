@@ -11,6 +11,9 @@ import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -39,6 +42,7 @@ class PlannerViewModel @Inject constructor(
     private val repository: PlannerRepository,
 ) : ViewModel() {
     private val actionError = MutableStateFlow<String?>(null)
+    private val sessionMutationMutex = Mutex()
 
     val uiState: StateFlow<PlannerUiState> = combine(
         repository.observeTasks(),
@@ -94,17 +98,33 @@ class PlannerViewModel @Inject constructor(
                 return
             }
         }
-        val overlapping = uiState.value.sessions.any { existing ->
-            existing.id != session.id &&
-                sameOccurrence(existing, session) &&
-                session.startMinutes < existing.startMinutes + existing.durationMinutes &&
-                existing.startMinutes < session.startMinutes + session.durationMinutes
+        viewModelScope.launch {
+            try {
+                sessionMutationMutex.withLock {
+                    // Read the latest persisted collection inside the mutation lock.
+                    // This prevents two near-simultaneous saves from both passing overlap validation.
+                    val currentSessions = repository.observeStudySessions().first()
+                    val overlapping = currentSessions.any { existing ->
+                        existing.id != session.id &&
+                            sameOccurrence(existing, session) &&
+                            session.startMinutes < existing.startMinutes + existing.durationMinutes &&
+                            existing.startMinutes < session.startMinutes + session.durationMinutes
+                    }
+                    if (overlapping) {
+                        onResult(PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد"))
+                        return@withLock
+                    }
+                    repository.upsertStudySession(session)
+                    actionError.update { null }
+                    onResult(PlannerActionResult.Success)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                actionError.update { failure.message ?: "ذخیرهٔ جلسهٔ مطالعه ناموفق بود" }
+                onResult(PlannerActionResult.Failure(failure))
+            }
         }
-        if (overlapping) {
-            onResult(PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد"))
-            return
-        }
-        performAction(onResult) { repository.upsertStudySession(session) }
     }
 
     fun deleteSession(id: String, onResult: (PlannerActionResult) -> Unit = {}) {

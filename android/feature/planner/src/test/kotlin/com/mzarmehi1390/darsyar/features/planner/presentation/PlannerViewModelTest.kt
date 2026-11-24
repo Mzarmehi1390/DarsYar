@@ -76,6 +76,34 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun concurrentOverlappingSessionSaves_areSerializedAndOnlyOnePersists() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val first = StudySession(
+            id = "session-a",
+            title = "مطالعه اول",
+            subject = "ریاضی",
+            weekday = 1,
+            startMinutes = 9 * 60,
+            durationMinutes = 60,
+        )
+        val second = first.copy(
+            id = "session-b",
+            title = "مطالعه دوم",
+            startMinutes = 9 * 60 + 30,
+        )
+        val results = mutableListOf<PlannerActionResult>()
+
+        viewModel.saveSession(first) { results += it }
+        viewModel.saveSession(second) { results += it }
+        advanceUntilIdle()
+
+        assertEquals(1, repository.savedSessions.size)
+        assertEquals(1, results.count { it == PlannerActionResult.Success })
+        assertEquals(1, results.count { it is PlannerActionResult.Invalid })
+    }
+
+    @Test
     fun saveSession_rejectsOverlappingOccurrence() = runTest(mainDispatcher) {
         val existing = StudySession(
             id = "session-1",
