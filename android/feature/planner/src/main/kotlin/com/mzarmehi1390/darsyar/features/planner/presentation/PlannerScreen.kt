@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -18,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -59,12 +61,19 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
     var showSessionEditor by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<StudySession?>(null) }
-    val currentWeekStart = remember { PlannerCalendar.startOfWeek(LocalDate.now()) }
+    var weekStart by remember { mutableStateOf(PlannerCalendar.startOfWeek(LocalDate.now())) }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    val weekDates = remember(weekStart) { PlannerCalendar.days(weekStart) }
     val weeklySessions = state.sessions.filter { session ->
         val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-        date == null || PlannerCalendar.isInWeek(date, currentWeekStart)
+        date == null || PlannerCalendar.isInWeek(date, weekStart)
     }
     val weeklySummary = remember(weeklySessions) { PlannerSummary.fromSessions(weeklySessions) }
+    val selectedDaySessions = state.sessions.filter { session ->
+        val date = PlannerCalendar.parseDateKey(session.scheduledDate)
+        if (date != null) date == selectedDate
+        else session.weekday == PlannerCalendar.weekdayForDate(selectedDate)
+    }.sortedBy(StudySession::startMinutes)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -94,6 +103,51 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             } else {
                 LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            TextButton(onClick = {
+                                weekStart = weekStart.minusDays(7)
+                                selectedDate = weekStart
+                            }) { Text("هفتهٔ قبل") }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("نمای هفتگی", fontWeight = FontWeight.Bold)
+                                Text(
+                                    "${formatDueDate(weekStart.toString())} تا ${formatDueDate(weekStart.plusDays(6).toString())}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            TextButton(onClick = {
+                                weekStart = weekStart.plusDays(7)
+                                selectedDate = weekStart
+                            }) { Text("هفتهٔ بعد") }
+                        }
+                    }
+                    item {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(weekDates, key = { it.toString() }) { date ->
+                                val day = PlannerCalendar.weekdayForDate(date)
+                                val count = state.sessions.count { session ->
+                                    val sessionDate = PlannerCalendar.parseDateKey(session.scheduledDate)
+                                    if (sessionDate != null) sessionDate == date else session.weekday == day
+                                }
+                                FilterChip(
+                                    selected = selectedDate == date,
+                                    onClick = { selectedDate = date },
+                                    label = {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(weekdayName(day))
+                                            Text("${date.dayOfMonth} · ${count} جلسه", style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    },
+                                )
+                            }
+                        }
+                    }
                     item { WeeklyPlannerReport(summary = weeklySummary) }
                     item { SectionHeading(title = "کارهای من", detail = "${state.tasks.count { !it.done }} کار باقی‌مانده") }
                     if (state.tasks.isEmpty()) {
@@ -125,13 +179,14 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                            ) {
-                                Text("جلسات مطالعه", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    "${state.sessions.size} جلسه",
+                                    weekdayName(PlannerCalendar.weekdayForDate(selectedDate)),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    formatDueDate(selectedDate.toString()),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -142,20 +197,10 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             }) { Text("افزودن جلسه") }
                         }
                     }
-                    if (state.sessions.isEmpty()) {
-                        item { EmptyPlannerCard("جلسه‌ای ثبت نشده است. برای برنامه‌ریزی مطالعه، جلسهٔ جدید اضافه کن.") }
+                    if (selectedDaySessions.isEmpty()) {
+                        item { EmptyPlannerCard("برای این روز جلسه‌ای ثبت نشده است. از «افزودن جلسه» برنامه‌ریزی کن.") }
                     } else {
-                        items(
-                            state.sessions.sortedWith(
-                                compareBy<StudySession>(
-                                    { it.scheduledDate == null },
-                                    { it.scheduledDate.orEmpty() },
-                                    { it.weekday },
-                                    { it.startMinutes },
-                                ),
-                            ),
-                            key = { it.id },
-                        ) { session ->
+                        items(selectedDaySessions, key = { it.id }) { session ->
                             SessionCard(
                                 session = session,
                                 onToggle = {
