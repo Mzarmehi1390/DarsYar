@@ -133,6 +133,17 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun invalidPersistedTimeRangeCannotOverflowOrBlockValidSession() {
+        val invalidPersisted = StudySession(
+            "corrupt", "جلسه خراب", "ریاضی", 1, 600, Int.MAX_VALUE,
+        )
+        val validCandidate = StudySession(
+            "candidate", "جلسه جدید", "علوم", 1, 610, 30,
+        )
+        assertFalse(PlannerOperations.hasOverlap(listOf(invalidPersisted), validCandidate))
+    }
+
+    @Test
     fun nextWeekCopyCreatesNewIdsAndResetsCompletion() {
         val session = StudySession(
             "s1", "Study", "Math", 1, 600, 55,

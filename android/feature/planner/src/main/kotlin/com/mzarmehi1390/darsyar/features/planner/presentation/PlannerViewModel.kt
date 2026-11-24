@@ -3,6 +3,7 @@ package com.mzarmehi1390.darsyar.features.planner.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
 import com.mzarmehi1390.darsyar.features.planner.domain.StudySessionOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.SessionValidation
@@ -109,17 +110,11 @@ class PlannerViewModel @Inject constructor(
                     // Read the latest persisted collection inside the mutation lock.
                     // This prevents two near-simultaneous saves from both passing overlap validation.
                     val currentSessions = repository.observeStudySessions().first()
-                    val overlapping = currentSessions.any { existing ->
-                        existing.id != session.id &&
-                            PlannerCalendar.sameOccurrence(
-                                firstDateKey = session.scheduledDate,
-                                firstWeekday = session.weekday,
-                                secondDateKey = existing.scheduledDate,
-                                secondWeekday = existing.weekday,
-                            ) &&
-                            session.startMinutes < existing.startMinutes + existing.durationMinutes &&
-                            existing.startMinutes < session.startMinutes + session.durationMinutes
-                    }
+                    val overlapping = PlannerOperations.hasOverlap(
+                        sessions = currentSessions,
+                        candidate = session,
+                        excludingId = session.id,
+                    )
                     if (overlapping) {
                         onResult(PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد"))
                         return@withLock

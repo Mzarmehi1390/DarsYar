@@ -44,21 +44,31 @@ object PlannerOperations {
         }.sortedBy(StudySession::startMinutes)
     }
 
+    /** Uses the same occurrence and interval rules for every planner save path. */
     fun hasOverlap(
         sessions: Iterable<StudySession>,
         candidate: StudySession,
         excludingId: String? = null,
-    ): Boolean = sessions.any { session ->
-        if (session.id == excludingId) return@any false
-        PlannerCalendar.sameOccurrence(
-            firstDateKey = candidate.scheduledDate,
-            firstWeekday = candidate.weekday,
-            secondDateKey = session.scheduledDate,
-            secondWeekday = session.weekday,
-        ) &&
-            candidate.startMinutes < session.startMinutes + session.durationMinutes &&
-            session.startMinutes < candidate.startMinutes + candidate.durationMinutes
+    ): Boolean {
+        if (!hasValidTimeRange(candidate)) return false
+        val candidateStart = candidate.startMinutes.toLong()
+        val candidateEnd = candidateStart + candidate.durationMinutes.toLong()
+        return sessions.any { session ->
+            if (session.id == excludingId || !hasValidTimeRange(session)) return@any false
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = candidate.scheduledDate,
+                firstWeekday = candidate.weekday,
+                secondDateKey = session.scheduledDate,
+                secondWeekday = session.weekday,
+            ) && candidateStart < session.startMinutes.toLong() + session.durationMinutes.toLong() &&
+                session.startMinutes.toLong() < candidateEnd
+        }
     }
+
+    private fun hasValidTimeRange(session: StudySession): Boolean =
+        session.startMinutes in 0 until 24 * 60 &&
+            session.durationMinutes > 0 &&
+            session.durationMinutes <= 24 * 60 - session.startMinutes
 
     fun copyDay(
         sessions: Iterable<StudySession>,
