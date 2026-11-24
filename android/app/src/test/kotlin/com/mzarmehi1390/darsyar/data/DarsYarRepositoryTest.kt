@@ -6,6 +6,9 @@ import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
+import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
+import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -39,6 +42,50 @@ class DarsYarRepositoryTest {
     @After
     fun tearDown() {
         database.close()
+    }
+
+
+    @Test
+    fun plannerRecords_supportCreateObserveUpdateAndDelete() = runBlocking {
+        val task = StudyTask(
+            id = "task-1",
+            title = "Review algebra",
+            subject = "Math",
+            dueDate = "2026-11-25",
+        )
+        val session = StudySession(
+            id = "session-1",
+            title = "Physics review",
+            subject = "Physics",
+            weekday = 2,
+            startMinutes = 10 * 60,
+            durationMinutes = 45,
+            scheduledDate = "2026-11-24",
+        )
+
+        repository.upsertTask(task)
+        repository.upsertStudySession(session)
+
+        assertEquals(listOf(task), repository.observeTasks().first())
+        assertEquals(listOf(session), repository.observeStudySessions().first())
+
+        val updatedTask = task.copy(title = "Updated algebra", done = true)
+        val updatedSession = session.copy(
+            title = "Updated physics",
+            startMinutes = 11 * 60,
+            completed = true,
+        )
+        repository.upsertTask(updatedTask)
+        repository.upsertStudySession(updatedSession)
+
+        assertEquals(listOf(updatedTask), repository.observeTasks().first())
+        assertEquals(listOf(updatedSession), repository.observeStudySessions().first())
+
+        repository.deleteTask(task.id)
+        repository.deleteStudySession(session.id)
+
+        assertTrue(repository.observeTasks().first().isEmpty())
+        assertTrue(repository.observeStudySessions().first().isEmpty())
     }
 
     @Test
