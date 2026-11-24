@@ -42,6 +42,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.mzarmehi1390.darsyar.core.designsystem.DarsYarTheme
+import com.mzarmehi1390.darsyar.core.datastore.DarsYarPreferences
+import com.mzarmehi1390.darsyar.core.datastore.DarsYarPreferencesRepository
 import com.mzarmehi1390.darsyar.data.AppStartupCoordinator
 import com.mzarmehi1390.darsyar.data.AppStartupState
 import com.mzarmehi1390.darsyar.features.exams.presentation.ExamViewModel
@@ -56,20 +58,27 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var startupCoordinator: AppStartupCoordinator
+    @Inject lateinit var preferencesRepository: DarsYarPreferencesRepository
     @Inject lateinit var backupSettingsGateway: AppBackupSettingsGateway
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            DarsYarTheme {
+            val preferences by preferencesRepository.preferences.collectAsStateWithLifecycle(initialValue = DarsYarPreferences())
+            val darkTheme = when (preferences.themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            DarsYarTheme(darkTheme = darkTheme) {
                 val startupState by startupCoordinator.state.collectAsStateWithLifecycle()
                 var retryAttempt by remember { mutableStateOf(0) }
                 LaunchedEffect(startupCoordinator, retryAttempt) { startupCoordinator.ensureReady() }
                 Surface(modifier = Modifier.fillMaxSize()) {
                     when (startupState) {
                         AppStartupState.NotStarted, AppStartupState.Migrating -> StartupLoadingContent()
-                        AppStartupState.Ready -> NativeAppNavigation(backupSettingsGateway)
+                        AppStartupState.Ready -> NativeAppNavigation(backupSettingsGateway, preferencesRepository)
                         is AppStartupState.Failed -> StartupErrorContent(onRetry = { retryAttempt++ })
                     }
                 }
@@ -79,7 +88,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun NativeAppNavigation(backupSettingsGateway: AppBackupSettingsGateway) {
+private fun NativeAppNavigation(backupSettingsGateway: AppBackupSettingsGateway, preferencesRepository: DarsYarPreferencesRepository) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: "home"
@@ -123,7 +132,7 @@ private fun NativeAppNavigation(backupSettingsGateway: AppBackupSettingsGateway)
                 val viewModel: ExamViewModel = hiltViewModel()
                 ExamsScreen(viewModel)
             }
-            composable("settings") { BackupSettingsScreen(backupSettingsGateway) }
+            composable("settings") { BackupSettingsScreen(backupSettingsGateway, preferencesRepository) }
         }
     }
 }
