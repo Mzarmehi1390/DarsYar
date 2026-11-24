@@ -89,8 +89,8 @@ class DarsYarBackupCodecTest {
     @Test
     fun decode_rejectsInvalidDatesAndSessionRanges() {
         val invalidDate = validBackup().replace(
-            """"dueDate": null""",
-            """"dueDate": "2026-02-30"""",
+            "\"\"\"\"tasks\": []\"\"\"\"",
+            "\"\"\"\"tasks\": [{\"id\":\"task-1\",\"title\":\"Task\",\"dueDate\":\"2026-02-30\"}]\"\"\"\",
         )
         assertThrows(BackupFormatException::class.java) {
             DarsYarBackupCodec.decode(invalidDate)
