@@ -240,8 +240,11 @@ internal object DarsYarBackupCodec {
             element as? JsonArray ?: invalid(key)
         } ?: invalid(key)
 
-    private fun JsonElement?.intValue(field: String): Int =
-        (this as? JsonPrimitive)?.intOrNull ?: invalid(field)
+    private fun JsonElement?.intValue(field: String): Int {
+        val primitive = this as? JsonPrimitive ?: invalid(field)
+        if (primitive.isString) invalid(field)
+        return primitive.intOrNull ?: invalid(field)
+    }
 
     private fun JsonElement?.stringValue(field: String): String =
         this?.jsonPrimitive?.takeIf { it.isString }?.content ?: invalid(field)
@@ -266,7 +269,7 @@ internal object DarsYarBackupCodec {
     private fun JsonObject.optionalInt(key: String, scope: String): Int? {
         val element = this[key] ?: return null
         if (element === JsonNull) return null
-        return (element as? JsonPrimitive)?.intOrNull ?: invalid("$scope.$key")
+        return element.intValue("$scope.$key")
     }
 
     private fun JsonObject.optionalDouble(key: String, scope: String): Double? {
@@ -288,7 +291,7 @@ internal object DarsYarBackupCodec {
         return buildMap {
             source.forEach { (rawQuestion, rawAnswer) ->
                 val question = rawQuestion.toIntOrNull() ?: invalid("$scope.$key")
-                val answer = (rawAnswer as? JsonPrimitive)?.intOrNull ?: invalid("$scope.$key")
+                val answer = rawAnswer.intValue("$scope.$key")
                 if (question !in 1..questionCount || answer !in 0..3) {
                     invalid("$scope.$key")
                 }
@@ -307,7 +310,7 @@ internal object DarsYarBackupCodec {
         val source = element as? JsonArray ?: invalid("$scope.$key")
         return buildSet {
             source.forEach { raw ->
-                val question = (raw as? JsonPrimitive)?.intOrNull ?: invalid("$scope.$key")
+                val question = raw.intValue("$scope.$key")
                 if (question !in 1..questionCount || !add(question)) invalid("$scope.$key")
             }
         }
