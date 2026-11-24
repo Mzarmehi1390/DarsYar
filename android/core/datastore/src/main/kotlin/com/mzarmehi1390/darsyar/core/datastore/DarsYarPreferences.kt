@@ -53,7 +53,9 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 context = context,
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
-                migrate = ::migrateLegacyAppearancePreferences,
+                migrate = { legacy, current ->
+                    migrateLegacyAppearancePreferences(legacy, current)
+                },
             ),
         )
     },
