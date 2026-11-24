@@ -1,7 +1,6 @@
 package com.mzarmehi1390.darsyar.core.datastore
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -24,7 +23,8 @@ private val themeModeKey = stringPreferencesKey("theme_mode")
 private val animationsEnabledKey = booleanPreferencesKey("animations_enabled")
 
 internal fun migrateLegacyAppearancePreferences(
-    legacy: SharedPreferences,
+    legacyThemeMode: String?,
+    legacyAnimationsEnabled: Boolean?,
     current: Preferences,
 ): Preferences {
     val migrated = mutablePreferencesOf()
@@ -32,15 +32,14 @@ internal fun migrateLegacyAppearancePreferences(
     current[animationsEnabledKey]?.let { migrated[animationsEnabledKey] = it }
 
     if (!migrated.contains(themeModeKey)) {
-        when (legacy.getString(LEGACY_THEME_KEY, null)) {
-            "light", "dark", "system" ->
-                migrated[themeModeKey] = legacy.getString(LEGACY_THEME_KEY, "system") ?: "system"
+        when (legacyThemeMode) {
+            "light", "dark", "system" -> migrated[themeModeKey] = legacyThemeMode
             else -> Unit
         }
     }
 
-    if (!migrated.contains(animationsEnabledKey) && legacy.contains(LEGACY_ANIMATIONS_KEY)) {
-        migrated[animationsEnabledKey] = legacy.getBoolean(LEGACY_ANIMATIONS_KEY, true)
+    if (!migrated.contains(animationsEnabledKey) && legacyAnimationsEnabled != null) {
+        migrated[animationsEnabledKey] = legacyAnimationsEnabled
     }
     return migrated
 }
@@ -54,7 +53,15 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
                 migrate = { legacy, current ->
-                    migrateLegacyAppearancePreferences(legacy, current)
+                    migrateLegacyAppearancePreferences(
+                        legacyThemeMode = legacy.getString(LEGACY_THEME_KEY, null),
+                        legacyAnimationsEnabled = if (legacy.contains(LEGACY_ANIMATIONS_KEY)) {
+                            legacy.getBoolean(LEGACY_ANIMATIONS_KEY, true)
+                        } else {
+                            null
+                        },
+                        current = current,
+                    )
                 },
             ),
         )
