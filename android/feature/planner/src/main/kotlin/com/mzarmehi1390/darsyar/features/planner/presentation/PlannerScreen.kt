@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerSummary
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
@@ -58,6 +59,12 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
     var showSessionEditor by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<StudySession?>(null) }
+    val currentWeekStart = remember { PlannerCalendar.startOfWeek(LocalDate.now()) }
+    val weeklySessions = state.sessions.filter { session ->
+        val date = PlannerCalendar.parseDateKey(session.scheduledDate)
+        date == null || PlannerCalendar.isInWeek(date, currentWeekStart)
+    }
+    val weeklySummary = remember(weeklySessions) { PlannerSummary.fromSessions(weeklySessions) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -87,6 +94,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             } else {
                 LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    item { WeeklyPlannerReport(summary = weeklySummary) }
                     item { SectionHeading(title = "کارهای من", detail = "${state.tasks.count { !it.done }} کار باقی‌مانده") }
                     if (state.tasks.isEmpty()) {
                         item { EmptyPlannerCard("هنوز کاری ثبت نکرده‌ای. با دکمهٔ افزودن کار شروع کن.") }
@@ -196,6 +204,51 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun WeeklyPlannerReport(summary: PlannerSummary) {
+    val progress = summary.completion.toFloat().coerceIn(0f, 1f)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("گزارش هفتگی مطالعه", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                WeeklyMetric("برنامه‌ریزی‌شده", summary.plannedMinutes, Modifier.weight(1f))
+                WeeklyMetric("تکمیل‌شده", summary.completedMinutes, Modifier.weight(1f))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(if (summary.plannedMinutes == 0) "—" else "${(progress * 100).toInt()}٪", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text("پیشرفت", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+            }
+            androidx.compose.material3.LinearProgressIndicator(
+                progress = progress,
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+            Text(
+                if (summary.totalSessionCount == 0) "برای دیدن گزارش، جلسهٔ مطالعه اضافه کن."
+                else "${summary.completedSessionCount} از ${summary.totalSessionCount} جلسه تکمیل شده است.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WeeklyMetric(label: String, minutes: Int, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(minutes.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text("دقیقه", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
 }
 
