@@ -310,4 +310,35 @@ class DarsYarRepositoryTest {
         assertFalse(repository.deleteExamSheet("exam-2"))
         assertNotNull(database.examSheetDao().findById("exam-2"))
     }
+
+
+    @Test
+    fun createBackupSnapshot_capturesEveryCollectionAndActiveExamConsistently() = runBlocking {
+        val task = StudyTask("backup-task", "مرور هندسه", "ریاضی", true, "2026-11-26")
+        val session = StudySession("backup-session", "تمرین فیزیک", "فیزیک", 3, 720, 50, true, "2026-11-25")
+        val exam = ExamSheet(
+            id = "backup-exam",
+            name = "آزمون جامع",
+            questionCount = 3,
+            durationSeconds = 1200,
+            negativeMarking = true,
+            answers = mapOf(1 to 2, 3 to 1),
+            answerKey = mapOf(1 to 2, 2 to 0, 3 to 1),
+            marked = setOf(2),
+        )
+        repository.upsertTask(task)
+        repository.upsertStudySession(session)
+        repository.upsertExamSheet(exam)
+        repository.completeExam(exam.id, "backup-result", "2026-11-24T12:00:00Z")
+        assertTrue(repository.setActiveExam(exam.id))
+
+        val snapshot = repository.createBackupSnapshot()
+
+        assertEquals(listOf(task), snapshot.tasks)
+        assertEquals(listOf(session), snapshot.studySessions)
+        assertEquals(listOf(exam.copy(isCompleted = true)), snapshot.exams)
+        assertEquals(listOf(database.examResultDao().findById("backup-result")!!.toDomain()), snapshot.results)
+        assertEquals(exam.id, snapshot.activeExamId)
+    }
+
 }
