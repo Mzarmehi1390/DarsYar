@@ -13,6 +13,7 @@ import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +43,20 @@ class DarsYarRepository @Inject constructor(
 
     override fun observeActiveExamId(): Flow<String?> =
         database.appStateDao().observe().map { it?.activeExamId }
+
+    /**
+     * Read every portable record under one Room transaction so an exported
+     * backup cannot mix rows from different points in concurrent edits.
+     */
+    suspend fun createBackupSnapshot(): DarsYarSnapshot = database.withTransaction {
+        DarsYarSnapshot(
+            tasks = database.studyTaskDao().observeAll().first().map { it.toDomain() },
+            studySessions = database.studySessionDao().observeAll().first().map { it.toDomain() },
+            exams = database.examSheetDao().observeAll().first().map { it.toDomain() },
+            results = database.examResultDao().getAll().map { it.toDomain() },
+            activeExamId = database.appStateDao().get()?.activeExamId,
+        )
+    }
 
     override fun observeExamSession(): Flow<ExamSessionSnapshot?> =
         database.appStateDao().observe().map { state ->
