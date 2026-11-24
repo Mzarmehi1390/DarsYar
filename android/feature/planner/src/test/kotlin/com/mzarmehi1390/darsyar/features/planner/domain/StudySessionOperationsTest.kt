@@ -57,6 +57,10 @@ class StudySessionOperationsTest {
             SessionValidation.InvalidDuration,
             StudySessionOperations.validate(session().copy(durationMinutes = 0)),
         )
+        assertEquals(
+            SessionValidation.CrossesMidnight,
+            StudySessionOperations.validate(session().copy(durationMinutes = Int.MAX_VALUE)),
+        )
     }
 
     @Test

@@ -29,7 +29,8 @@ object StudySessionOperations {
         if (candidate.weekday !in 0..6) return SessionValidation.InvalidWeekday
         if (candidate.startMinutes !in 0 until 24 * 60) return SessionValidation.InvalidStartTime
         if (candidate.durationMinutes <= 0) return SessionValidation.InvalidDuration
-        if (candidate.startMinutes + candidate.durationMinutes > 24 * 60) {
+        // Subtraction avoids Int overflow for untrusted or corrupted duration values.
+        if (candidate.durationMinutes > 24 * 60 - candidate.startMinutes) {
             return SessionValidation.CrossesMidnight
         }
         val date = candidate.scheduledDate

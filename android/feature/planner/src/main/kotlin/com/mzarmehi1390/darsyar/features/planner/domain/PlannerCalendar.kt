@@ -26,7 +26,7 @@ object PlannerCalendar {
     /**
      * Compares a dated occurrence with either another dated occurrence or a legacy
      * recurring weekday-only occurrence. A concrete date is authoritative over its
-     * redundant weekday field.
+     * redundant weekday field. Malformed non-null dates are never treated as legacy.
      */
     fun sameOccurrence(
         firstDateKey: String?,
@@ -36,6 +36,8 @@ object PlannerCalendar {
     ): Boolean {
         val firstDate = parseDateKey(firstDateKey)
         val secondDate = parseDateKey(secondDateKey)
+        if (firstDateKey != null && firstDate == null) return false
+        if (secondDateKey != null && secondDate == null) return false
         return when {
             firstDate != null && secondDate != null -> firstDate == secondDate
             firstDate != null -> weekdayForDate(firstDate) == secondWeekday

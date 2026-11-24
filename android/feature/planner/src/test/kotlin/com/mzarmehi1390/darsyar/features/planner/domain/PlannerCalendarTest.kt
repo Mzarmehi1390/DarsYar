@@ -64,6 +64,26 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun malformedNonNullDateIsNotSilentlyTreatedAsLegacyOccurrence() {
+        assertFalse(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = "2026-02-30",
+                firstWeekday = 1,
+                secondDateKey = null,
+                secondWeekday = 1,
+            ),
+        )
+        assertFalse(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = null,
+                firstWeekday = 1,
+                secondDateKey = "not-a-date",
+                secondWeekday = 1,
+            ),
+        )
+    }
+
+    @Test
     fun legacyWeekdaySessionMigratesWithinReferenceWeek() {
         val legacy = StudySession(
             id = "s1", title = "ریاضی", subject = "ریاضی",
@@ -98,6 +118,18 @@ class PlannerCalendarTest {
 
         assertTrue(PlannerOperations.hasOverlap(listOf(datedTuesdayWithStaleWeekday), legacyTuesday))
         assertTrue(PlannerOperations.hasOverlap(listOf(legacyTuesday), datedTuesdayWithStaleWeekday))
+    }
+
+    @Test
+    fun malformedDatedSessionDoesNotCreateFalseLegacyOverlap() {
+        val malformedDated = StudySession(
+            "bad-date", "جلسه معیوب", "ریاضی", 1, 600, 60,
+            scheduledDate = "2026-02-30",
+        )
+        val legacyMonday = StudySession(
+            "legacy", "جلسه قدیمی", "علوم", 1, 630, 45,
+        )
+        assertFalse(PlannerOperations.hasOverlap(listOf(malformedDated), legacyMonday))
     }
 
     @Test
