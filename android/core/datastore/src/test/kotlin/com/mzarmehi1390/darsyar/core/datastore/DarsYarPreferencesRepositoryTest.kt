@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar.core.datastore
 
 import android.content.Context
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -38,17 +39,35 @@ class DarsYarPreferencesRepositoryTest {
     }
 
     @Test
-    fun legacyFlutterAppearancePreferencesAreMigrated() = runBlocking {
-        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-            .edit()
+    fun legacyFlutterAppearancePreferencesAreMigratedWithoutOverwritingCurrentValues() {
+        val legacy = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        legacy.edit()
             .putString("flutter.darsyar.themeMode", "light")
             .putBoolean("flutter.darsyar.animationsEnabled", false)
             .commit()
 
-        val migrated = DarsYarPreferencesRepository(context).preferences.first()
+        val migrated = migrateLegacyAppearancePreferences(legacy, emptyPreferences())
 
-        assertEquals("light", migrated.themeMode)
-        assertEquals(false, migrated.animationsEnabled)
+        assertEquals("light", migrated.asMap().entries.first { it.key.name == "theme_mode" }.value)
+        assertEquals(false, migrated.asMap().entries.first { it.key.name == "animations_enabled" }.value)
+    }
+
+    @Test
+    fun existingDataStoreValuesTakePrecedenceOverLegacyValues() {
+        val legacy = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        legacy.edit()
+            .putString("flutter.darsyar.themeMode", "light")
+            .putBoolean("flutter.darsyar.animationsEnabled", false)
+            .commit()
+
+        val current = androidx.datastore.preferences.core.mutablePreferencesOf(
+            androidx.datastore.preferences.core.stringPreferencesKey("theme_mode") to "dark",
+            androidx.datastore.preferences.core.booleanPreferencesKey("animations_enabled") to true,
+        )
+        val migrated = migrateLegacyAppearancePreferences(legacy, current)
+
+        assertEquals("dark", migrated.asMap().entries.first { it.key.name == "theme_mode" }.value)
+        assertEquals(true, migrated.asMap().entries.first { it.key.name == "animations_enabled" }.value)
     }
 
     @Test
