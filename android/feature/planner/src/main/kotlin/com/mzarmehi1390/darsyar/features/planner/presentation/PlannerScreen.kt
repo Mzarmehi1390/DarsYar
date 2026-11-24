@@ -3,11 +3,9 @@ package com.mzarmehi1390.darsyar.features.planner.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -15,6 +13,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
@@ -35,6 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 @Composable
@@ -42,12 +46,16 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    var showAddTask by remember { mutableStateOf(false) }
+    var showTaskEditor by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<StudyTask?>(null) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
-            Button(onClick = { showAddTask = true }) { Text("افزودن کار") }
+            Button(onClick = {
+                editingTask = null
+                showTaskEditor = true
+            }) { Text("افزودن کار") }
         },
     ) { contentPadding ->
         Column(
@@ -68,13 +76,8 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    item {
-                        SectionHeading(title = "کارهای من", detail = "${state.tasks.count { !it.done }} کار باقی‌مانده")
-                    }
+                LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    item { SectionHeading(title = "کارهای من", detail = "${state.tasks.count { !it.done }} کار باقی‌مانده") }
                     if (state.tasks.isEmpty()) {
                         item { EmptyPlannerCard("هنوز کاری ثبت نکرده‌ای. با دکمهٔ افزودن کار شروع کن.") }
                     } else {
@@ -83,33 +86,28 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 task = task,
                                 onToggle = {
                                     viewModel.toggleTask(task) { result ->
-                                        if (result !is PlannerActionResult.Success) {
-                                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                        }
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
                                     }
+                                },
+                                onEdit = {
+                                    editingTask = task
+                                    showTaskEditor = true
                                 },
                                 onDelete = {
                                     viewModel.deleteTask(task.id) { result ->
-                                        if (result !is PlannerActionResult.Success) {
-                                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                        }
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
                                     }
                                 },
                             )
                         }
                     }
-                    item {
-                        SectionHeading(title = "جلسات مطالعه", detail = "${state.sessions.size} جلسهٔ برنامه‌ریزی‌شده")
-                    }
+                    item { SectionHeading(title = "جلسات مطالعه", detail = "${state.sessions.size} جلسهٔ برنامه‌ریزی‌شده") }
                     if (state.sessions.isEmpty()) {
                         item { EmptyPlannerCard("جلسه‌ای برای نمایش وجود ندارد.") }
                     } else {
                         items(state.sessions.sortedWith(compareBy({ it.weekday }, { it.startMinutes })), key = { it.id }) { session ->
                             Card {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(14.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
+                                Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                         Text(session.title, fontWeight = FontWeight.SemiBold)
                                         Text("${session.subject} · ${weekdayName(session.weekday)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -117,13 +115,9 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                     }
                                     TextButton(onClick = {
                                         viewModel.toggleSession(session) { result ->
-                                            if (result !is PlannerActionResult.Success) {
-                                                scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                            }
+                                            if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
                                         }
-                                    }) {
-                                        Text(if (session.completed) "انجام شد" else "انجام نشده")
-                                    }
+                                    }) { Text(if (session.completed) "انجام شد" else "انجام نشده") }
                                 }
                             }
                         }
@@ -133,21 +127,15 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
         }
     }
 
-    if (showAddTask) {
-        AddTaskDialog(
-            onDismiss = { showAddTask = false },
-            onSave = { title, subject ->
-                val task = StudyTask(
-                    id = UUID.randomUUID().toString(),
-                    title = title.trim(),
-                    subject = subject.trim(),
-                )
+    if (showTaskEditor) {
+        TaskEditorDialog(
+            task = editingTask,
+            onDismiss = { showTaskEditor = false },
+            onSave = { task ->
                 viewModel.saveTask(task) { result ->
-                    scope.launch {
-                        snackbar.showSnackbar(result.toMessage())
-                    }
+                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                    if (result is PlannerActionResult.Success) showTaskEditor = false
                 }
-                showAddTask = false
             },
         )
     }
@@ -162,16 +150,15 @@ private fun SectionHeading(title: String, detail: String) {
 }
 
 @Composable
-private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onDelete: () -> Unit) {
+private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     Card {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(task.title, fontWeight = FontWeight.SemiBold, color = if (task.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
                 Text(task.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(task.dueDate?.let { "سررسید: ${formatDueDate(it)}" } ?: "بدون تاریخ سررسید", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            TextButton(onClick = onEdit) { Text("ویرایش") }
             TextButton(onClick = onToggle) { Text(if (task.done) "بازگردانی" else "انجام شد") }
             TextButton(onClick = onDelete) { Text("حذف", color = MaterialTheme.colorScheme.error) }
         }
@@ -186,27 +173,73 @@ private fun EmptyPlannerCard(message: String) {
 }
 
 @Composable
-private fun AddTaskDialog(onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var subject by remember { mutableStateOf("") }
-    val canSave = title.isNotBlank() && subject.isNotBlank()
+private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (StudyTask) -> Unit) {
+    var title by remember(task?.id) { mutableStateOf(task?.title.orEmpty()) }
+    var subject by remember(task?.id) { mutableStateOf(task?.subject.orEmpty()) }
+    var dueDate by remember(task?.id) { mutableStateOf(task?.dueDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    val pickerState = rememberDatePickerState(
+        initialSelectedDateMillis = dueDate?.let { date ->
+            runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
+        },
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("کار جدید") },
+        title = { Text(if (task == null) "کار جدید" else "ویرایش کار") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان کار") }, singleLine = true)
                 OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس") }, singleLine = true)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("تاریخ سررسید", style = MaterialTheme.typography.labelLarge)
+                        Text(dueDate?.let(::formatDueDate) ?: "تاریخی انتخاب نشده", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = { showDatePicker = true }) { Text("انتخاب تاریخ") }
+                    if (dueDate != null) TextButton(onClick = { dueDate = null }) { Text("پاک‌کردن") }
+                }
             }
         },
-        confirmButton = { Button(onClick = { onSave(title, subject) }, enabled = canSave) { Text("ذخیره") } },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(StudyTask(
+                        id = task?.id ?: UUID.randomUUID().toString(),
+                        title = title.trim(),
+                        subject = subject.trim(),
+                        done = task?.done ?: false,
+                        dueDate = dueDate,
+                    ))
+                },
+                enabled = title.isNotBlank() && subject.isNotBlank(),
+            ) { Text("ذخیره") }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
     )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    dueDate = pickerState.selectedDateMillis?.let { millis ->
+                        Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
+                    }
+                    showDatePicker = false
+                }, enabled = pickerState.selectedDateMillis != null) { Text("تأیید") }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } },
+        ) { DatePicker(state = pickerState) }
+    }
 }
 
 private fun weekdayName(day: Int): String = listOf("یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه").getOrElse(day) { "روز نامشخص" }
-
 private fun formatTime(minutes: Int): String = "%02d:%02d".format(minutes / 60, minutes % 60)
+private fun formatDueDate(value: String): String = runCatching {
+    val date = LocalDate.parse(value)
+    "%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth)
+}.getOrDefault(value)
 
 private fun PlannerActionResult.toMessage(): String = when (this) {
     PlannerActionResult.Success -> "عملیات با موفقیت انجام شد"
