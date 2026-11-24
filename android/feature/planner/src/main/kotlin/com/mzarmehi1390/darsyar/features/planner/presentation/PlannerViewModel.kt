@@ -111,7 +111,12 @@ class PlannerViewModel @Inject constructor(
                     val currentSessions = repository.observeStudySessions().first()
                     val overlapping = currentSessions.any { existing ->
                         existing.id != session.id &&
-                            sameOccurrence(existing, session) &&
+                            PlannerCalendar.sameOccurrence(
+                                firstDateKey = session.scheduledDate,
+                                firstWeekday = session.weekday,
+                                secondDateKey = existing.scheduledDate,
+                                secondWeekday = existing.weekday,
+                            ) &&
                             session.startMinutes < existing.startMinutes + existing.durationMinutes &&
                             existing.startMinutes < session.startMinutes + session.durationMinutes
                     }
@@ -163,13 +168,6 @@ class PlannerViewModel @Inject constructor(
                 onResult(PlannerActionResult.Failure(failure))
             }
         }
-    }
-
-    private fun sameOccurrence(first: StudySession, second: StudySession): Boolean {
-        val firstDate = PlannerCalendar.parseDateKey(first.scheduledDate)
-        val secondDate = PlannerCalendar.parseDateKey(second.scheduledDate)
-        return if (firstDate != null && secondDate != null) firstDate == secondDate
-        else first.weekday == second.weekday
     }
 
     private fun SessionValidation.message(): String = when (this) {

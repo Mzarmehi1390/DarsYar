@@ -23,6 +23,27 @@ object PlannerCalendar {
     fun migrateLegacyDate(weekday: Int, reference: LocalDate): LocalDate =
         dateForWeekday(startOfWeek(reference), weekday)
 
+    /**
+     * Compares a dated occurrence with either another dated occurrence or a legacy
+     * recurring weekday-only occurrence. A concrete date is authoritative over its
+     * redundant weekday field.
+     */
+    fun sameOccurrence(
+        firstDateKey: String?,
+        firstWeekday: Int,
+        secondDateKey: String?,
+        secondWeekday: Int,
+    ): Boolean {
+        val firstDate = parseDateKey(firstDateKey)
+        val secondDate = parseDateKey(secondDateKey)
+        return when {
+            firstDate != null && secondDate != null -> firstDate == secondDate
+            firstDate != null -> weekdayForDate(firstDate) == secondWeekday
+            secondDate != null -> weekdayForDate(secondDate) == firstWeekday
+            else -> firstWeekday == secondWeekday
+        }
+    }
+
     fun isInWeek(date: LocalDate, weekStart: LocalDate): Boolean {
         val start = startOfWeek(weekStart)
         return !date.isBefore(start) && date.isBefore(start.plusDays(7))

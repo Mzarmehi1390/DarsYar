@@ -157,6 +157,36 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun saveSession_rejectsOverlapBetweenDatedAndLegacyOccurrences() = runTest(mainDispatcher) {
+        val datedTuesdayWithStaleWeekday = StudySession(
+            id = "dated-session",
+            title = "جلسه تاریخ‌دار",
+            subject = "ریاضی",
+            weekday = 1,
+            startMinutes = 9 * 60,
+            durationMinutes = 60,
+            scheduledDate = "2026-11-24",
+        )
+        val repository = FakePlannerRepository(initialSessions = listOf(datedTuesdayWithStaleWeekday))
+        val viewModel = PlannerViewModel(repository)
+        val legacyTuesday = StudySession(
+            id = "legacy-session",
+            title = "جلسه قدیمی",
+            subject = "علوم",
+            weekday = 2,
+            startMinutes = 9 * 60 + 30,
+            durationMinutes = 45,
+        )
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(legacyTuesday) { result = it }
+        advanceUntilIdle()
+
+        assertTrue(result is PlannerActionResult.Invalid)
+        assertTrue(repository.savedSessions.isEmpty())
+    }
+
+    @Test
     fun saveTask_updatesExistingTaskAndPreservesCompletionAndDueDate() = runTest(mainDispatcher) {
         val existing = StudyTask(
             id = "task-edit",

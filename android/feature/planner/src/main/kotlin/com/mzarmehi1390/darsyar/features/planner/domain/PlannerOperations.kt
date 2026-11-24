@@ -50,14 +50,12 @@ object PlannerOperations {
         excludingId: String? = null,
     ): Boolean = sessions.any { session ->
         if (session.id == excludingId) return@any false
-        val candidateDate = PlannerCalendar.parseDateKey(candidate.scheduledDate)
-        val sessionDate = PlannerCalendar.parseDateKey(session.scheduledDate)
-        val sameOccurrence = if (candidateDate != null && sessionDate != null) {
-            candidateDate == sessionDate
-        } else {
-            candidate.weekday == session.weekday
-        }
-        sameOccurrence &&
+        PlannerCalendar.sameOccurrence(
+            firstDateKey = candidate.scheduledDate,
+            firstWeekday = candidate.weekday,
+            secondDateKey = session.scheduledDate,
+            secondWeekday = session.weekday,
+        ) &&
             candidate.startMinutes < session.startMinutes + session.durationMinutes &&
             session.startMinutes < candidate.startMinutes + candidate.durationMinutes
     }

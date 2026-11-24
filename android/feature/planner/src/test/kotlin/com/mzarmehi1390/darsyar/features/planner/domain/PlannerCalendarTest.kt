@@ -28,6 +28,42 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun sameOccurrenceHandlesDatedAndLegacyRecurringSessions() {
+        assertTrue(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = "2026-11-24",
+                firstWeekday = 1,
+                secondDateKey = null,
+                secondWeekday = 2,
+            ),
+        )
+        assertFalse(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = "2026-11-24",
+                firstWeekday = 1,
+                secondDateKey = null,
+                secondWeekday = 1,
+            ),
+        )
+        assertTrue(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = "2026-11-24",
+                firstWeekday = 1,
+                secondDateKey = "2026-11-24",
+                secondWeekday = 1,
+            ),
+        )
+        assertFalse(
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = "2026-11-24",
+                firstWeekday = 2,
+                secondDateKey = "2026-11-25",
+                secondWeekday = 3,
+            ),
+        )
+    }
+
+    @Test
     fun legacyWeekdaySessionMigratesWithinReferenceWeek() {
         val legacy = StudySession(
             id = "s1", title = "ریاضی", subject = "ریاضی",
@@ -48,6 +84,20 @@ class PlannerCalendarTest {
         val otherMonday = StudySession("b", "B", "Math", 1, 630, 60, scheduledDate = "2026-11-30")
         assertFalse(PlannerOperations.hasOverlap(listOf(otherMonday), monday))
         assertTrue(PlannerOperations.hasOverlap(listOf(monday), monday.copy(id = "c", startMinutes = 630)))
+    }
+
+    @Test
+    fun overlapMatchesDatedSessionWithLegacyWeekdayUsingCalendarDate() {
+        val datedTuesdayWithStaleWeekday = StudySession(
+            "dated", "جلسه تاریخ‌دار", "ریاضی", 1, 600, 60,
+            scheduledDate = "2026-11-24",
+        )
+        val legacyTuesday = StudySession(
+            "legacy", "جلسه قدیمی", "علوم", 2, 630, 45,
+        )
+
+        assertTrue(PlannerOperations.hasOverlap(listOf(datedTuesdayWithStaleWeekday), legacyTuesday))
+        assertTrue(PlannerOperations.hasOverlap(listOf(legacyTuesday), datedTuesdayWithStaleWeekday))
     }
 
     @Test
