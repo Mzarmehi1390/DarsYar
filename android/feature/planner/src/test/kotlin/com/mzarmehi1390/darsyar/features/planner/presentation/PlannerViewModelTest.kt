@@ -230,6 +230,36 @@ class PlannerViewModelTest {
         assertTrue(repository.tasks.value.isEmpty())
     }
 
+    @Test
+    fun saveSession_updatesExistingSessionWithoutChangingIdentityOrCompletion() = runTest(mainDispatcher) {
+        val existing = StudySession(
+            id = "session-edit",
+            title = "عنوان قبلی",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 9 * 60,
+            durationMinutes = 60,
+            completed = true,
+        )
+        val repository = FakePlannerRepository(initialSessions = listOf(existing))
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(
+            existing.copy(title = "عنوان جدید", subject = "علوم", startMinutes = 11 * 60),
+        ) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(1, repository.savedSessions.size)
+        assertEquals(1, repository.sessionsSnapshot().size)
+        val saved = repository.sessionsSnapshot().single()
+        assertEquals("session-edit", saved.id)
+        assertEquals("عنوان جدید", saved.title)
+        assertEquals("علوم", saved.subject)
+        assertTrue(saved.completed)
+    }
+
     private class FakePlannerRepository(
         initialSessions: List<StudySession> = emptyList(),
     ) : PlannerRepository {
@@ -237,6 +267,7 @@ class PlannerViewModelTest {
         private val sessionFlow = MutableStateFlow(initialSessions)
         val savedTasks = mutableListOf<StudyTask>()
         val savedSessions = mutableListOf<StudySession>()
+        fun sessionsSnapshot(): List<StudySession> = sessionFlow.value
 
         override fun observeTasks(): Flow<List<StudyTask>> = tasks.asStateFlow()
         override fun observeStudySessions(): Flow<List<StudySession>> = sessionFlow.asStateFlow()

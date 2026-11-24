@@ -105,10 +105,10 @@ class PlannerViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            try {
+            val result = try {
                 sessionMutationMutex.withLock {
                     // Read the latest persisted collection inside the mutation lock.
-                    // This prevents two near-simultaneous saves from both passing overlap validation.
+                    // This prevents concurrent saves from both passing overlap validation.
                     val currentSessions = repository.observeStudySessions().first()
                     val overlapping = PlannerOperations.hasOverlap(
                         sessions = currentSessions,
@@ -116,19 +116,22 @@ class PlannerViewModel @Inject constructor(
                         excludingId = session.id,
                     )
                     if (overlapping) {
-                        onResult(PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد"))
-                        return@withLock
+                        PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد")
+                    } else {
+                        repository.upsertStudySession(session)
+                        actionError.update { null }
+                        PlannerActionResult.Success
                     }
-                    repository.upsertStudySession(session)
-                    actionError.update { null }
-                    onResult(PlannerActionResult.Success)
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (failure: Throwable) {
+            } catch (failure: Exception) {
                 actionError.update { failure.message ?: "ذخیرهٔ جلسهٔ مطالعه ناموفق بود" }
-                onResult(PlannerActionResult.Failure(failure))
+                PlannerActionResult.Failure(failure)
             }
+            // Keep client callbacks outside the persistence try/catch. A callback failure
+            // must never be mistaken for a database failure or trigger a second callback.
+            onResult(result)
         }
     }
 
@@ -152,16 +155,18 @@ class PlannerViewModel @Inject constructor(
         action: suspend () -> Unit,
     ) {
         viewModelScope.launch {
-            try {
+            val result = try {
                 action()
                 actionError.update { null }
-                onResult(PlannerActionResult.Success)
+                PlannerActionResult.Success
             } catch (cancelled: CancellationException) {
                 throw cancelled
-            } catch (failure: Throwable) {
+            } catch (failure: Exception) {
                 actionError.update { failure.message ?: "انجام عملیات با خطا روبه‌رو شد" }
-                onResult(PlannerActionResult.Failure(failure))
+                PlannerActionResult.Failure(failure)
             }
+            // Do not catch exceptions thrown by UI/client callbacks as repository failures.
+            onResult(result)
         }
     }
 
