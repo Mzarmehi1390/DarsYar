@@ -240,6 +240,9 @@ internal object DarsYarBackupCodec {
             element as? JsonArray ?: invalid(key)
         } ?: invalid(key)
 
+    private fun JsonElement?.intValue(field: String): Int =
+        (this as? JsonPrimitive)?.intOrNull ?: invalid(field)
+
     private fun JsonElement?.stringValue(field: String): String =
         this?.jsonPrimitive?.takeIf { it.isString }?.content ?: invalid(field)
 

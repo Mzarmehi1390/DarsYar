@@ -114,6 +114,17 @@ class DarsYarBackupCodecTest {
         assertTrue(restored.exams.isNotEmpty())
     }
 
+    @Test
+    fun decode_rejectsNonNumericSchemaVersion() {
+        val invalidVersion = validBackup().replace(
+            """\"schemaVersion\": 1""",
+            """\"schemaVersion\": "1"""",
+        )
+        assertThrows(BackupFormatException::class.java) {
+            DarsYarBackupCodec.decode(invalidVersion)
+        }
+    }
+
     private fun validBackup() = """
         {
           "app": "DarsYar",
