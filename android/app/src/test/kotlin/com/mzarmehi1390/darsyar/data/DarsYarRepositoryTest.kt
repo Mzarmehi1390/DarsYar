@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyService
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.flow.first
@@ -22,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -311,6 +314,38 @@ class DarsYarRepositoryTest {
         assertNotNull(database.examSheetDao().findById("exam-2"))
     }
 
+
+    @Test
+    fun copyWeekPlan_copiesAndResetsItemsButNeverOverwritesAnOccupiedTargetWeek() = runBlocking {
+        val sourceStart = LocalDate.parse("2026-11-21")
+        val session = StudySession("source-session", "مرور فیزیک", "فیزیک", 2, 600, 45, true, "2026-11-24")
+        val task = StudyTask("source-task", "تمرین جبر", "ریاضی", true, "2026-11-25")
+        repository.upsertStudySession(session)
+        repository.upsertTask(task)
+        val service = PlannerWeekCopyService()
+        val plan = service.createNextWeekPlan(
+            repository.observeStudySessions().first(), repository.observeTasks().first(), sourceStart,
+            { "copy-${it.id}" }, { "copy-${it.id}" },
+        )
+
+        assertEquals(PlannerWeekCopyResult.Copied(1, 1), repository.copyWeekPlan(plan))
+        val copiedSession = repository.observeStudySessions().first().single { it.id == "copy-source-session" }
+        val copiedTask = repository.observeTasks().first().single { it.id == "copy-source-task" }
+        assertEquals("2026-12-01", copiedSession.scheduledDate)
+        assertFalse(copiedSession.completed)
+        assertEquals("2026-12-02", copiedTask.dueDate)
+        assertFalse(copiedTask.done)
+
+        val protected = StudyTask("protected", "کار مقصد", "عمومی", dueDate = "2026-12-03")
+        repository.upsertTask(protected)
+        val second = service.createNextWeekPlan(
+            repository.observeStudySessions().first(), repository.observeTasks().first(), sourceStart,
+            { "second-${it.id}" }, { "second-${it.id}" },
+        )
+        assertEquals(PlannerWeekCopyResult.TargetWeekNotEmpty, repository.copyWeekPlan(second))
+        assertEquals(protected, repository.observeTasks().first().single { it.id == protected.id })
+        assertNull(repository.observeStudySessions().first().firstOrNull { it.id == "second-source-session" })
+    }
 
     @Test
     fun createBackupSnapshot_capturesEveryCollectionAndActiveExamConsistently() = runBlocking {

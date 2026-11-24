@@ -1,6 +1,8 @@
 package com.mzarmehi1390.darsyar.features.planner.presentation
 
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyPlan
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.Dispatchers
@@ -332,6 +334,12 @@ class PlannerViewModelTest {
 
         override suspend fun deleteStudySession(id: String) {
             sessionFlow.value = sessionFlow.value.filterNot { it.id == id }
+        }
+
+        override suspend fun copyWeekPlan(plan: PlannerWeekCopyPlan): PlannerWeekCopyResult {
+            tasks.value = tasks.value + plan.copiedTasks
+            sessionFlow.value = sessionFlow.value + plan.copiedSessions
+            return PlannerWeekCopyResult.Copied(plan.copiedSessions.size, plan.copiedTasks.size)
         }
     }
 }

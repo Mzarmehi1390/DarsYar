@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyService
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.StudySessionOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.SessionValidation
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
@@ -22,6 +24,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -44,6 +48,7 @@ class PlannerViewModel @Inject constructor(
 ) : ViewModel() {
     private val actionError = MutableStateFlow<String?>(null)
     private val sessionMutationMutex = Mutex()
+    private val weekCopyService = PlannerWeekCopyService()
 
     val uiState: StateFlow<PlannerUiState> = combine(
         repository.observeTasks(),
@@ -145,6 +150,40 @@ class PlannerViewModel @Inject constructor(
 
     fun toggleSession(session: StudySession, onResult: (PlannerActionResult) -> Unit = {}) =
         saveSession(session.copy(completed = !session.completed), onResult)
+
+    fun copyWeekToNext(sourceWeekStart: LocalDate, onResult: (PlannerActionResult) -> Unit = {}) {
+        viewModelScope.launch {
+            val result = try {
+                sessionMutationMutex.withLock {
+                    val plan = weekCopyService.createNextWeekPlan(
+                        sessions = repository.observeStudySessions().first(),
+                        tasks = repository.observeTasks().first(),
+                        sourceWeekStart = sourceWeekStart,
+                        createSessionId = { UUID.randomUUID().toString() },
+                        createTaskId = { UUID.randomUUID().toString() },
+                    )
+                    when (repository.copyWeekPlan(plan)) {
+                        is PlannerWeekCopyResult.Copied -> {
+                            actionError.update { null }
+                            PlannerActionResult.Success
+                        }
+                        PlannerWeekCopyResult.TargetWeekNotEmpty ->
+                            PlannerActionResult.Invalid("هفتهٔ مقصد از قبل برنامه دارد؛ هیچ موردی جایگزین نشد")
+                        PlannerWeekCopyResult.SessionConflict ->
+                            PlannerActionResult.Invalid("جلسه‌های کپی‌شده با برنامه‌های هفتگی موجود تداخل دارند")
+                        PlannerWeekCopyResult.IdCollision ->
+                            PlannerActionResult.Invalid("اطلاعات برنامهٔ کپی‌شده معتبر نیست")
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                actionError.update { failure.message ?: "کپی برنامهٔ هفتگی ناموفق بود" }
+                PlannerActionResult.Failure(failure)
+            }
+            onResult(result)
+        }
+    }
 
     fun clearError() {
         actionError.update { null }

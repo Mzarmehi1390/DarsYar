@@ -51,6 +51,13 @@ class PlannerWeekCopyService {
     }
 }
 
+sealed interface PlannerWeekCopyResult {
+    data class Copied(val sessionCount: Int, val taskCount: Int) : PlannerWeekCopyResult
+    data object TargetWeekNotEmpty : PlannerWeekCopyResult
+    data object SessionConflict : PlannerWeekCopyResult
+    data object IdCollision : PlannerWeekCopyResult
+}
+
 data class PlannerWeekCopyPlan(
     val sourceWeekStart: LocalDate,
     val targetWeekStart: LocalDate,

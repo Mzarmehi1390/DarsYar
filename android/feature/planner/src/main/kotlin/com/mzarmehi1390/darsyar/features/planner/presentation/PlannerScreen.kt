@@ -60,6 +60,8 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var showTaskEditor by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
     var showSessionEditor by remember { mutableStateOf(false) }
+    var showWeekCopyConfirmation by remember { mutableStateOf(false) }
+    var isCopyingWeek by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<StudySession?>(null) }
     var weekStart by remember { mutableStateOf(PlannerCalendar.startOfWeek(LocalDate.now())) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -126,6 +128,16 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 selectedDate = weekStart
                             }) { Text("هفتهٔ بعد") }
                         }
+                    }
+                    item {
+                        val datedSessionCount = weeklySessions.count { it.scheduledDate != null }
+                        val datedTaskCount = state.tasks.count { task ->
+                            PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
+                        }
+                        TextButton(
+                            enabled = !isCopyingWeek && datedSessionCount + datedTaskCount > 0,
+                            onClick = { showWeekCopyConfirmation = true },
+                        ) { Text(if (isCopyingWeek) "در حال کپی…" else "کپی برنامه به هفتهٔ بعد") }
                     }
                     item {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -223,6 +235,46 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             }
         }
+    }
+
+    if (showWeekCopyConfirmation) {
+        val datedSessionCount = weeklySessions.count { it.scheduledDate != null }
+        val datedTaskCount = state.tasks.count { task ->
+            PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
+        }
+        AlertDialog(
+            onDismissRequest = { if (!isCopyingWeek) showWeekCopyConfirmation = false },
+            title = { Text("کپی برنامهٔ هفتگی") },
+            text = {
+                Text(
+                    "$datedSessionCount جلسه و $datedTaskCount کار به هفتهٔ " +
+                        "${formatDueDate(weekStart.plusDays(7).toString())} کپی می‌شود. " +
+                        "وضعیت انجام‌شدن در نسخهٔ جدید بازنشانی می‌شود و برنامهٔ موجود هفتهٔ مقصد جایگزین نخواهد شد."
+                )
+            },
+            confirmButton = {
+                Button(
+                    enabled = !isCopyingWeek,
+                    onClick = {
+                        isCopyingWeek = true
+                        showWeekCopyConfirmation = false
+                        viewModel.copyWeekToNext(weekStart) { result ->
+                            isCopyingWeek = false
+                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                            if (result == PlannerActionResult.Success) {
+                                weekStart = weekStart.plusDays(7)
+                                selectedDate = weekStart
+                            }
+                        }
+                    },
+                ) { Text("تأیید کپی") }
+            },
+            dismissButton = {
+                TextButton(enabled = !isCopyingWeek, onClick = { showWeekCopyConfirmation = false }) {
+                    Text("انصراف")
+                }
+            },
+        )
     }
 
     if (showTaskEditor) {

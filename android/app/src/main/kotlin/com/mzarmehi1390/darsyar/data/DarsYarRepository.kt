@@ -9,6 +9,10 @@ import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyPlan
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.flow.Flow
@@ -85,6 +89,52 @@ class DarsYarRepository @Inject constructor(
     override suspend fun deleteStudySession(id: String) {
         database.studySessionDao().deleteById(id)
     }
+
+    /** Atomically inserts a prepared week without overwriting target records. */
+    override suspend fun copyWeekPlan(plan: PlannerWeekCopyPlan): PlannerWeekCopyResult =
+        database.withTransaction {
+            val targetStart = PlannerCalendar.startOfWeek(plan.targetWeekStart)
+            val targetEnd = targetStart.plusDays(7)
+            val existingSessions = database.studySessionDao().observeAll().first().map { it.toDomain() }
+            val existingTasks = database.studyTaskDao().observeAll().first().map { it.toDomain() }
+            val targetOccupied = existingSessions.any { item ->
+                PlannerCalendar.parseDateKey(item.scheduledDate)?.let {
+                    !it.isBefore(targetStart) && it.isBefore(targetEnd)
+                } == true
+            } || existingTasks.any { item ->
+                PlannerCalendar.parseDateKey(item.dueDate)?.let {
+                    !it.isBefore(targetStart) && it.isBefore(targetEnd)
+                } == true
+            }
+            if (targetOccupied) return@withTransaction PlannerWeekCopyResult.TargetWeekNotEmpty
+
+            val sessionIds = plan.copiedSessions.map { it.id }
+            val taskIds = plan.copiedTasks.map { it.id }
+            if (sessionIds.any(String::isBlank) || taskIds.any(String::isBlank) ||
+                sessionIds.size != sessionIds.toSet().size || taskIds.size != taskIds.toSet().size ||
+                sessionIds.any { database.studySessionDao().findById(it) != null } ||
+                taskIds.any { database.studyTaskDao().findById(it) != null }
+            ) return@withTransaction PlannerWeekCopyResult.IdCollision
+
+            val accepted = mutableListOf<StudySession>()
+            for (candidate in plan.copiedSessions) {
+                val date = PlannerCalendar.parseDateKey(candidate.scheduledDate)
+                    ?: return@withTransaction PlannerWeekCopyResult.SessionConflict
+                if (date.isBefore(targetStart) || !date.isBefore(targetEnd) ||
+                    PlannerOperations.hasOverlap(existingSessions + accepted, candidate)
+                ) return@withTransaction PlannerWeekCopyResult.SessionConflict
+                accepted += candidate
+            }
+            if (plan.copiedTasks.any { item ->
+                    val date = PlannerCalendar.parseDateKey(item.dueDate)
+                    date == null || date.isBefore(targetStart) || !date.isBefore(targetEnd)
+                }
+            ) return@withTransaction PlannerWeekCopyResult.IdCollision
+
+            database.studySessionDao().upsertAll(plan.copiedSessions.map { it.toEntity() })
+            database.studyTaskDao().upsertAll(plan.copiedTasks.map { it.toEntity() })
+            PlannerWeekCopyResult.Copied(plan.copiedSessions.size, plan.copiedTasks.size)
+        }
 
     /** Persist sheet edits and synchronize linked history atomically. */
     override suspend fun upsertExamSheet(sheet: ExamSheet) {
