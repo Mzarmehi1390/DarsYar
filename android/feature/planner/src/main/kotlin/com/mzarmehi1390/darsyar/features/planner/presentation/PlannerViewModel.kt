@@ -152,7 +152,29 @@ class PlannerViewModel @Inject constructor(
             onResult(PlannerActionResult.Invalid("شناسهٔ جلسه معتبر نیست"))
             return
         }
-        performAction(onResult) { repository.deleteStudySession(id) }
+        performSessionAction(onResult) { repository.deleteStudySession(id) }
+    }
+
+    private fun performSessionAction(
+        onResult: (PlannerActionResult) -> Unit,
+        action: suspend () -> Unit,
+    ) {
+        viewModelScope.launch {
+            val result = try {
+                sessionMutationMutex.withLock {
+                    action()
+                    actionError.update { null }
+                    PlannerActionResult.Success
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                actionError.update { failure.message ?: "انجام عملیات جلسه ناموفق بود" }
+                PlannerActionResult.Failure(failure)
+            }
+            // Keep callbacks outside the persistence try/catch and mutation lock.
+            onResult(result)
+        }
     }
 
     fun toggleSession(session: StudySession, onResult: (PlannerActionResult) -> Unit = {}) =
