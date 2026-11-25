@@ -43,7 +43,7 @@ class PlannerDayCopyOperationsTest {
         )
 
         assertEquals(listOf("copy-legacy-source", "copy-dated-source"), copied.map { it.id })
-        assertEquals(listOf("legacy-source", "dated-source"), generatedIds)
+        assertEquals(listOf("copy-legacy-source", "copy-dated-source"), generatedIds)
         assertEquals(listOf(9 * 60, 10 * 60), copied.map { it.startMinutes })
         assertTrue(copied.all { it.scheduledDate == PlannerCalendar.dateKey(targetDate) })
         assertTrue(copied.all { it.weekday == PlannerCalendar.weekdayForDate(targetDate) })
