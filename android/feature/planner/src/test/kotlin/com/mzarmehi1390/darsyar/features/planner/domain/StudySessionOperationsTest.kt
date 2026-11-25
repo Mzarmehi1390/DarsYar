@@ -73,5 +73,9 @@ class StudySessionOperationsTest {
             SessionValidation.InvalidWeekday,
             StudySessionOperations.validate(session().copy(weekday = 7)),
         )
+        assertEquals(
+            SessionValidation.WeekdayDoesNotMatchDate,
+            StudySessionOperations.validate(session().copy(weekday = 2)),
+        )
     }
 }
