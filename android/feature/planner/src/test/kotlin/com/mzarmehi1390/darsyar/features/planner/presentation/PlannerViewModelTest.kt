@@ -391,6 +391,82 @@ class PlannerViewModelTest {
         assertTrue(saved.completed)
     }
 
+    @Test
+    fun editingSessionIntoAnotherSessionsTimeRangeIsRejectedWithoutMutation() = runTest(mainDispatcher) {
+        val original = StudySession(
+            id = "session-edit-source",
+            title = "جلسه قابل ویرایش",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 9 * 60,
+            durationMinutes = 45,
+        )
+        val conflicting = StudySession(
+            id = "session-conflict",
+            title = "جلسه مقصد",
+            subject = "علوم",
+            weekday = 2,
+            startMinutes = 11 * 60,
+            durationMinutes = 60,
+        )
+        val repository = FakePlannerRepository(initialSessions = listOf(original, conflicting))
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(original.copy(startMinutes = 11 * 60 + 15)) { result = it }
+        advanceUntilIdle()
+
+        assertTrue(result is PlannerActionResult.Invalid)
+        assertTrue(repository.savedSessions.isEmpty())
+        assertEquals(listOf(original, conflicting), repository.sessionsSnapshot())
+    }
+
+    @Test
+    fun toggleSessionChangesOnlyCompletionAndPreservesSessionIdentityAndSchedule() = runTest(mainDispatcher) {
+        val original = StudySession(
+            id = "session-toggle",
+            title = "مرور فیزیک",
+            subject = "فیزیک",
+            weekday = 2,
+            startMinutes = 16 * 60,
+            durationMinutes = 55,
+            completed = false,
+            scheduledDate = "2026-11-24",
+        )
+        val repository = FakePlannerRepository(initialSessions = listOf(original))
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.toggleSession(original) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(1, repository.sessionsSnapshot().size)
+        assertEquals(original.copy(completed = true), repository.sessionsSnapshot().single())
+    }
+
+    @Test
+    fun deleteSessionRemovesOnlyTheRequestedSession() = runTest(mainDispatcher) {
+        val first = StudySession(
+            id = "session-delete",
+            title = "حذف‌شدنی",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 9 * 60,
+            durationMinutes = 45,
+        )
+        val retained = first.copy(id = "session-retained", title = "باقی‌مانده")
+        val repository = FakePlannerRepository(initialSessions = listOf(first, retained))
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.deleteSession(first.id) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(listOf(retained), repository.sessionsSnapshot())
+    }
+
     private class FakePlannerRepository(
         initialSessions: List<StudySession> = emptyList(),
     ) : PlannerRepository {
