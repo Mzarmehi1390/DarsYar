@@ -62,6 +62,9 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
     var showSessionEditor by remember { mutableStateOf(false) }
     var showWeekCopyConfirmation by remember { mutableStateOf(false) }
+    var showDayCopyMenu by remember { mutableStateOf(false) }
+    var dayCopyTarget by remember { mutableStateOf<LocalDate?>(null) }
+    var isCopyingDay by remember { mutableStateOf(false) }
     var isCopyingWeek by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<StudySession?>(null) }
     var weekStart by remember { mutableStateOf(PlannerCalendar.startOfWeek(LocalDate.now())) }
@@ -208,10 +211,30 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
-                            TextButton(onClick = {
-                                editingSession = null
-                                showSessionEditor = true
-                            }) { Text("افزودن جلسه") }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(
+                                    enabled = !isCopyingDay && selectedDaySessions.isNotEmpty(),
+                                    onClick = { showDayCopyMenu = true },
+                                ) { Text("کپی روز") }
+                                DropdownMenu(
+                                    expanded = showDayCopyMenu,
+                                    onDismissRequest = { showDayCopyMenu = false },
+                                ) {
+                                    weekDates.filter { it != selectedDate }.forEach { target ->
+                                        DropdownMenuItem(
+                                            text = { Text("کپی به ${weekdayName(PlannerCalendar.weekdayForDate(target))}") },
+                                            onClick = {
+                                                dayCopyTarget = target
+                                                showDayCopyMenu = false
+                                            },
+                                        )
+                                    }
+                                }
+                                TextButton(onClick = {
+                                    editingSession = null
+                                    showSessionEditor = true
+                                }) { Text("افزودن جلسه") }
+                            }
                         }
                     }
                     if (selectedDaySessions.isEmpty()) {
@@ -240,6 +263,38 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             }
         }
+    }
+
+    dayCopyTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { if (!isCopyingDay) dayCopyTarget = null },
+            title = { Text("کپی برنامهٔ روز") },
+            text = {
+                Text(
+                    "${selectedDaySessions.size} جلسه از ${formatDueDate(selectedDate.toString())} به " +
+                        "${formatDueDate(target.toString())} کپی می‌شود. وضعیت انجام‌شدن نسخه‌های جدید بازنشانی می‌شود. " +
+                        "اگر روز مقصد برنامه داشته باشد، هیچ تغییری انجام نخواهد شد."
+                )
+            },
+            confirmButton = {
+                Button(
+                    enabled = !isCopyingDay,
+                    onClick = {
+                        isCopyingDay = true
+                        viewModel.copySelectedDayTo(selectedDate, target) { result ->
+                            isCopyingDay = false
+                            dayCopyTarget = null
+                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                        }
+                    },
+                ) { Text(if (isCopyingDay) "در حال کپی…" else "تأیید کپی") }
+            },
+            dismissButton = {
+                TextButton(enabled = !isCopyingDay, onClick = { dayCopyTarget = null }) {
+                    Text("انصراف")
+                }
+            },
+        )
     }
 
     if (showWeekCopyConfirmation) {

@@ -1,6 +1,8 @@
 package com.mzarmehi1390.darsyar.features.planner.presentation
 
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyPlan
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyPlan
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
@@ -36,6 +38,38 @@ class PlannerViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun copySelectedDayTo_createsFreshIncompleteDatedSessions() = runTest(mainDispatcher) {
+        val source = StudySession(
+            id = "source-session",
+            title = "مطالعه ریاضی",
+            subject = "ریاضی",
+            weekday = 1,
+            startMinutes = 9 * 60,
+            durationMinutes = 45,
+            completed = true,
+            scheduledDate = "2026-11-23",
+        )
+        val repository = FakePlannerRepository(initialSessions = listOf(source))
+        val viewModel = PlannerViewModel(repository)
+        var result: PlannerActionResult? = null
+
+        viewModel.copySelectedDayTo(
+            sourceDate = java.time.LocalDate.parse("2026-11-23"),
+            targetDate = java.time.LocalDate.parse("2026-11-24"),
+        ) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals(2, repository.sessionsSnapshot().size)
+        val copy = repository.sessionsSnapshot().single { it.id != source.id }
+        assertEquals("2026-11-24", copy.scheduledDate)
+        assertEquals(2, copy.weekday)
+        assertEquals(9 * 60, copy.startMinutes)
+        assertTrue(!copy.completed)
+        assertEquals(source, repository.sessionsSnapshot().first { it.id == source.id })
     }
 
     @Test
@@ -334,6 +368,14 @@ class PlannerViewModelTest {
 
         override suspend fun deleteStudySession(id: String) {
             sessionFlow.value = sessionFlow.value.filterNot { it.id == id }
+        }
+
+        override suspend fun copyDayPlan(plan: PlannerDayCopyPlan): PlannerDayCopyResult {
+            if (sessionFlow.value.any { it.scheduledDate == plan.targetDate.toString() }) {
+                return PlannerDayCopyResult.TargetDateNotEmpty
+            }
+            sessionFlow.value = sessionFlow.value + plan.copiedSessions
+            return PlannerDayCopyResult.Copied(plan.copiedSessions.size)
         }
 
         override suspend fun copyWeekPlan(plan: PlannerWeekCopyPlan): PlannerWeekCopyResult {

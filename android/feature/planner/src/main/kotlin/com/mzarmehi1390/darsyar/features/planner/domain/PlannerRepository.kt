@@ -13,4 +13,5 @@ interface PlannerRepository {
     suspend fun upsertStudySession(session: StudySession)
     suspend fun deleteStudySession(id: String)
     suspend fun copyWeekPlan(plan: PlannerWeekCopyPlan): PlannerWeekCopyResult
+    suspend fun copyDayPlan(plan: PlannerDayCopyPlan): PlannerDayCopyResult
 }

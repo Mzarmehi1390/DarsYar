@@ -3,6 +3,8 @@ package com.mzarmehi1390.darsyar.features.planner.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyService
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyService
@@ -49,6 +51,7 @@ class PlannerViewModel @Inject constructor(
     private val actionError = MutableStateFlow<String?>(null)
     private val sessionMutationMutex = Mutex()
     private val weekCopyService = PlannerWeekCopyService()
+    private val dayCopyService = PlannerDayCopyService()
 
     val uiState: StateFlow<PlannerUiState> = combine(
         repository.observeTasks(),
@@ -179,6 +182,49 @@ class PlannerViewModel @Inject constructor(
                 throw cancelled
             } catch (failure: Exception) {
                 actionError.update { failure.message ?: "کپی برنامهٔ هفتگی ناموفق بود" }
+                PlannerActionResult.Failure(failure)
+            }
+            onResult(result)
+        }
+    }
+
+    fun copySelectedDayTo(
+        sourceDate: LocalDate,
+        targetDate: LocalDate,
+        onResult: (PlannerActionResult) -> Unit = {},
+    ) {
+        if (sourceDate == targetDate) {
+            onResult(PlannerActionResult.Invalid("روز مبدأ و مقصد نمی‌توانند یکسان باشند"))
+            return
+        }
+        viewModelScope.launch {
+            val result = try {
+                sessionMutationMutex.withLock {
+                    val plan = dayCopyService.createPlan(
+                        sessions = repository.observeStudySessions().first(),
+                        sourceDate = sourceDate,
+                        targetDate = targetDate,
+                        createId = { UUID.randomUUID().toString() },
+                    )
+                    when (repository.copyDayPlan(plan)) {
+                        is PlannerDayCopyResult.Copied -> {
+                            actionError.update { null }
+                            PlannerActionResult.Success
+                        }
+                        PlannerDayCopyResult.TargetDateNotEmpty ->
+                            PlannerActionResult.Invalid("روز مقصد از قبل جلسه دارد؛ هیچ موردی جایگزین نشد")
+                        PlannerDayCopyResult.SessionConflict ->
+                            PlannerActionResult.Invalid("جلسه‌های این روز با برنامهٔ هفتگی موجود تداخل دارند")
+                        PlannerDayCopyResult.IdCollision ->
+                            PlannerActionResult.Invalid("شناسه یا تاریخ جلسهٔ کپی‌شده معتبر نیست")
+                        PlannerDayCopyResult.SourceChanged ->
+                            PlannerActionResult.Invalid("برنامهٔ روز مبدأ تغییر کرده است؛ دوباره تلاش کن")
+                    }
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                actionError.update { failure.message ?: "کپی برنامهٔ روزانه ناموفق بود" }
                 PlannerActionResult.Failure(failure)
             }
             onResult(result)

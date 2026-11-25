@@ -10,6 +10,8 @@ import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerRepository
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyPlan
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyPlan
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
@@ -134,6 +136,42 @@ class DarsYarRepository @Inject constructor(
             database.studySessionDao().upsertAll(plan.copiedSessions.map { it.toEntity() })
             database.studyTaskDao().upsertAll(plan.copiedTasks.map { it.toEntity() })
             PlannerWeekCopyResult.Copied(plan.copiedSessions.size, plan.copiedTasks.size)
+        }
+
+    /** Atomically copies one dated day's sessions without replacing target records. */
+    override suspend fun copyDayPlan(plan: PlannerDayCopyPlan): PlannerDayCopyResult =
+        database.withTransaction {
+            val currentSessions = database.studySessionDao().observeAll().first().map { it.toDomain() }
+            val currentSource = currentSessions.filter { current ->
+                plan.sourceSessions.any { it.id == current.id }
+            }
+            if (currentSource != plan.sourceSessions) {
+                return@withTransaction PlannerDayCopyResult.SourceChanged
+            }
+            if (currentSessions.any { current ->
+                    PlannerCalendar.parseDateKey(current.scheduledDate) == plan.targetDate
+                }
+            ) return@withTransaction PlannerDayCopyResult.TargetDateNotEmpty
+
+            val ids = plan.copiedSessions.map { it.id }
+            if (ids.any(String::isBlank) || ids.size != ids.toSet().size ||
+                ids.any { database.studySessionDao().findById(it) != null } ||
+                plan.copiedSessions.any { copied ->
+                    PlannerCalendar.parseDateKey(copied.scheduledDate) != plan.targetDate ||
+                        copied.weekday != PlannerCalendar.weekdayForDate(plan.targetDate) ||
+                        copied.completed
+                }
+            ) return@withTransaction PlannerDayCopyResult.IdCollision
+
+            val accepted = mutableListOf<StudySession>()
+            for (candidate in plan.copiedSessions) {
+                if (PlannerOperations.hasOverlap(currentSessions + accepted, candidate)) {
+                    return@withTransaction PlannerDayCopyResult.SessionConflict
+                }
+                accepted += candidate
+            }
+            database.studySessionDao().upsertAll(plan.copiedSessions.map { it.toEntity() })
+            PlannerDayCopyResult.Copied(plan.copiedSessions.size)
         }
 
     /** Persist sheet edits and synchronize linked history atomically. */
