@@ -474,6 +474,32 @@ class DarsYarRepositoryTest {
         assertTrue(repository.observeStudySessions().first().none { it.id.startsWith("copy-") })
     }
 
+
+    @Test
+    fun copyDayPlan_rejectsTamperedOrIncompletePlansWithoutWritingAnything() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-11-26")
+        val first = StudySession("source-a", "Physics", "Science", 2, 9 * 60, 45, false, "2026-11-24")
+        val second = StudySession("source-b", "Math", "Math", 2, 10 * 60, 45, true, "2026-11-24")
+        repository.upsertStudySession(first)
+        repository.upsertStudySession(second)
+        val before = repository.observeStudySessions().first()
+        val plan = PlannerDayCopyService().createPlan(before, sourceDate, targetDate) { "copy-${it.id}" }
+
+        val alteredCopy = plan.copiedSessions.first().copy(title = "Injected content")
+        val tampered = plan.copy(copiedSessions = listOf(alteredCopy) + plan.copiedSessions.drop(1))
+        assertEquals(PlannerDayCopyResult.InvalidPlan, repository.copyDayPlan(tampered))
+        assertEquals(before, repository.observeStudySessions().first())
+
+        val incomplete = plan.copy(copiedSessions = plan.copiedSessions.dropLast(1))
+        assertEquals(PlannerDayCopyResult.InvalidPlan, repository.copyDayPlan(incomplete))
+        assertEquals(before, repository.observeStudySessions().first())
+
+        val sameDay = plan.copy(targetDate = sourceDate)
+        assertEquals(PlannerDayCopyResult.InvalidPlan, repository.copyDayPlan(sameDay))
+        assertEquals(before, repository.observeStudySessions().first())
+    }
+
     @Test
     fun createBackupSnapshot_capturesEveryCollectionAndActiveExamConsistently() = runBlocking {
         val task = StudyTask("backup-task", "مرور هندسه", "ریاضی", true, "2026-11-26")

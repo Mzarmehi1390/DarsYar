@@ -219,6 +219,8 @@ class PlannerViewModel @Inject constructor(
                             PlannerActionResult.Invalid("شناسه یا تاریخ جلسهٔ کپی‌شده معتبر نیست")
                         PlannerDayCopyResult.SourceChanged ->
                             PlannerActionResult.Invalid("برنامهٔ روز مبدأ تغییر کرده است؛ دوباره تلاش کن")
+                        PlannerDayCopyResult.InvalidPlan ->
+                            PlannerActionResult.Invalid("ساختار برنامهٔ کپی‌شده معتبر نیست؛ دوباره تلاش کن")
                     }
                 }
             } catch (cancelled: CancellationException) {

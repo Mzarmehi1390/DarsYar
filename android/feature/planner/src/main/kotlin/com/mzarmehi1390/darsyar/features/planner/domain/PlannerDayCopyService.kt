@@ -46,4 +46,5 @@ sealed interface PlannerDayCopyResult {
     data object SessionConflict : PlannerDayCopyResult
     data object IdCollision : PlannerDayCopyResult
     data object SourceChanged : PlannerDayCopyResult
+    data object InvalidPlan : PlannerDayCopyResult
 }
