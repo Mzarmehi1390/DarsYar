@@ -66,6 +66,7 @@ class ExamViewModelTest {
             name = "آزمون ریاضی",
             questionCount = 10,
             durationSeconds = 45 * 60,
+            negativeMarking = true,
             answers = mapOf(1 to 2, 4 to 1),
             answerKey = mapOf(1 to 2, 4 to 0),
             marked = setOf(4),
