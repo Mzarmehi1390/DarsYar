@@ -92,6 +92,21 @@ class PlannerOperationsTest {
     }
 
     @Test
+    fun sessionsForDayDoesNotTreatMalformedDatedRecordsAsLegacySessions() {
+        val malformed = session("malformed", weekday = 2, date = "24/11/2026")
+        val legacy = session("legacy", weekday = 2)
+        val dated = session("dated", weekday = 0, date = "2026-11-24")
+
+        assertEquals(
+            listOf(legacy, dated).sortedBy(StudySession::startMinutes),
+            PlannerOperations.sessionsForDay(
+                listOf(malformed, legacy, dated),
+                weekday = 2,
+            ),
+        )
+    }
+
+    @Test
     fun migrateLegacySessionsPreservesConcreteDatesAndMigratesOnlyMissingDates() {
         val dated = session("dated", weekday = 2, date = "2026-11-30")
         val legacy = session("legacy", weekday = 2)
