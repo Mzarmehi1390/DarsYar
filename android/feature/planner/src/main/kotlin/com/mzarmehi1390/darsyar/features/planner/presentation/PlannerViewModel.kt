@@ -105,7 +105,11 @@ class PlannerViewModel @Inject constructor(
         session: StudySession,
         onResult: (PlannerActionResult) -> Unit = {},
     ) {
-        when (val validation = StudySessionOperations.validate(session)) {
+        val normalizedSession = session.copy(
+            title = session.title.trim(),
+            subject = session.subject.trim().ifBlank { "عمومی" },
+        )
+        when (val validation = StudySessionOperations.validate(normalizedSession)) {
             SessionValidation.Valid -> Unit
             else -> {
                 onResult(PlannerActionResult.Invalid(validation.message()))
@@ -120,13 +124,13 @@ class PlannerViewModel @Inject constructor(
                     val currentSessions = repository.observeStudySessions().first()
                     val overlapping = PlannerOperations.hasOverlap(
                         sessions = currentSessions,
-                        candidate = session,
-                        excludingId = session.id,
+                        candidate = normalizedSession,
+                        excludingId = normalizedSession.id,
                     )
                     if (overlapping) {
                         PlannerActionResult.Invalid("این بازهٔ زمانی با برنامهٔ دیگری تداخل دارد")
                     } else {
-                        repository.upsertStudySession(session)
+                        repository.upsertStudySession(normalizedSession)
                         actionError.update { null }
                         PlannerActionResult.Success
                     }

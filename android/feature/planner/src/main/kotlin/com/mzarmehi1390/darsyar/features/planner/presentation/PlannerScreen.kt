@@ -353,6 +353,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     if (showSessionEditor) {
         SessionEditorDialog(
             session = editingSession,
+            initialDate = selectedDate,
             onDismiss = { showSessionEditor = false },
             onSave = { session ->
                 viewModel.saveSession(session) { result ->
@@ -544,6 +545,7 @@ private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (S
 @Composable
 private fun SessionEditorDialog(
     session: StudySession?,
+    initialDate: LocalDate,
     onDismiss: () -> Unit,
     onSave: (StudySession) -> Unit,
 ) {
@@ -553,13 +555,15 @@ private fun SessionEditorDialog(
         mutableStateOf(
             session?.scheduledDate?.let(PlannerCalendar::parseDateKey)?.let(PlannerCalendar::weekdayForDate)
                 ?: session?.weekday
-                ?: 0,
+                ?: PlannerCalendar.weekdayForDate(initialDate),
         )
     }
     var weekdayMenuExpanded by remember { mutableStateOf(false) }
-    var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "09:00") }
-    var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "60") }
-    var scheduledDate by remember(session?.id) { mutableStateOf(session?.scheduledDate) }
+    var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "16:00") }
+    var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "55") }
+    var scheduledDate by remember(session?.id, initialDate) {
+        mutableStateOf(session?.scheduledDate ?: initialDate.toString())
+    }
     var showDatePicker by remember { mutableStateOf(false) }
     val pickerState = key(scheduledDate) {
         rememberDatePickerState(
@@ -582,7 +586,7 @@ private fun SessionEditorDialog(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان جلسه") }, singleLine = true)
-                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس") }, singleLine = true)
+                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس (اختیاری)") }, singleLine = true)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("روز هفته", style = MaterialTheme.typography.labelLarge)
@@ -636,7 +640,7 @@ private fun SessionEditorDialog(
         },
         confirmButton = {
             Button(
-                enabled = title.isNotBlank() && subject.isNotBlank() && validTime,
+                enabled = title.isNotBlank() && validTime,
                 onClick = {
                     onSave(
                         StudySession(

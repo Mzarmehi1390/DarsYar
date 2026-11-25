@@ -205,6 +205,29 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun saveSession_trimsTitleAndUsesGeneralSubjectWhenSubjectIsBlank() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val session = StudySession(
+            id = "session-normalize",
+            title = "  مرور فصل  ",
+            subject = "   ",
+            weekday = 2,
+            startMinutes = 16 * 60,
+            durationMinutes = 55,
+            scheduledDate = "2026-11-24",
+        )
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(session) { result = it }
+        advanceUntilIdle()
+
+        assertEquals(PlannerActionResult.Success, result)
+        assertEquals("مرور فصل", repository.sessionsSnapshot().single().title)
+        assertEquals("عمومی", repository.sessionsSnapshot().single().subject)
+    }
+
+    @Test
     fun saveSession_persistsWeeklyLegacySessionWithoutDate() = runTest(mainDispatcher) {
         val repository = FakePlannerRepository()
         val viewModel = PlannerViewModel(repository)
