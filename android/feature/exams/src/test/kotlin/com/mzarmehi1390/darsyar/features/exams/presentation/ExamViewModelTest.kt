@@ -354,6 +354,24 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun pauseExam_flushesPendingNavigationImmediately() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)),
+        )
+        val viewModel = ExamViewModel(repository)
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        viewModel.selectQuestion(5)
+        viewModel.pauseExam()
+        advanceUntilIdle()
+
+        assertEquals(5, repository.examSession.value?.currentQuestionNumber)
+        assertEquals(true, repository.examSession.value?.isPaused)
+        assertEquals(1, repository.sessionSaveCalls - 1)
+    }
+
+    @Test
     fun startExam_newSessionPersistsDeadline() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 120)))
         val viewModel = ExamViewModel(repository)

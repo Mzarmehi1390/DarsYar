@@ -113,7 +113,9 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Flush navigation from the previous sheet before changing the active ID.
-                if (takingState.value.examId != null) persistTakingStateImmediately()
+                if (takingState.value.examId != null && takingState.value.examId != sheetId) {
+                    persistTakingStateImmediately()
+                }
                 val started = repository.setActiveExam(sheetId)
                 if (!started) {
                     onResult(ExamActionResult.SheetNotFound)
