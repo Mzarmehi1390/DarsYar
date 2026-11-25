@@ -54,6 +54,10 @@ object PlannerCalendar {
     fun days(weekStart: LocalDate): List<LocalDate> =
         (0L..6L).map { startOfWeek(weekStart).plusDays(it) }
 
+    /** Uses the concrete date when present; otherwise the editor's initial date. */
+    fun weekdayForDateOrFallback(dateKey: String?, fallbackDate: LocalDate): Int =
+        parseDateKey(dateKey)?.let(::weekdayForDate) ?: weekdayForDate(fallbackDate)
+
     fun dateKey(value: LocalDate): String = value.format(dateFormatter)
 
     fun parseDateKey(value: String?): LocalDate? =

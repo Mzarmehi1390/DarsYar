@@ -28,6 +28,23 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun editorWeekdayUsesInitialDateForLegacySession() {
+        val selectedDate = LocalDate.parse("2026-11-24")
+        assertEquals(
+            PlannerCalendar.weekdayForDate(selectedDate),
+            PlannerCalendar.weekdayForDateOrFallback(null, selectedDate),
+        )
+    }
+
+    @Test
+    fun editorWeekdayPrefersConcreteScheduledDate() {
+        assertEquals(
+            PlannerCalendar.weekdayForDate(LocalDate.parse("2026-11-25")),
+            PlannerCalendar.weekdayForDateOrFallback("2026-11-25", LocalDate.parse("2026-11-24")),
+        )
+    }
+
+    @Test
     fun sameOccurrenceHandlesDatedAndLegacyRecurringSessions() {
         assertTrue(
             PlannerCalendar.sameOccurrence(

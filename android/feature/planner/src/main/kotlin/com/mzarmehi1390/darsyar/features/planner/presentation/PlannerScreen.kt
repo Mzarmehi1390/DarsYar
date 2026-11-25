@@ -551,11 +551,10 @@ private fun SessionEditorDialog(
 ) {
     var title by remember(session?.id) { mutableStateOf(session?.title.orEmpty()) }
     var subject by remember(session?.id) { mutableStateOf(session?.subject.orEmpty()) }
-    var weekday by remember(session?.id) {
+    // Legacy sessions inherit the editor's effective initial date.
+    var weekday by remember(session?.id, initialDate) {
         mutableStateOf(
-            session?.scheduledDate?.let(PlannerCalendar::parseDateKey)?.let(PlannerCalendar::weekdayForDate)
-                ?: session?.weekday
-                ?: PlannerCalendar.weekdayForDate(initialDate),
+            PlannerCalendar.weekdayForDateOrFallback(session?.scheduledDate, initialDate),
         )
     }
     var weekdayMenuExpanded by remember { mutableStateOf(false) }
