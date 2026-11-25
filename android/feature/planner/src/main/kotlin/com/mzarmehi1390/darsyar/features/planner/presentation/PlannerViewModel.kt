@@ -267,5 +267,6 @@ class PlannerViewModel @Inject constructor(
         SessionValidation.InvalidDuration -> "مدت جلسه باید بیشتر از صفر باشد"
         SessionValidation.CrossesMidnight -> "جلسه نباید از نیمه‌شب عبور کند"
         SessionValidation.InvalidDate -> "تاریخ جلسه معتبر نیست"
+        SessionValidation.WeekdayDoesNotMatchDate -> "روز هفته با تاریخ جلسه هم‌خوانی ندارد"
     }
 }

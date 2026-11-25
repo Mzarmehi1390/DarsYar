@@ -593,7 +593,17 @@ private fun SessionEditorDialog(
                         weekdayNames.forEachIndexed { index, name ->
                             DropdownMenuItem(
                                 text = { Text(name) },
-                                onClick = { weekday = index; weekdayMenuExpanded = false },
+                                onClick = {
+                                    weekday = index
+                                    scheduledDate = scheduledDate
+                                        ?.let(PlannerCalendar::parseDateKey)
+                                        ?.let { currentDate ->
+                                            PlannerCalendar.dateKey(
+                                                PlannerCalendar.dateForWeekday(currentDate, index),
+                                            )
+                                        }
+                                    weekdayMenuExpanded = false
+                                },
                             )
                         }
                     }

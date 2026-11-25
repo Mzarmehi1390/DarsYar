@@ -34,8 +34,12 @@ object StudySessionOperations {
             return SessionValidation.CrossesMidnight
         }
         val date = candidate.scheduledDate
-        if (date != null && PlannerCalendar.parseDateKey(date) == null) {
-            return SessionValidation.InvalidDate
+        if (date != null) {
+            val parsedDate = PlannerCalendar.parseDateKey(date)
+                ?: return SessionValidation.InvalidDate
+            if (PlannerCalendar.weekdayForDate(parsedDate) != candidate.weekday) {
+                return SessionValidation.WeekdayDoesNotMatchDate
+            }
         }
         return SessionValidation.Valid
     }
@@ -51,4 +55,5 @@ sealed interface SessionValidation {
     data object InvalidDuration : SessionValidation
     data object CrossesMidnight : SessionValidation
     data object InvalidDate : SessionValidation
+    data object WeekdayDoesNotMatchDate : SessionValidation
 }

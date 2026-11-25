@@ -182,6 +182,29 @@ class PlannerViewModelTest {
     }
 
     @Test
+    fun saveSession_rejectsWeekdayThatDoesNotMatchScheduledDate() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val inconsistent = StudySession(
+            id = "dated-weekday-mismatch",
+            title = "جلسه با روز ناسازگار",
+            subject = "ریاضی",
+            weekday = 1,
+            startMinutes = 10 * 60,
+            durationMinutes = 45,
+            scheduledDate = "2026-11-24",
+        )
+        var result: PlannerActionResult? = null
+
+        viewModel.saveSession(inconsistent) { result = it }
+        advanceUntilIdle()
+
+        assertTrue(result is PlannerActionResult.Invalid)
+        assertTrue(repository.savedSessions.isEmpty())
+        assertTrue(repository.sessionsSnapshot().isEmpty())
+    }
+
+    @Test
     fun saveSession_persistsWeeklyLegacySessionWithoutDate() = runTest(mainDispatcher) {
         val repository = FakePlannerRepository()
         val viewModel = PlannerViewModel(repository)
