@@ -7,6 +7,7 @@ import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyPlan
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -467,6 +469,42 @@ class PlannerViewModelTest {
         assertEquals(listOf(retained), repository.sessionsSnapshot())
     }
 
+    @Test
+    fun deleteSessionWaitsForInFlightSaveAndRunsAfterTheMutationLockIsReleased() = runTest(mainDispatcher) {
+        val repository = FakePlannerRepository()
+        val viewModel = PlannerViewModel(repository)
+        val saveEnteredRepository = CompletableDeferred<Unit>()
+        val releaseSave = CompletableDeferred<Unit>()
+        repository.beforeUpsertSession = {
+            saveEnteredRepository.complete(Unit)
+            releaseSave.await()
+        }
+        val session = StudySession(
+            id = "session-serialized-delete",
+            title = "جلسه برای حذف",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 16 * 60,
+            durationMinutes = 55,
+        )
+        val results = mutableListOf<PlannerActionResult>()
+
+        viewModel.saveSession(session) { results += it }
+        runCurrent()
+        saveEnteredRepository.await()
+
+        viewModel.deleteSession(session.id) { results += it }
+        runCurrent()
+        assertTrue(repository.deletedSessionIds.isEmpty())
+
+        releaseSave.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(listOf(session.id), repository.deletedSessionIds)
+        assertTrue(repository.sessionsSnapshot().isEmpty())
+        assertEquals(2, results.count { it == PlannerActionResult.Success })
+    }
+
     private class FakePlannerRepository(
         initialSessions: List<StudySession> = emptyList(),
     ) : PlannerRepository {
@@ -474,6 +512,8 @@ class PlannerViewModelTest {
         private val sessionFlow = MutableStateFlow(initialSessions)
         val savedTasks = mutableListOf<StudyTask>()
         val savedSessions = mutableListOf<StudySession>()
+        val deletedSessionIds = mutableListOf<String>()
+        var beforeUpsertSession: suspend () -> Unit = {}
         fun sessionsSnapshot(): List<StudySession> = sessionFlow.value
 
         override fun observeTasks(): Flow<List<StudyTask>> = tasks.asStateFlow()
@@ -489,11 +529,13 @@ class PlannerViewModelTest {
         }
 
         override suspend fun upsertStudySession(session: StudySession) {
+            beforeUpsertSession()
             savedSessions += session
             sessionFlow.value = sessionFlow.value.filterNot { it.id == session.id } + session
         }
 
         override suspend fun deleteStudySession(id: String) {
+            deletedSessionIds += id
             sessionFlow.value = sessionFlow.value.filterNot { it.id == id }
         }
 
