@@ -45,6 +45,15 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun editorWeekdayFallsBackWhenStoredDateIsMalformed() {
+        val fallback = LocalDate.parse("2026-11-24")
+        assertEquals(
+            PlannerCalendar.weekdayForDate(fallback),
+            PlannerCalendar.weekdayForDateOrFallback("invalid-date", fallback),
+        )
+    }
+
+    @Test
     fun sameOccurrenceHandlesDatedAndLegacyRecurringSessions() {
         assertTrue(
             PlannerCalendar.sameOccurrence(
