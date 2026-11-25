@@ -67,11 +67,15 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var weekStart by remember { mutableStateOf(PlannerCalendar.startOfWeek(LocalDate.now())) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val weekDates = remember(weekStart) { PlannerCalendar.days(weekStart) }
-    val weeklySessions = state.sessions.filter { session ->
-        val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-        date == null || PlannerCalendar.isInWeek(date, weekStart)
+    // Match the Flutter planner summary: aggregate the complete schedule once,
+    // while keeping week-scoped records separate for copy-week eligibility.
+    val sessionsInWeek = remember(state.sessions, weekStart) {
+        state.sessions.filter { session ->
+            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
+            date != null && PlannerCalendar.isInWeek(date, weekStart)
+        }
     }
-    val weeklySummary = remember(weeklySessions) { PlannerSummary.fromSessions(weeklySessions) }
+    val weeklySummary = remember(state.sessions) { PlannerSummary.fromSessions(state.sessions) }
     val selectedDaySessions = state.sessions.filter { session ->
         val date = PlannerCalendar.parseDateKey(session.scheduledDate)
         if (date != null) date == selectedDate
@@ -131,7 +135,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         }
                     }
                     item {
-                        val datedSessionCount = weeklySessions.count { it.scheduledDate != null }
+                        val datedSessionCount = sessionsInWeek.size
                         val datedTaskCount = state.tasks.count { task ->
                             PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
                         }
@@ -239,7 +243,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     }
 
     if (showWeekCopyConfirmation) {
-        val datedSessionCount = weeklySessions.count { it.scheduledDate != null }
+        val datedSessionCount = sessionsInWeek.size
         val datedTaskCount = state.tasks.count { task ->
             PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
         }
