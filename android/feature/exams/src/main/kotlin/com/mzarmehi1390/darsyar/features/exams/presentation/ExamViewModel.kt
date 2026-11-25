@@ -112,7 +112,7 @@ class ExamViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
-                // Flush navigation from the previous sheet before changing the active ID.
+                // Flush only when leaving this sheet; reopening it must not overwrite its persisted snapshot.
                 if (takingState.value.examId != null && takingState.value.examId != sheetId) {
                     persistTakingStateImmediately()
                 }
