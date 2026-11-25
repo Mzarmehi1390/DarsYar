@@ -108,6 +108,42 @@ class DarsYarRepositoryTest {
     }
 
     @Test
+    fun examSheet_roundTripsAllConfigurationAndAnswerStateThroughRoom() = runBlocking {
+        val sheet = ExamSheet(
+            id = "configured-exam",
+            name = "آزمون جامع",
+            questionCount = 25,
+            durationSeconds = 45 * 60,
+            negativeMarking = true,
+            answers = mapOf(1 to 2, 7 to 0, 25 to 3),
+            answerKey = mapOf(1 to 2, 2 to 1, 25 to 3),
+            marked = setOf(7, 25),
+        )
+
+        repository.upsertExamSheet(sheet)
+
+        assertEquals(sheet, repository.observeExamSheets().first().single())
+        val persisted = database.examSheetDao().findById(sheet.id)
+        assertNotNull(persisted)
+        assertEquals(25, persisted?.questionCount)
+        assertEquals(45 * 60, persisted?.durationSeconds)
+        assertTrue(persisted?.negativeMarking == true)
+        assertEquals("{\\"1\\":2,\\"7\\":0,\\"25\\":3}", persisted?.answersJson)
+        assertEquals("{\\"1\\":2,\\"2\\":1,\\"25\\":3}", persisted?.answerKeyJson)
+        assertEquals("[7,25]", persisted?.markedJson)
+
+        val updated = sheet.copy(
+            durationSeconds = 60 * 60,
+            negativeMarking = false,
+            answerKey = mapOf(1 to 0, 2 to 1, 25 to 3),
+            marked = setOf(2),
+        )
+        repository.upsertExamSheet(updated)
+
+        assertEquals(updated, repository.observeExamSheets().first().single())
+    }
+
+    @Test
     fun completingActiveExam_clearsActiveSelectionAtomically() = runBlocking {
         repository.upsertExamSheet(ExamSheet(id = "exam-1", name = "Active"))
         assertTrue(repository.setActiveExam("exam-1"))
