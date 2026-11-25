@@ -223,8 +223,13 @@ class PlannerViewModelTest {
         advanceUntilIdle()
 
         assertEquals(PlannerActionResult.Success, result)
-        assertEquals("مرور فصل", repository.sessionsSnapshot().single().title)
-        assertEquals("عمومی", repository.sessionsSnapshot().single().subject)
+        val saved = repository.sessionsSnapshot().single()
+        assertEquals("مرور فصل", saved.title)
+        assertEquals("عمومی", saved.subject)
+        assertEquals("session-normalize", saved.id)
+        assertEquals("2026-11-24", saved.scheduledDate)
+        assertEquals(16 * 60, saved.startMinutes)
+        assertEquals(55, saved.durationMinutes)
     }
 
     @Test
