@@ -14,7 +14,7 @@ class PlannerDayCopyServiceTest {
 
     @Test
     fun createPlan_includesExactDateAndLegacyWeekdayButExcludesOtherOccurrences() {
-        val dated = session("dated", scheduledDate = "2026-11-24", weekday = 0)
+        val dated = session("dated", scheduledDate = "2026-11-24", weekday = 0, completed = true)
         val legacy = session("legacy", scheduledDate = null, weekday = 2).copy(startMinutes = 8 * 60)
         val otherDate = session("other-date", scheduledDate = "2026-11-25", weekday = 2)
         val malformed = session("malformed", scheduledDate = "not-a-date", weekday = 2)
