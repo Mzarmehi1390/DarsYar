@@ -13,7 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -429,15 +431,30 @@ class ExamViewModelTest {
     }
 
     @Test
-    fun selectQuestion_persistsCurrentQuestion() = runTest(mainDispatcher) {
-        val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)))
+    fun selectQuestion_coalescesRapidNavigationWithoutRepeatedRoomReads() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)),
+        )
         val viewModel = ExamViewModel(repository)
         viewModel.nowEpochMillis = { 10_000L }
         viewModel.startExam("exam-1")
         advanceUntilIdle()
+
+        val readsBeforeNavigation = repository.examSheetObservationCount
+        val writesBeforeNavigation = repository.sessionSaveCalls
+        viewModel.selectQuestion(3)
+        viewModel.selectQuestion(5)
         viewModel.selectQuestion(6)
-        advanceUntilIdle()
+
+        assertEquals(readsBeforeNavigation, repository.examSheetObservationCount)
+        advanceTimeBy(299)
+        runCurrent()
+        assertEquals(writesBeforeNavigation, repository.sessionSaveCalls)
+
+        advanceTimeBy(1)
+        runCurrent()
         assertEquals(6, repository.examSession.value?.currentQuestionNumber)
+        assertEquals(writesBeforeNavigation + 1, repository.sessionSaveCalls)
     }
 
     @Test
@@ -492,11 +509,16 @@ class ExamViewModelTest {
         val sheets = MutableStateFlow(initialSheets)
         private val results = MutableStateFlow<List<ExamResult>>(emptyList())
         val savedSheets = mutableListOf<ExamSheet>()
+        var examSheetObservationCount: Int = 0
+        var sessionSaveCalls: Int = 0
         var completedSheetId: String? = null
         var completionCalls: Int = 0
         var completionFailure: Throwable? = null
 
-        override fun observeExamSheets(): Flow<List<ExamSheet>> = sheets.asStateFlow()
+        override fun observeExamSheets(): Flow<List<ExamSheet>> {
+            examSheetObservationCount++
+            return sheets.asStateFlow()
+        }
         override fun observeExamResults(): Flow<List<ExamResult>> = results.asStateFlow()
         val activeExam = MutableStateFlow<String?>(null)
         val examSession = MutableStateFlow<ExamSessionSnapshot?>(null)
@@ -517,6 +539,7 @@ class ExamViewModelTest {
             return true
         }
         override suspend fun saveExamSession(session: ExamSessionSnapshot): Boolean {
+            sessionSaveCalls++
             val sheet = sheets.value.firstOrNull { it.id == session.examId } ?: return false
             if (activeExam.value != session.examId) return false
             if (session.currentQuestionNumber !in 1..sheet.questionCount) return false

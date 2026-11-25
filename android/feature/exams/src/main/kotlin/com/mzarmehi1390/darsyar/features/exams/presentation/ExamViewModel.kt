@@ -13,6 +13,8 @@ import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +52,8 @@ class ExamViewModel @Inject constructor(
     private val takingState = MutableStateFlow(ExamTakingState())
     internal var nowEpochMillis: () -> Long = System::currentTimeMillis
     private var restoredExamId: String? = null
+    private var activeQuestionCount: Int = 0
+    private var pendingSessionPersistence: Job? = null
     private val completionInFlight = mutableSetOf<String>()
 
     val uiState: StateFlow<ExamUiState> = combine(
@@ -151,28 +155,32 @@ class ExamViewModel @Inject constructor(
         }
         takingState.value = restored
         restoredExamId = examId
+        activeQuestionCount = sheet.questionCount
         persistTakingState()
     }
 
     fun selectQuestion(number: Int) {
-        viewModelScope.launch {
-            val current = takingState.value
-            val examId = current.examId ?: return@launch
-            val sheet = repository.observeExamSheets().first().firstOrNull { it.id == examId }
-                ?: return@launch
-            takingState.update { ExamTakingOperations.selectQuestion(it, number, sheet.questionCount) }
-            persistTakingState()
-        }
+        // The active sheet is loaded once when the session starts/restores. Avoid
+        // querying Room for every tap in the question navigator.
+        if (activeQuestionCount < 1 || takingState.value.examId == null) return
+        val updated = ExamTakingOperations.selectQuestion(
+            takingState.value,
+            number,
+            activeQuestionCount,
+        )
+        if (updated == takingState.value) return
+        takingState.value = updated
+        scheduleSessionPersistence()
     }
 
     fun pauseExam() {
         takingState.update { ExamTakingOperations.pause(it, nowEpochMillis()) }
-        viewModelScope.launch { persistTakingState() }
+        viewModelScope.launch { persistTakingStateImmediately() }
     }
 
     fun resumeExam() {
         takingState.update { ExamTakingOperations.resume(it, nowEpochMillis()) }
-        viewModelScope.launch { persistTakingState() }
+        viewModelScope.launch { persistTakingStateImmediately() }
     }
 
     /**
@@ -187,10 +195,24 @@ class ExamViewModel @Inject constructor(
         if (tick.state != current) takingState.value = tick.state
         if (tick.expired) {
             viewModelScope.launch {
-                persistTakingState()
+                persistTakingStateImmediately()
                 completeExam(current.examId.orEmpty())
             }
         }
+    }
+
+    private fun scheduleSessionPersistence() {
+        pendingSessionPersistence?.cancel()
+        pendingSessionPersistence = viewModelScope.launch {
+            delay(SESSION_PERSISTENCE_DEBOUNCE_MILLIS)
+            persistTakingState()
+        }
+    }
+
+    private suspend fun persistTakingStateImmediately(): Boolean {
+        pendingSessionPersistence?.cancel()
+        pendingSessionPersistence = null
+        return persistTakingState()
     }
 
     private suspend fun persistTakingState(): Boolean {
@@ -210,10 +232,15 @@ class ExamViewModel @Inject constructor(
     fun clearActiveExam(sheetId: String? = null) {
         viewModelScope.launch {
             try {
+                if (sheetId == null || takingState.value.examId == sheetId) {
+                    pendingSessionPersistence?.cancel()
+                    pendingSessionPersistence = null
+                }
                 repository.clearActiveExam(sheetId)
                 if (sheetId == null || takingState.value.examId == sheetId) {
                     takingState.value = ExamTakingState()
                     restoredExamId = null
+                    activeQuestionCount = 0
                 }
                 actionError.update { null }
             } catch (cancelled: CancellationException) {
@@ -237,6 +264,7 @@ class ExamViewModel @Inject constructor(
         if (!completionInFlight.add(sheetId)) return
         viewModelScope.launch {
             try {
+                if (takingState.value.examId == sheetId) persistTakingStateImmediately()
                 if (takingState.value.examId == sheetId && takingState.value.isFinishing) {
                     takingState.update { ExamTakingOperations.beginSavingResult(it) ?: it }
                 }
@@ -244,6 +272,7 @@ class ExamViewModel @Inject constructor(
                 if (result != null && takingState.value.examId == sheetId) {
                     takingState.value = ExamTakingState()
                     restoredExamId = null
+                    activeQuestionCount = 0
                     actionError.update { null }
                 } else if (result == null) {
                     takingState.update { if (it.examId == sheetId) it.copy(isSavingResult = false) else it }
@@ -274,8 +303,11 @@ class ExamViewModel @Inject constructor(
             try {
                 val deleted = repository.deleteExamSheet(id)
                 if (deleted && takingState.value.examId == id) {
+                    pendingSessionPersistence?.cancel()
+                    pendingSessionPersistence = null
                     takingState.value = ExamTakingState()
                     restoredExamId = null
+                    activeQuestionCount = 0
                 }
                 actionError.update { null }
                 val result = when {
@@ -319,5 +351,6 @@ class ExamViewModel @Inject constructor(
         const val MAX_DURATION_SECONDS = 24 * 60 * 60
         // Keep the domain-level guard aligned with the answer-sheet UI and persistence limits.
         const val MAX_QUESTION_COUNT = 200
+        const val SESSION_PERSISTENCE_DEBOUNCE_MILLIS = 300L
     }
 }
