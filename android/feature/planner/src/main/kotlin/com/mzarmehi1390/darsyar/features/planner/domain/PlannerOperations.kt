@@ -38,9 +38,11 @@ object PlannerOperations {
     ): List<StudySession> {
         require(weekday in 0..6)
         return sessions.filter { session ->
-            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-            if (date == null) session.weekday == weekday
-            else PlannerCalendar.weekdayForDate(date) == weekday
+            when {
+                session.scheduledDate == null -> session.weekday == weekday
+                else -> PlannerCalendar.parseDateKey(session.scheduledDate)
+                    ?.let(PlannerCalendar::weekdayForDate) == weekday
+            }
         }.sortedBy(StudySession::startMinutes)
     }
 
