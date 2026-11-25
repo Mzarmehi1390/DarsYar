@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyService
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyService
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerWeekCopyResult
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
@@ -391,6 +393,85 @@ class DarsYarRepositoryTest {
         assertEquals(PlannerWeekCopyResult.TargetWeekNotEmpty, repository.copyWeekPlan(second))
         assertEquals(protected, repository.observeTasks().first().single { it.id == protected.id })
         assertNull(repository.observeStudySessions().first().firstOrNull { it.id == "second-source-session" })
+    }
+
+
+    @Test
+    fun copyDayPlan_persistsCopiesAndResetsCompletionWithoutChangingSourceOrOtherDays() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-11-26")
+        val dated = StudySession("dated-source", "Physics", "Science", 0, 9 * 60, 45, true, "2026-11-24")
+        val legacy = StudySession("legacy-source", "Math", "Math", 2, 10 * 60, 45, true)
+        val unrelated = StudySession("unrelated", "Chemistry", "Science", 3, 12 * 60, 30, false, "2026-11-25")
+        repository.upsertStudySession(dated)
+        repository.upsertStudySession(legacy)
+        repository.upsertStudySession(unrelated)
+
+        val plan = PlannerDayCopyService().createPlan(
+            repository.observeStudySessions().first(), sourceDate, targetDate,
+        ) { "copy-${it.id}" }
+
+        assertEquals(PlannerDayCopyResult.Copied(2), repository.copyDayPlan(plan))
+        val persisted = repository.observeStudySessions().first().associateBy(StudySession::id)
+        assertEquals(dated, persisted[dated.id])
+        assertEquals(legacy, persisted[legacy.id])
+        assertEquals(unrelated, persisted[unrelated.id])
+        val datedCopy = persisted.getValue("copy-dated-source")
+        val legacyCopy = persisted.getValue("copy-legacy-source")
+        assertEquals("2026-11-26", datedCopy.scheduledDate)
+        assertEquals("2026-11-26", legacyCopy.scheduledDate)
+        assertEquals(4, datedCopy.weekday)
+        assertEquals(4, legacyCopy.weekday)
+        assertFalse(datedCopy.completed)
+        assertFalse(legacyCopy.completed)
+        assertEquals(5, persisted.size)
+    }
+
+    @Test
+    fun copyDayPlan_rejectsOccupiedTargetAndPreservesEveryExistingRecord() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-11-26")
+        val source = StudySession("source", "Review", "Physics", 2, 9 * 60, 45, false, "2026-11-24")
+        val occupied = StudySession("target-existing", "Existing target", "Math", 4, 14 * 60, 30, false, "2026-11-26")
+        repository.upsertStudySession(source)
+        repository.upsertStudySession(occupied)
+        val before = repository.observeStudySessions().first()
+        val plan = PlannerDayCopyService().createPlan(before, sourceDate, targetDate) { "copy-${it.id}" }
+
+        assertEquals(PlannerDayCopyResult.TargetDateNotEmpty, repository.copyDayPlan(plan))
+        assertEquals(before, repository.observeStudySessions().first())
+    }
+
+    @Test
+    fun copyDayPlan_detectsChangedSourceAndDoesNotWriteStaleCopies() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-11-26")
+        val source = StudySession("source", "Original", "Physics", 2, 9 * 60, 45, false, "2026-11-24")
+        repository.upsertStudySession(source)
+        val plan = PlannerDayCopyService().createPlan(
+            repository.observeStudySessions().first(), sourceDate, targetDate,
+        ) { "copy-${it.id}" }
+        val changed = source.copy(title = "Edited after preview")
+        repository.upsertStudySession(changed)
+
+        assertEquals(PlannerDayCopyResult.SourceChanged, repository.copyDayPlan(plan))
+        assertEquals(listOf(changed), repository.observeStudySessions().first())
+    }
+
+    @Test
+    fun copyDayPlan_rejectsOverlappingCopiesWithoutPartiallyPersistingThem() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-11-26")
+        val first = StudySession("first-source", "First", "Physics", 2, 9 * 60, 45, false, "2026-11-24")
+        val second = StudySession("second-source", "Second", "Math", 2, 9 * 60 + 30, 45, false, "2026-11-24")
+        repository.upsertStudySession(first)
+        repository.upsertStudySession(second)
+        val before = repository.observeStudySessions().first()
+        val plan = PlannerDayCopyService().createPlan(before, sourceDate, targetDate) { "copy-${it.id}" }
+
+        assertEquals(PlannerDayCopyResult.SessionConflict, repository.copyDayPlan(plan))
+        assertEquals(before, repository.observeStudySessions().first())
+        assertTrue(repository.observeStudySessions().first().none { it.id.startsWith("copy-") })
     }
 
     @Test
