@@ -12,9 +12,14 @@ class PlannerDayCopyService {
     ): PlannerDayCopyPlan {
         require(sourceDate != targetDate) { "Source and target dates must differ." }
         val sourceWeekday = PlannerCalendar.weekdayForDate(sourceDate)
+        val sourceDateKey = PlannerCalendar.dateKey(sourceDate)
         val sourceSessions = sessions.filter { session ->
-            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-            if (date != null) date == sourceDate else session.weekday == sourceWeekday
+            PlannerCalendar.sameOccurrence(
+                firstDateKey = session.scheduledDate,
+                firstWeekday = session.weekday,
+                secondDateKey = sourceDateKey,
+                secondWeekday = sourceWeekday,
+            )
         }.sortedBy(StudySession::startMinutes)
         val copies = sourceSessions.map { source ->
             source.copy(

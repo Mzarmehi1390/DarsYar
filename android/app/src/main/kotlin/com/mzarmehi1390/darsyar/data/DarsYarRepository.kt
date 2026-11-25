@@ -142,14 +142,28 @@ class DarsYarRepository @Inject constructor(
     override suspend fun copyDayPlan(plan: PlannerDayCopyPlan): PlannerDayCopyResult =
         database.withTransaction {
             val currentSessions = database.studySessionDao().observeAll().first().map { it.toDomain() }
+            val sourceDateKey = PlannerCalendar.dateKey(plan.sourceDate)
+            val sourceWeekday = PlannerCalendar.weekdayForDate(plan.sourceDate)
             val currentSource = currentSessions.filter { current ->
-                plan.sourceSessions.any { it.id == current.id }
-            }
+                PlannerCalendar.sameOccurrence(
+                    firstDateKey = current.scheduledDate,
+                    firstWeekday = current.weekday,
+                    secondDateKey = sourceDateKey,
+                    secondWeekday = sourceWeekday,
+                )
+            }.sortedBy(StudySession::startMinutes)
             if (currentSource != plan.sourceSessions) {
                 return@withTransaction PlannerDayCopyResult.SourceChanged
             }
+            val targetDateKey = PlannerCalendar.dateKey(plan.targetDate)
+            val targetWeekday = PlannerCalendar.weekdayForDate(plan.targetDate)
             if (currentSessions.any { current ->
-                    PlannerCalendar.parseDateKey(current.scheduledDate) == plan.targetDate
+                    PlannerCalendar.sameOccurrence(
+                        firstDateKey = current.scheduledDate,
+                        firstWeekday = current.weekday,
+                        secondDateKey = targetDateKey,
+                        secondWeekday = targetWeekday,
+                    )
                 }
             ) return@withTransaction PlannerDayCopyResult.TargetDateNotEmpty
 
