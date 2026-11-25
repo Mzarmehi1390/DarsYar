@@ -112,6 +112,8 @@ class ExamViewModel @Inject constructor(
         }
         viewModelScope.launch {
             try {
+                // Flush navigation from the previous sheet before changing the active ID.
+                if (takingState.value.examId != null) persistTakingStateImmediately()
                 val started = repository.setActiveExam(sheetId)
                 if (!started) {
                     onResult(ExamActionResult.SheetNotFound)
@@ -134,7 +136,10 @@ class ExamViewModel @Inject constructor(
     private suspend fun restoreExamSession(examId: String, knownSheet: ExamSheet? = null) {
         val sheet = knownSheet ?: repository.observeExamSheets().first().firstOrNull { it.id == examId }
             ?: return
-        if (restoredExamId == examId && takingState.value.examId == examId) return
+        if (restoredExamId == examId && takingState.value.examId == examId) {
+            activeQuestionCount = sheet.questionCount
+            return
+        }
         val saved = repository.observeExamSession().first()?.takeIf { it.examId == examId }
         val now = nowEpochMillis()
         val restored = when {
