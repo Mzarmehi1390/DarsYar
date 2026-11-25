@@ -223,17 +223,21 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     if (showAddSheet) {
         AddExamSheetDialog(
             onDismiss = { showAddSheet = false },
-            onSave = { name, count, durationMinutes, negativeMarking ->
-                viewModel.saveSheet(
-                    ExamSheet(
-                        id = UUID.randomUUID().toString(),
-                        name = name.trim(),
-                        questionCount = count,
-                        durationSeconds = durationMinutes * 60,
-                        negativeMarking = negativeMarking,
-                    ),
-                ) { result ->
-                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+            onSave = { name, count, durationMinutes, negativeMarking, configureAnswerKey ->
+                val createdSheet = ExamSheet(
+                    id = UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    questionCount = count,
+                    durationSeconds = durationMinutes * 60,
+                    negativeMarking = negativeMarking,
+                )
+                viewModel.saveSheet(createdSheet) { result ->
+                    scope.launch {
+                        snackbar.showSnackbar(result.toMessage())
+                        if (result == ExamActionResult.Success && configureAnswerKey) {
+                            answerKeySheet = createdSheet
+                        }
+                    }
                 }
                 showAddSheet = false
             },
@@ -251,12 +255,13 @@ private fun EmptyExamCard(message: String) {
 @Composable
 private fun AddExamSheetDialog(
     onDismiss: () -> Unit,
-    onSave: (name: String, questionCount: Int, durationMinutes: Int, negativeMarking: Boolean) -> Unit,
+    onSave: (name: String, questionCount: Int, durationMinutes: Int, negativeMarking: Boolean, configureAnswerKey: Boolean) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var count by remember { mutableStateOf("20") }
     var durationMinutes by remember { mutableStateOf("30") }
     var negativeMarking by remember { mutableStateOf(false) }
+    var configureAnswerKey by remember { mutableStateOf(true) }
     val parsedCount = count.toIntOrNull()
     val parsedDuration = durationMinutes.toIntOrNull()
 
@@ -291,12 +296,19 @@ private fun AddExamSheetDialog(
                     )
                     Text("اعمال نمرهٔ منفی")
                 }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = configureAnswerKey,
+                        onCheckedChange = { configureAnswerKey = it },
+                    )
+                    Text("ورود کلید پاسخ پس از ساخت")
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    onSave(name, parsedCount ?: 0, parsedDuration ?: 0, negativeMarking)
+                    onSave(name, parsedCount ?: 0, parsedDuration ?: 0, negativeMarking, configureAnswerKey)
                 },
                 enabled = name.isNotBlank() &&
                     parsedCount != null && parsedCount in 1..200 &&
