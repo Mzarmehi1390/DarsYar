@@ -85,7 +85,7 @@ class ExamViewModel @Inject constructor(
         val invalid = when {
             sheet.id.isBlank() -> "شناسهٔ آزمون معتبر نیست"
             sheet.name.isBlank() -> "نام آزمون نمی‌تواند خالی باشد"
-            sheet.questionCount < 1 -> "تعداد سؤال‌ها باید بیشتر از صفر باشد"
+            sheet.questionCount !in 1..MAX_QUESTION_COUNT -> "تعداد سؤال‌ها باید بین ۱ تا ۲۰۰ باشد"
             sheet.durationSeconds !in 1..MAX_DURATION_SECONDS -> "مدت آزمون معتبر نیست"
             sheet.answers.keys.any { it !in 1..sheet.questionCount } -> "شمارهٔ یکی از پاسخ‌ها معتبر نیست"
             sheet.answers.values.any { it !in 0..3 } -> "گزینهٔ یکی از پاسخ‌ها معتبر نیست"
@@ -317,5 +317,6 @@ class ExamViewModel @Inject constructor(
 
     private companion object {
         const val MAX_DURATION_SECONDS = 24 * 60 * 60
+        const val MAX_QUESTION_COUNT = 200
     }
 }

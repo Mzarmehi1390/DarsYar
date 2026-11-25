@@ -133,14 +133,24 @@ class DarsYarRepositoryTest {
         assertEquals("[7,25]", persisted?.markedJson)
 
         val updated = sheet.copy(
+            questionCount = 30,
             durationSeconds = 60 * 60,
             negativeMarking = false,
-            answerKey = mapOf(1 to 0, 2 to 1, 25 to 3),
-            marked = setOf(2),
+            answers = mapOf(1 to 0, 30 to 3),
+            answerKey = mapOf(1 to 0, 2 to 1, 30 to 3),
+            marked = setOf(2, 30),
         )
         repository.upsertExamSheet(updated)
 
         assertEquals(updated, repository.observeExamSheets().first().single())
+        val updatedPersisted = database.examSheetDao().findById(sheet.id)
+        assertNotNull(updatedPersisted)
+        assertEquals(30, updatedPersisted?.questionCount)
+        assertEquals(60 * 60, updatedPersisted?.durationSeconds)
+        assertFalse(updatedPersisted?.negativeMarking ?: true)
+        assertEquals("{\"1\":0,\"30\":3}", updatedPersisted?.answersJson)
+        assertEquals("{\"1\":0,\"2\":1,\"30\":3}", updatedPersisted?.answerKeyJson)
+        assertEquals("[2,30]", updatedPersisted?.markedJson)
     }
 
     @Test

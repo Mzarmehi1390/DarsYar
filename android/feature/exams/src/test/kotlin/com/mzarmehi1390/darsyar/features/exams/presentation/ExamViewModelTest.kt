@@ -453,6 +453,38 @@ class ExamViewModelTest {
         assertEquals(false, repository.saveExamSession(invalidQuestion))
     }
 
+
+    @Test
+    fun saveSheet_enforcesQuestionCountBoundaryAndAcceptsMaximum() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository()
+        val viewModel = ExamViewModel(repository)
+        var invalidResult: ExamActionResult? = null
+        viewModel.saveSheet(
+            ExamSheet(id = "too-many", name = "تعداد نامعتبر", questionCount = 201),
+        ) { invalidResult = it }
+        advanceUntilIdle()
+
+        assertTrue(invalidResult is ExamActionResult.Invalid)
+        assertTrue(repository.savedSheets.isEmpty())
+
+        var validResult: ExamActionResult? = null
+        val maximumSheet = ExamSheet(
+            id = "maximum-count",
+            name = "حداکثر سؤال",
+            questionCount = 200,
+            durationSeconds = 24 * 60 * 60,
+            negativeMarking = true,
+            answers = mapOf(200 to 3),
+            answerKey = mapOf(200 to 3),
+            marked = setOf(200),
+        )
+        viewModel.saveSheet(maximumSheet) { validResult = it }
+        advanceUntilIdle()
+
+        assertEquals(ExamActionResult.Success, validResult)
+        assertEquals(listOf(maximumSheet), repository.savedSheets)
+    }
+
     private class FakeExamRepository(
         initialSheets: List<ExamSheet> = emptyList(),
         private val completion: ExamResult? = null,
