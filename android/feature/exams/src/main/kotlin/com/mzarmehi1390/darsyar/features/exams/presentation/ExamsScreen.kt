@@ -223,12 +223,14 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     if (showAddSheet) {
         AddExamSheetDialog(
             onDismiss = { showAddSheet = false },
-            onSave = { name, count ->
+            onSave = { name, count, durationMinutes, negativeMarking ->
                 viewModel.saveSheet(
                     ExamSheet(
                         id = UUID.randomUUID().toString(),
                         name = name.trim(),
                         questionCount = count,
+                        durationSeconds = durationMinutes * 60,
+                        negativeMarking = negativeMarking,
                     ),
                 ) { result ->
                     scope.launch { snackbar.showSnackbar(result.toMessage()) }
@@ -247,21 +249,59 @@ private fun EmptyExamCard(message: String) {
 }
 
 @Composable
-private fun AddExamSheetDialog(onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
+private fun AddExamSheetDialog(
+    onDismiss: () -> Unit,
+    onSave: (name: String, questionCount: Int, durationMinutes: Int, negativeMarking: Boolean) -> Unit,
+) {
     var name by remember { mutableStateOf("") }
     var count by remember { mutableStateOf("20") }
+    var durationMinutes by remember { mutableStateOf("30") }
+    var negativeMarking by remember { mutableStateOf(false) }
     val parsedCount = count.toIntOrNull()
+    val parsedDuration = durationMinutes.toIntOrNull()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("برگهٔ آزمون جدید") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("نام آزمون") }, singleLine = true)
-                OutlinedTextField(value = count, onValueChange = { count = it.filter(Char::isDigit).take(3) }, label = { Text("تعداد سؤال") }, singleLine = true)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("نام آزمون") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = count,
+                    onValueChange = { count = it.filter(Char::isDigit).take(3) },
+                    label = { Text("تعداد سؤال") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = durationMinutes,
+                    onValueChange = { durationMinutes = it.filter(Char::isDigit).take(4) },
+                    label = { Text("مدت آزمون (دقیقه)") },
+                    supportingText = { Text("از ۱ تا ۱۴۴۰ دقیقه") },
+                    singleLine = true,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = negativeMarking,
+                        onCheckedChange = { negativeMarking = it },
+                    )
+                    Text("اعمال نمرهٔ منفی")
+                }
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(name, parsedCount ?: 0) }, enabled = name.isNotBlank() && parsedCount != null && parsedCount in 1..200) {
+            Button(
+                onClick = {
+                    onSave(name, parsedCount ?: 0, parsedDuration ?: 0, negativeMarking)
+                },
+                enabled = name.isNotBlank() &&
+                    parsedCount != null && parsedCount in 1..200 &&
+                    parsedDuration != null && parsedDuration in 1..1440,
+            ) {
                 Text("ذخیره")
             }
         },
