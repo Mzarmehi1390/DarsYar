@@ -155,6 +155,11 @@ class DarsYarRepository @Inject constructor(
             if (currentSource != plan.sourceSessions) {
                 return@withTransaction PlannerDayCopyResult.SourceChanged
             }
+            if (plan.sourceDate == plan.targetDate ||
+                currentSource.isEmpty() ||
+                plan.copiedSessions.size != currentSource.size
+            ) return@withTransaction PlannerDayCopyResult.InvalidPlan
+
             val targetDateKey = PlannerCalendar.dateKey(plan.targetDate)
             val targetWeekday = PlannerCalendar.weekdayForDate(plan.targetDate)
             if (currentSessions.any { current ->
@@ -176,6 +181,18 @@ class DarsYarRepository @Inject constructor(
                         copied.completed
                 }
             ) return@withTransaction PlannerDayCopyResult.IdCollision
+
+            val copyContentMatchesSource = currentSource.zip(plan.copiedSessions).all { (source, copy) ->
+                copy == source.copy(
+                    id = copy.id,
+                    weekday = targetWeekday,
+                    completed = false,
+                    scheduledDate = targetDateKey,
+                )
+            }
+            if (!copyContentMatchesSource) {
+                return@withTransaction PlannerDayCopyResult.InvalidPlan
+            }
 
             val accepted = mutableListOf<StudySession>()
             for (candidate in plan.copiedSessions) {
