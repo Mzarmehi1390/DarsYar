@@ -128,8 +128,8 @@ class DarsYarRepositoryTest {
         assertEquals(25, persisted?.questionCount)
         assertEquals(45 * 60, persisted?.durationSeconds)
         assertTrue(persisted?.negativeMarking == true)
-        assertEquals("{\\"1\\":2,\\"7\\":0,\\"25\\":3}", persisted?.answersJson)
-        assertEquals("{\\"1\\":2,\\"2\\":1,\\"25\\":3}", persisted?.answerKeyJson)
+        assertEquals("{\"1\":2,\"7\":0,\"25\":3}", persisted?.answersJson)
+        assertEquals("{\"1\":2,\"2\":1,\"25\":3}", persisted?.answerKeyJson)
         assertEquals("[7,25]", persisted?.markedJson)
 
         val updated = sheet.copy(
