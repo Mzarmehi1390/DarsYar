@@ -562,7 +562,7 @@ private fun SessionEditorDialog(
     var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "16:00") }
     var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "55") }
     var scheduledDate by remember(session?.id, initialDate) {
-        mutableStateOf(session?.scheduledDate ?: initialDate.toString())
+        mutableStateOf<String?>(session?.scheduledDate ?: initialDate.toString())
     }
     var showDatePicker by remember { mutableStateOf(false) }
     val pickerState = key(scheduledDate) {
