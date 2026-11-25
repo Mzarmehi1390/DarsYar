@@ -317,6 +317,7 @@ class ExamViewModel @Inject constructor(
 
     private companion object {
         const val MAX_DURATION_SECONDS = 24 * 60 * 60
+        // Keep the domain-level guard aligned with the answer-sheet UI and persistence limits.
         const val MAX_QUESTION_COUNT = 200
     }
 }
