@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamResultOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyService
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerDayCopyResult
@@ -659,6 +660,7 @@ class DarsYarRepositoryTest {
             id = "exam-history-update",
             name = "آزمون تاریخچه",
             questionCount = 3,
+            negativeMarking = true,
             answers = mapOf(1 to 2, 2 to 1),
             answerKey = mapOf(1 to 0, 2 to 0),
         )
@@ -669,19 +671,30 @@ class DarsYarRepositoryTest {
             completedAt = "2026-11-25T10:00:00Z",
         )
         assertNotNull(original)
+        assertEquals(0.0, original!!.percentage ?: -1.0, 0.001)
 
-        val updated = original!!.copy(
-            correct = 2,
-            wrong = 0,
-            unanswered = 1,
-            keyedQuestions = 2,
-            percentage = 100.0,
-            negativeMarking = false,
+        val recalculated = ExamResultOperations.recalculate(
+            original,
             answerKey = mapOf(1 to 2, 2 to 1),
+            negativeMarking = false,
         )
-        assertTrue(repository.updateExamResult(updated))
-        assertEquals(updated, database.examResultDao().findById(updated.id)?.toDomain())
-        assertFalse(repository.updateExamResult(updated.copy(id = "missing-history")))
+        assertTrue(repository.updateExamResult(recalculated))
+        assertEquals(recalculated, database.examResultDao().findById(recalculated.id)?.toDomain())
+
+        val persisted = database.examResultDao().findById(original.id)?.toDomain()
+        assertNotNull(persisted)
+        assertEquals(2, persisted?.correct)
+        assertEquals(0, persisted?.wrong)
+        assertEquals(1, persisted?.unanswered)
+        assertEquals(2, persisted?.keyedQuestions)
+        assertEquals(100.0, persisted?.percentage ?: -1.0, 0.001)
+        assertFalse(persisted?.negativeMarking ?: true)
+        assertEquals(original.answers, persisted?.answers)
+        assertEquals(mapOf(1 to 2, 2 to 1), persisted?.answerKey)
+        assertEquals(original.completedAt, persisted?.completedAt)
+
+        assertFalse(repository.updateExamResult(recalculated.copy(id = "missing-history")))
+        assertEquals(recalculated, database.examResultDao().findById(recalculated.id)?.toDomain())
         assertEquals(1, database.examResultDao().getAll().size)
     }
 }
