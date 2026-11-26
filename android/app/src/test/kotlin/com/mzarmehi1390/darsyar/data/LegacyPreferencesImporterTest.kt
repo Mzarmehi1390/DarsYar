@@ -425,7 +425,7 @@ class LegacyPreferencesImporterTest {
             )
             .putString(
                 "flutter.darsyar.results",
-                """[{"id":"result-1","questionCount":4,"keyedQuestions":3,"correct":"2","wrong":1.8,"unanswered":"1","negativeMarking":"true","answers":{"1":"2","2":2.9}}]""",
+                """[{"id":"result-1","questionCount":4,"keyedQuestions":3,"correct":"2","wrong":1.8,"unanswered":"1","negativeMarking":"true","answers":{"1":"2","2":2.9,"5":3.9},"answerKey":{"5":1.8}}]""",
             )
             .commit()
 
@@ -452,7 +452,8 @@ class LegacyPreferencesImporterTest {
         assertEquals(1, result.wrong)
         assertEquals(0, result.unanswered)
         assertEquals(false, result.negativeMarking)
-        assertEquals("{\"2\":2}", result.answersJson)
+        assertEquals("{\"2\":2,\"5\":3}", result.answersJson)
+        assertEquals("{\"5\":1}", result.answerKeyJson)
     }
 
     @Test

@@ -305,8 +305,10 @@ class LegacyPreferencesImporter @Inject constructor(
             keyedQuestions = keyed,
             percentage = rawPercentage,
             negativeMarking = negativeMarking,
-            answersJson = filteredAnswers(json.optJSONObject("answers"), questionCount).toJson(),
-            answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), questionCount).toJson(),
+            // Flutter ExamResult.fromJson bounds snapshot questions to 1..200,
+            // independently of the result's recorded questionCount.
+            answersJson = filteredAnswers(json.optJSONObject("answers"), 200).toJson(),
+            answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), 200).toJson(),
         )
     }
 
