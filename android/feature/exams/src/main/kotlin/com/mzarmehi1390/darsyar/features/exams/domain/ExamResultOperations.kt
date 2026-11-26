@@ -55,6 +55,7 @@ object ExamResultOperations {
             unanswered = score.unanswered,
             keyedQuestions = score.keyedQuestions,
             percentage = score.percentage,
+            negativeMarking = negativeMarking,
             answerKey = safeKey,
         )
     }

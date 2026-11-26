@@ -210,6 +210,7 @@ class ExamViewModelTest {
             unanswered = 1,
             keyedQuestions = 1,
             percentage = 0.0,
+            negativeMarking = true,
             answers = mapOf(1 to 2),
             answerKey = mapOf(1 to 0),
         )
@@ -232,6 +233,7 @@ class ExamViewModelTest {
         assertEquals(0, updated.wrong)
         assertEquals(1, updated.unanswered)
         assertEquals(50.0, updated.percentage!!, 0.000001)
+        assertEquals(false, updated.negativeMarking)
     }
 
     @Test
