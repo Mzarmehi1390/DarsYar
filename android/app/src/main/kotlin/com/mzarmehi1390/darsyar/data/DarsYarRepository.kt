@@ -76,8 +76,12 @@ class DarsYarRepository @Inject constructor(
             )
         }
 
-    override suspend fun upsertTask(task: StudyTask) {
-        database.studyTaskDao().upsertAll(listOf(task.toEntity()))
+    override suspend fun upsertTask(task: StudyTask) = database.withTransaction {
+        val dao = database.studyTaskDao()
+        val entity = task.toEntity()
+        // REPLACE deletes and reinserts a row, changing its rowid and therefore
+        // its Flutter-compatible position. Update existing rows in place.
+        if (dao.findById(task.id) == null) dao.insert(entity) else dao.update(entity)
     }
 
     override suspend fun deleteTask(id: String) {

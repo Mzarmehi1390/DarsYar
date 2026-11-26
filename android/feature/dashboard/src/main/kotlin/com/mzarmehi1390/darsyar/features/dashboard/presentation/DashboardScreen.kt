@@ -87,7 +87,7 @@ fun DashboardScreen(
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("تمرکز امروز · پیشرفت کارها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("${PersianDigits.format(completedCount)} از ${PersianDigits.format(tasks.size)} کار انجام‌شده")
+                                Text("${PersianDigits.format(completedCount)} از ${PersianDigits.format(summary.totalCount)} کار انجام‌شده")
                                 Text(if (tasks.isEmpty()) "—" else "${PersianDigits.format((progress * 100).toInt())}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
@@ -95,7 +95,7 @@ fun DashboardScreen(
                                 state.isLoading -> Text("در حال دریافت اطلاعات…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 errorMessage != null -> Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                                 tasks.isEmpty() -> Text("هنوز کاری ثبت نکرده‌ای. از برنامه‌ریز اولین کار خودت را اضافه کن.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                else -> Text("${PersianDigits.format(tasks.size - completedCount)} کار باقی مانده است.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                else -> Text("${PersianDigits.format(summary.remainingCount)} کار باقی مانده است.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }

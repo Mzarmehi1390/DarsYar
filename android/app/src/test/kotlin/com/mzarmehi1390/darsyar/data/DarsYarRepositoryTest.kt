@@ -95,6 +95,26 @@ class DarsYarRepositoryTest {
     }
 
     @Test
+    fun taskOrder_matchesFlutterAppendAndEditPreservesPosition() = runBlocking {
+        val first = StudyTask("first", "بدون تاریخ", "عمومی")
+        val second = StudyTask("second", "تاریخ دیرتر", "عمومی", dueDate = "2026-12-20")
+        val third = StudyTask("third", "تاریخ زودتر", "عمومی", dueDate = "2026-12-01")
+
+        repository.upsertTask(first)
+        repository.upsertTask(second)
+        repository.upsertTask(third)
+        assertEquals(listOf("first", "second", "third"), repository.observeTasks().first().map { it.id })
+
+        repository.upsertTask(second.copy(title = "ویرایش‌شده", dueDate = "2026-11-01"))
+        assertEquals(listOf("first", "second", "third"), repository.observeTasks().first().map { it.id })
+
+        val fourth = StudyTask("fourth", "وظیفه تازه", "عمومی", dueDate = "2020-01-01")
+        repository.upsertTask(fourth)
+        assertEquals(listOf("first", "second", "third", "fourth"), repository.observeTasks().first().map { it.id })
+        assertEquals("ویرایش‌شده", repository.observeTasks().first()[1].title)
+    }
+
+    @Test
     fun activeExamSelection_isObservableAndClearedOnlyForMatchingId() = runBlocking {
         repository.upsertExamSheet(ExamSheet(id = "exam-1", name = "First"))
         repository.upsertExamSheet(ExamSheet(id = "exam-2", name = "Second"))
