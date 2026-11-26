@@ -87,6 +87,17 @@ class DarsYarBackupCodecTest {
     }
 
     @Test
+    fun decode_rejectsQuestionKeysThatNormalizeToTheSameNumber() {
+        val duplicateNormalizedKeys = validBackup().replace(
+            """"answers": {}""",
+            """"answers": {"1": 0, "01": 1}""",
+        )
+        assertThrows(BackupFormatException::class.java) {
+            DarsYarBackupCodec.decode(duplicateNormalizedKeys)
+        }
+    }
+
+    @Test
     fun decode_rejectsInvalidDatesAndSessionRanges() {
         val invalidDate = validBackup().replace(
             """"tasks": []""",

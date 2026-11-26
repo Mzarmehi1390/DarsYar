@@ -295,6 +295,7 @@ internal object DarsYarBackupCodec {
                 if (question !in 1..questionCount || answer !in 0..3) {
                     invalid("$scope.$key")
                 }
+                if (containsKey(question)) invalid("$scope.$key")
                 put(question, answer)
             }
         }
