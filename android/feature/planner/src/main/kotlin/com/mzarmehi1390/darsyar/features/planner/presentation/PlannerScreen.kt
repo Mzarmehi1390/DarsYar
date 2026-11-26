@@ -78,8 +78,12 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     // while keeping week-scoped records separate for copy-week eligibility.
     val sessionsInWeek = remember(state.sessions, weekStart) {
         state.sessions.filter { session ->
-            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-            date != null && PlannerCalendar.isInWeek(date, weekStart)
+            when {
+                session.scheduledDate != null ->
+                    PlannerCalendar.parseDateKey(session.scheduledDate)
+                        ?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
+                else -> session.weekday in 0..6
+            }
         }
     }
     val weeklySummary = remember(state.sessions) { PlannerSummary.fromSessions(state.sessions) }
@@ -164,12 +168,12 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         }
                     }
                     item {
-                        val datedSessionCount = sessionsInWeek.size
+                        val copyableSessionCount = sessionsInWeek.size
                         val datedTaskCount = state.tasks.count { task ->
                             PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
                         }
                         TextButton(
-                            enabled = !isCopyingWeek && datedSessionCount + datedTaskCount > 0,
+                            enabled = !isCopyingWeek && copyableSessionCount + datedTaskCount > 0,
                             onClick = { showWeekCopyConfirmation = true },
                         ) { Text(if (isCopyingWeek) "در حال کپی…" else "کپی برنامه به هفتهٔ بعد") }
                     }

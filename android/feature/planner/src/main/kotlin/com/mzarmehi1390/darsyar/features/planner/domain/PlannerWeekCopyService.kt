@@ -14,19 +14,30 @@ class PlannerWeekCopyService {
     ): PlannerWeekCopyPlan {
         val sourceStart = PlannerCalendar.startOfWeek(sourceWeekStart)
         val targetStart = sourceStart.plusDays(7)
-        val sourceSessions = sessions.filter { item ->
-            val date = PlannerCalendar.parseDateKey(item.scheduledDate)
-            date != null && PlannerCalendar.isInWeek(date, sourceStart)
+        // Resolve legacy weekday-only sessions against this concrete source week.
+        // A non-null malformed date is deliberately excluded instead of falling back
+        // to the redundant weekday field.
+        val sourceOccurrences = sessions.mapNotNull { session ->
+            val occurrenceDate = when {
+                session.scheduledDate != null -> {
+                    PlannerCalendar.parseDateKey(session.scheduledDate)
+                        ?.takeIf { PlannerCalendar.isInWeek(it, sourceStart) }
+                }
+                session.weekday in 0..6 -> PlannerCalendar.dateForWeekday(sourceStart, session.weekday)
+                else -> null
+            }
+            occurrenceDate?.let { session to it }
         }
+        val sourceSessions = sourceOccurrences.map { (session, _) -> session }
         val sourceTasks = tasks.filter { item ->
             val date = PlannerCalendar.parseDateKey(item.dueDate)
             date != null && PlannerCalendar.isInWeek(date, sourceStart)
         }
 
-        val copiedSessions = sourceSessions.map { source ->
-            val sourceDate = requireNotNull(PlannerCalendar.parseDateKey(source.scheduledDate))
+        val copiedSessions = sourceOccurrences.map { (source, sourceDate) ->
             source.copy(
                 id = createSessionId(source),
+                weekday = PlannerCalendar.weekdayForDate(sourceDate.plusDays(7)),
                 completed = false,
                 scheduledDate = PlannerCalendar.dateKey(sourceDate.plusDays(7)),
             )
