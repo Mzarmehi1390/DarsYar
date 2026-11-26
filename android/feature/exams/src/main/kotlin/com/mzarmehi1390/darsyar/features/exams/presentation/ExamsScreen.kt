@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamSheetOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamHistoryAnalytics
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamHistorySummary
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
@@ -643,8 +644,14 @@ private fun ExamTakingDialog(
                             val selected = answers[currentQuestion] == option
                             androidx.compose.material3.OutlinedButton(
                                 onClick = {
-                                    answers = answers + (currentQuestion to option)
-                                    onDraftChanged(sheet.copy(answers = answers, marked = marked))
+                                    val updated = ExamSheetOperations.setAnswer(
+                                        updatedSheet,
+                                        question = currentQuestion,
+                                        answer = option,
+                                    )
+                                    answers = updated.answers
+                                    marked = updated.marked
+                                    onDraftChanged(updated)
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
@@ -660,8 +667,15 @@ private fun ExamTakingDialog(
                         }
                         if (currentQuestion in answers) {
                             TextButton(onClick = {
-                                answers = answers - currentQuestion
-                                onDraftChanged(sheet.copy(answers = answers, marked = marked))
+                                val updated = ExamSheetOperations.setAnswer(
+                                    updatedSheet,
+                                    question = currentQuestion,
+                                    answer = null,
+                                    marked = currentQuestion in marked,
+                                )
+                                answers = updated.answers
+                                marked = updated.marked
+                                onDraftChanged(updated)
                             }) { Text("پاک‌کردن پاسخ") }
                         }
                     }

@@ -67,6 +67,23 @@ class ExamSheetOperationsTest {
     }
 
     @Test
+    fun selectingAnswerClearsOnlyThatQuestionsReviewMarkWithoutMutatingOriginal() {
+        val original = sheet()
+
+        val updated = ExamSheetOperations.setAnswer(
+            original,
+            question = 4,
+            answer = 2,
+            marked = true,
+        )
+
+        assertEquals(mapOf(1 to 2, 4 to 2, 5 to 3), updated.answers)
+        assertEquals(setOf(2), updated.marked)
+        assertEquals(setOf(2, 4), original.marked)
+        assertEquals(mapOf(1 to 2, 4 to 1, 5 to 3), original.answers)
+    }
+
+    @Test
     fun invalidQuestionOrOptionDoesNotMutateSheet() {
         val original = sheet()
 
