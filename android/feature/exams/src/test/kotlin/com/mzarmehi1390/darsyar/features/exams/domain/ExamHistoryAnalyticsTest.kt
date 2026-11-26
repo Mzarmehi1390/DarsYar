@@ -41,6 +41,18 @@ class ExamHistoryAnalyticsTest {
     }
 
     @Test
+    fun summarizeOrdersOffsetTimestampsByInstantRatherThanText() {
+        val results = listOf(
+            result("later", "2026-11-01T08:00:00Z", 80.0),
+            result("earlier", "2026-11-01T10:00:00+03:00", 40.0),
+        )
+
+        val summary = ExamHistoryAnalytics.summarize(results)
+
+        assertEquals(listOf(40.0, 80.0), summary.recentTrend)
+    }
+
+    @Test
     fun summarizeKeepsOnlySevenMostRecentScoredAttempts() {
         val results = (1..9).map { index ->
             result("r$index", "2026-11-%02dT10:00:00Z".format(index), index * 10.0)

@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
@@ -52,6 +52,9 @@ import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import java.util.UUID
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ExamsScreen(viewModel: ExamViewModel) {
@@ -174,22 +177,14 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     if (state.results.isEmpty()) {
                         item { EmptyExamCard("پس از ثبت نتیجه، کارنامه‌ها در این بخش نمایش داده می‌شوند.") }
                     } else {
-                        items(state.results.sortedByDescending { it.completedAt }, key = { it.id }) { result ->
-                            Card(modifier = Modifier.darsYarAnimateContentSize()) {
-                                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(result.examName, fontWeight = FontWeight.SemiBold)
-                                    Text("${result.correct} درست · ${result.wrong} نادرست · ${result.unanswered} بی‌پاسخ", style = MaterialTheme.typography.bodySmall)
-                                    Text(
-                                        result.percentage?.let { "درصد: %.1f٪".format(it) } ?: "درصد قابل محاسبه نیست",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Text(result.completedAt, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    TextButton(onClick = { historicalResult = result }) {
-                                        Text("ویرایش کلید و محاسبهٔ مجدد")
-                                    }
-                                }
-                            }
+                        items(
+                            state.results.sortedByDescending { historyTimestamp(it.completedAt) },
+                            key = { it.id },
+                        ) { result ->
+                            ExamHistoryResultCard(
+                                result = result,
+                                onEditAnswerKey = { historicalResult = result },
+                            )
                         }
                     }
                     item { ExamPercentageCalculatorCard() }
@@ -296,6 +291,75 @@ fun ExamsScreen(viewModel: ExamViewModel) {
 }
 
 
+
+private val historyDateFormatter: DateTimeFormatter =
+    DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm").withZone(ZoneId.systemDefault())
+
+private fun historyTimestamp(value: String): Long =
+    runCatching { Instant.parse(value).toEpochMilli() }.getOrDefault(0L)
+
+private fun formatHistoryDate(value: String): String =
+    runCatching { historyDateFormatter.format(Instant.parse(value)) }.getOrElse { value }
+
+@Composable
+private fun ExamHistoryResultCard(
+    result: ExamResult,
+    onEditAnswerKey: () -> Unit,
+) {
+    val hasScore = result.percentage != null
+    Card(modifier = Modifier.fillMaxWidth().darsYarAnimateContentSize()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    result.examName,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    result.percentage?.let { "%.1f٪".format(it) } ?: "بدون کلید",
+                    color = if (hasScore) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Text(
+                formatHistoryDate(result.completedAt),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HistoryMetric("تعداد سؤال", result.questionCount.toString(), Modifier.weight(1f))
+                HistoryMetric("کلیدگذاری‌شده", "${result.keyedQuestions}/${result.questionCount}", Modifier.weight(1f))
+                HistoryMetric("نمره منفی", if (result.negativeMarking) "فعال" else "خاموش", Modifier.weight(1f))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                HistoryMetric("درست", result.correct.toString(), Modifier.weight(1f))
+                HistoryMetric("غلط", result.wrong.toString(), Modifier.weight(1f))
+                HistoryMetric("بی‌پاسخ", result.unanswered.toString(), Modifier.weight(1f))
+            }
+            TextButton(
+                onClick = onEditAnswerKey,
+                modifier = Modifier.align(Alignment.Start),
+            ) {
+                Text(
+                    if (hasScore) "ویرایش کلید و محاسبهٔ مجدد"
+                    else "ثبت کلید و محاسبهٔ درصد",
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun ExamHistorySummaryCard(summary: ExamHistorySummary) {
     Card(modifier = Modifier.fillMaxWidth().darsYarAnimateContentSize()) {
@@ -311,32 +375,40 @@ private fun ExamHistorySummaryCard(summary: ExamHistorySummary) {
             }
             if (summary.recentTrend.isNotEmpty()) {
                 Text("روند ۷ نتیجهٔ قابل محاسبه", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     summary.recentTrend.forEachIndexed { index, value ->
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("${value.toInt()}٪", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                (index + 1).toString(),
+                                modifier = Modifier.width(22.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             Box(
-                                modifier = Modifier.fillMaxWidth().height(34.dp)
-                                    .clip(RoundedCornerShape(7.dp))
+                                modifier = Modifier.weight(1f).height(12.dp)
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.BottomCenter,
                             ) {
                                 Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .fillMaxHeight((value / 100.0).coerceIn(0.0, 1.0).toFloat())
-                                        .clip(RoundedCornerShape(7.dp))
+                                    modifier = Modifier.fillMaxWidth(
+                                        (value / 100.0).coerceIn(0.0, 1.0).toFloat(),
+                                    )
+                                        .height(12.dp)
+                                        .clip(RoundedCornerShape(8.dp))
                                         .background(MaterialTheme.colorScheme.primary),
                                 )
                             }
-                            Text("${index + 1}", style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                "${value.toInt()}٪",
+                                modifier = Modifier.width(46.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                            )
                         }
                     }
                 }
