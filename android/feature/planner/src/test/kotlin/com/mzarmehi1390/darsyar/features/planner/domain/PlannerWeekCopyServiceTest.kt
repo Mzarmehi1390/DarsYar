@@ -26,14 +26,18 @@ class PlannerWeekCopyServiceTest {
     }
 
     @Test
-    fun createNextWeekPlan_ignoresUndatedRecurringItems() {
+    fun createNextWeekPlan_copiesLegacyRecurringSessionsButIgnoresUndatedTasks() {
         val plan = PlannerWeekCopyService().createNextWeekPlan(
             listOf(StudySession("s", "هفتگی", "علوم", 2, 540, 30)),
             listOf(StudyTask("t", "بدون سررسید", "عمومی")),
             LocalDate.parse("2026-11-21"),
             { "new-${it.id}" }, { "new-${it.id}" },
         )
-        assertEquals(emptyList<StudySession>(), plan.copiedSessions)
+        val copiedSession = plan.copiedSessions.single()
+        assertEquals("new-s", copiedSession.id)
+        assertEquals("2026-12-01", copiedSession.scheduledDate)
+        assertEquals(2, copiedSession.weekday)
+        assertFalse(copiedSession.completed)
         assertEquals(emptyList<StudyTask>(), plan.copiedTasks)
     }
     @Test
