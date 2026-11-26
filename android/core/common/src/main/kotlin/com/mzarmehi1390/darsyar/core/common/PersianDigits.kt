@@ -36,6 +36,12 @@ object PersianDigits {
         }
     }
 
+    /** Returns true for Western, Persian, and Arabic-Indic decimal digits. */
+    fun isSupportedDigit(character: Char): Boolean =
+        character in '0'..'9' ||
+            character in PERSIAN_ZERO..(PERSIAN_ZERO + 9) ||
+            character in ARABIC_INDIC_ZERO..(ARABIC_INDIC_ZERO + 9)
+
     fun format(value: Int): String = toPersianDigits(value.toString())
     fun format(value: Long): String = toPersianDigits(value.toString())
 }

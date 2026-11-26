@@ -20,6 +20,14 @@ class PersianDigitsTest {
     }
 
     @Test
+    fun recognizesAllSupportedDecimalDigitSetsWithoutChangingTheirGlyphs() {
+        val input = "09۰۹٠٩"
+        assertEquals(input, input.filter(PersianDigits::isSupportedDigit))
+        assertEquals("۰۹", "۰۹:ab".filter(PersianDigits::isSupportedDigit))
+        assertEquals(false, PersianDigits.isSupportedDigit('x'))
+    }
+
+    @Test
     fun integerFormattingUsesPersianDigits() {
         assertEquals("۱۲۳۴", PersianDigits.format(1234))
         assertEquals("۹۰۰۰۰۰۰۰۰۰", PersianDigits.format(9_000_000_000L))

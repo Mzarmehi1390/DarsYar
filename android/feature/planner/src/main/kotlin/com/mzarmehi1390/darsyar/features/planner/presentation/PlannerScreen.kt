@@ -603,13 +603,13 @@ private fun SessionEditorDialog(
                 }
                 OutlinedTextField(
                     value = startTime,
-                    onValueChange = { startTime = it.filter { char -> char.isDigit() || char == ':' }.take(5) },
+                    onValueChange = { startTime = it.filter { char -> PersianDigits.isSupportedDigit(char) || char == ':' }.take(5) },
                     label = { Text("زمان شروع (HH:mm)") },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = duration,
-                    onValueChange = { duration = it.filter(Char::isDigit).take(4) },
+                    onValueChange = { duration = it.filter(PersianDigits::isSupportedDigit).take(4) },
                     label = { Text("مدت (دقیقه)") },
                     singleLine = true,
                 )
