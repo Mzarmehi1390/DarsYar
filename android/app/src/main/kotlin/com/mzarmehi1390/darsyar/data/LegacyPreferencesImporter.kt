@@ -191,7 +191,7 @@ class LegacyPreferencesImporter @Inject constructor(
             title = title,
             subject = json.stringOrNull("subject") ?: "عمومی",
             isDone = json.booleanOrDefault("done", false),
-            dueDate = json.stringIfString("dueDate")?.takeIf(::isDateKey),
+            dueDate = json.stringIfString("dueDate")?.let(::parseDateOnly),
         )
     }
 
@@ -200,7 +200,7 @@ class LegacyPreferencesImporter @Inject constructor(
         val title = json.stringOrNull("title")?.takeIf(String::isNotBlank) ?: return null
         val start = json.intFromNumber("startMinutes", 960).coerceIn(0, 1439)
         val duration = json.intFromNumber("durationMinutes", 55).coerceIn(1, 1440 - start)
-        val date = json.stringIfString("scheduledDate")?.takeIf(::isDateKey)
+        val date = json.stringIfString("scheduledDate")?.let(::parseDateOnly)
         val weekday = if (date != null) {
             runCatching {
                 val parts = date.split("-").map(String::toInt)
@@ -376,12 +376,22 @@ class LegacyPreferencesImporter @Inject constructor(
     /** Mirrors Dart fields that intentionally ignore non-string optional values. */
     private fun JSONObject.stringIfString(key: String): String? = opt(key) as? String
 
-    private fun isDateKey(value: String): Boolean {
-        if (!Regex("\\d{4}-\\d{2}-\\d{2}").matches(value)) return false
-        return runCatching {
-            val parts = value.split("-").map(String::toInt)
-            java.time.LocalDate.of(parts[0], parts[1], parts[2])
-        }.isSuccess
+    /**
+     * Mirrors DateTime.tryParse followed by dateOnly in the Flutter models.
+     * ISO timestamps are accepted as well as date-only values; offset timestamps
+     * are normalized to UTC before extracting the calendar date, as Dart does.
+     */
+    private fun parseDateOnly(value: String): String? {
+        val normalized = value.replace(' ', 'T')
+        val date = runCatching {
+            java.time.OffsetDateTime.parse(normalized)
+                .withOffsetSameInstant(java.time.ZoneOffset.UTC)
+                .toLocalDate()
+        }.getOrNull()
+            ?: runCatching { java.time.LocalDateTime.parse(normalized).toLocalDate() }.getOrNull()
+            ?: runCatching { java.time.LocalDate.parse(value) }.getOrNull()
+            ?: return null
+        return date.toString()
     }
 
     companion object {

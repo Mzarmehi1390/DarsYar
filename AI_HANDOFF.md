@@ -79,3 +79,6 @@ The first two documents describe the native migration baseline. The existing red
 - Latest verified CI at `ac7de4a1575c2f75e1e7d61b6b0acd008c4d06cc` completed successfully (run `45872037155`): native Build/Test/Lint and debug APK upload all passed. Importer coverage now includes collision-safe historical result IDs, Dart-compatible percentage clamping, wrong-typed string fields, and non-string fallback behavior. The importer now also matches Flutter's exam-sheet defaults for missing/null IDs and names without rewriting explicit empty strings; device verification of the actual Flutter SharedPreferences format remains a release gate.
 
 Do not guess these. Investigate and document decisions before implementation.
+
+
+- Legacy planner date parity: task dueDate and session scheduledDate import now accept ISO date-only and ISO timestamp strings, normalize offset timestamps to UTC before extracting date, and ignore invalid optional values. Regression test: parsesLegacyTaskAndSessionIsoDatesLikeFlutterDateTimeTryParse.

@@ -183,3 +183,8 @@ Create fixtures from synthetic data, never real user data:
 - [x] Existing user data remains in legacy preferences after migration in automated tests.
 - [ ] Upgrade test from the previous signed release succeeds.
 - [ ] User can recover from malformed or partially unavailable legacy data.
+
+
+### Legacy planner date parsing parity
+
+The one-time SharedPreferences importer accepts Flutter-compatible ISO date-only and ISO timestamp strings for task due dates and session scheduled dates. Offset-bearing timestamps are normalized to UTC before extracting the calendar date, matching the legacy Dart DateTime.tryParse then date-only conversion path. Invalid or non-string optional date values remain unset.

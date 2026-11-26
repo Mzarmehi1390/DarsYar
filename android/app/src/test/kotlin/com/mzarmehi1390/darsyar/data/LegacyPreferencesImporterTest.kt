@@ -94,6 +94,32 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun parsesLegacyTaskAndSessionIsoDatesLikeFlutterDateTimeTryParse() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[
+                    {"id":"task-date","title":"Task","dueDate":"2026-11-24T23:15:00Z"},
+                    {"id":"task-invalid-date","title":"Invalid date","dueDate":"not-a-date"}
+                ]""".trimIndent(),
+            )
+            .putString(
+                "flutter.darsyar.studySessions",
+                """[
+                    {"id":"session-date","title":"Session","scheduledDate":"2026-11-24T00:30:00+02:00","weekday":5}
+                ]""".trimIndent(),
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        assertEquals("2026-11-24", database.studyTaskDao().findById("task-date")?.dueDate)
+        assertEquals(null, database.studyTaskDao().findById("task-invalid-date")?.dueDate)
+        val session = database.studySessionDao().findById("session-date")
+        assertEquals("2026-11-23", session?.scheduledDate)
+        assertEquals(1, session?.weekday)
+    }
+
+    @Test
     fun malformedLegacyCollectionDoesNotCompleteImportAndCanBeRetried() = runBlocking {
         preferences.edit()
             .putString("flutter.darsyar.tasks", """[{invalid-json]""")
