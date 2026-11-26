@@ -46,7 +46,6 @@ object ExamResultOperations {
         val score = AnswerScoring.calculate(
             answers = result.answers,
             answerKey = safeKey,
-            negativeMarking = negativeMarking,
             questionCount = result.questionCount,
             negativeMarking = negativeMarking,
         )
