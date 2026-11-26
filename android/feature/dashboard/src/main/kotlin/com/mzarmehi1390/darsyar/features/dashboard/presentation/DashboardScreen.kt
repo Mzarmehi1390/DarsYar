@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
+import com.mzarmehi1390.darsyar.features.dashboard.domain.DashboardTaskSummary
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerActionResult
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerTaskCard
@@ -46,16 +48,18 @@ fun DashboardScreen(
     state: PlannerUiState,
     onPlanner: () -> Unit,
     onExams: () -> Unit,
-    onSettings: () -> Unit,
     onToggleTask: (StudyTask) -> Unit,
     onSaveTask: (StudyTask, (PlannerActionResult) -> Unit) -> Unit,
     onDeleteTask: (String, (PlannerActionResult) -> Unit) -> Unit,
 ) {
     val tasks = state.tasks
     val errorMessage = state.errorMessage
-    val completedCount = tasks.count(StudyTask::done)
-    val pendingTasks = tasks.asSequence().filterNot(StudyTask::done).take(3).toList()
-    val progress = if (tasks.isEmpty()) 0f else completedCount.toFloat() / tasks.size
+    // One bounded pass computes every dashboard aggregate; the pending preview
+    // never materializes more than three task references.
+    val summary = remember(tasks) { DashboardTaskSummary.from(tasks) }
+    val completedCount = summary.completedCount
+    val pendingTasks = summary.pendingTasks
+    val progress = summary.progress
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
@@ -81,7 +85,7 @@ fun DashboardScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     ) {
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("پیشرفت کارها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                            Text("تمرکز امروز · پیشرفت کارها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("${PersianDigits.format(completedCount)} از ${PersianDigits.format(tasks.size)} کار انجام‌شده")
                                 Text(if (tasks.isEmpty()) "—" else "${PersianDigits.format((progress * 100).toInt())}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
@@ -97,7 +101,14 @@ fun DashboardScreen(
                     }
                 }
                 item {
-                    Text("کارهای پیشِ رو", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("کارهای پیشِ رو", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.weight(1f))
+                        TextButton(onClick = onPlanner) { Text("مشاهده همه") }
+                    }
                 }
                 if (state.isLoading) {
                     item { Text("در حال بارگذاری کارها…", color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -122,9 +133,13 @@ fun DashboardScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("دسترسی سریع", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                        Button(onClick = onPlanner, modifier = Modifier.fillMaxWidth()) { Text("رفتن به برنامه‌ریز") }
-                        OutlinedButton(onClick = onExams, modifier = Modifier.fillMaxWidth()) { Text("مدیریت آزمون‌ها") }
-                        OutlinedButton(onClick = onSettings, modifier = Modifier.fillMaxWidth()) { Text("تنظیمات و پشتیبان‌گیری") }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            Button(onClick = onPlanner, modifier = Modifier.weight(1f)) { Text("برنامه‌ریزی درسی") }
+                            OutlinedButton(onClick = onExams, modifier = Modifier.weight(1f)) { Text("پاسخ‌برگ آزمون") }
+                        }
                     }
                 }
             }

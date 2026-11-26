@@ -122,7 +122,6 @@ private fun NativeAppNavigation(
                     state = plannerState,
                     onPlanner = { navController.navigate("planner") },
                     onExams = { navController.navigate("exams") },
-                    onSettings = { navController.navigate("settings") },
                     onToggleTask = plannerViewModel::toggleTask,
                     onSaveTask = plannerViewModel::saveTask,
                     onDeleteTask = plannerViewModel::deleteTask,

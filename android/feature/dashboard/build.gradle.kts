@@ -19,6 +19,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+    testImplementation(libs.junit)
     implementation(project(":core:common"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:graphics"))

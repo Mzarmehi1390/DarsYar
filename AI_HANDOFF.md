@@ -88,3 +88,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Legacy task/session required-string parity: Flutter's `StudyTask.fromJson` and `StudySession.fromJson` preserve empty and whitespace-only `id`/`title` strings. The native importer now preserves these exact values instead of rejecting blank strings; missing and wrong-typed required fields still fail the transactional import. Regression test: taskAndSessionRequiredStringsPreserveFlutterEmptyAndWhitespaceValues.
+
+
+- Dashboard refinement at `next commit`: compute total/completed/pending preview in one bounded pass, retain only three pending task references, restore the Flutter dashboard's two primary quick actions and a visible planner "view all" action. Unit tests cover empty state, counts, ordering and preview bound. This is a performance and feature-parity refinement; it is not the Liquid Glass implementation.
