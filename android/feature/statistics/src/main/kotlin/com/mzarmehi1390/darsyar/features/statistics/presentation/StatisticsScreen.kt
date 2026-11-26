@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import com.mzarmehi1390.darsyar.features.statistics.domain.DailyStudyTotal
@@ -80,8 +81,8 @@ fun StatisticsScreen(
         ) {
             Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("پیشرفت", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                ProgressLine("تکمیل جلسات", statistics.completion, "${statistics.totalCompletedMinutes} از ${statistics.totalPlannedMinutes} دقیقه")
-                ProgressLine("انجام وظایف", statistics.taskCompletion, "${statistics.completedTaskCount} از ${statistics.totalTaskCount} وظیفه")
+                ProgressLine("تکمیل جلسات", statistics.completion, "${PersianDigits.format(statistics.totalCompletedMinutes)} از ${PersianDigits.format(statistics.totalPlannedMinutes)} دقیقه")
+                ProgressLine("انجام وظایف", statistics.taskCompletion, "${PersianDigits.format(statistics.completedTaskCount)} از ${PersianDigits.format(statistics.totalTaskCount)} وظیفه")
             }
         }
         Text("آمار بر اساس جلسات ذخیره‌شده و وضعیت فعلی وظایف محاسبه می‌شود.", style = MaterialTheme.typography.bodySmall, color = colors.onSurfaceVariant)
@@ -113,7 +114,7 @@ private fun ProgressLine(label: String, value: Double, detail: String) {
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(label, fontWeight = FontWeight.Medium)
-            Text("${(value * 100).toInt()}٪", color = progressColor, fontWeight = FontWeight.Bold)
+            Text("${PersianDigits.format((value * 100).toInt())}٪", color = progressColor, fontWeight = FontWeight.Bold)
         }
         Canvas(Modifier.fillMaxWidth().height(8.dp)) {
             drawRoundRect(color = trackColor, cornerRadius = CornerRadius(size.height / 2))
@@ -152,7 +153,7 @@ private fun DrawScope.drawWeeklyBars(
 }
 
 private fun Int.toHourMinuteLabel(): String =
-    if (this < 60) "${this} دقیقه" else "${this / 60} ساعت و ${this % 60} دقیقه"
+    if (this < 60) "${PersianDigits.format(this)} دقیقه" else "${PersianDigits.format(this / 60)} ساعت و ${PersianDigits.format(this % 60)} دقیقه"
 
 private fun java.time.DayOfWeek.persianShortName(): String = when (this) {
     java.time.DayOfWeek.SATURDAY -> "ش"

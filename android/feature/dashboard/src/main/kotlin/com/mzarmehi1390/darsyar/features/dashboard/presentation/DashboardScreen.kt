@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerActionResult
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerTaskCard
@@ -82,15 +83,15 @@ fun DashboardScreen(
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("پیشرفت کارها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("$completedCount از ${tasks.size} کار انجام‌شده")
-                                Text(if (tasks.isEmpty()) "—" else "${(progress * 100).toInt()}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("${PersianDigits.format(completedCount)} از ${PersianDigits.format(tasks.size)} کار انجام‌شده")
+                                Text(if (tasks.isEmpty()) "—" else "${PersianDigits.format((progress * 100).toInt())}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                             when {
                                 state.isLoading -> Text("در حال دریافت اطلاعات…", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 errorMessage != null -> Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                                 tasks.isEmpty() -> Text("هنوز کاری ثبت نکرده‌ای. از برنامه‌ریز اولین کار خودت را اضافه کن.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                else -> Text("${tasks.size - completedCount} کار باقی مانده است.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                else -> Text("${PersianDigits.format(tasks.size - completedCount)} کار باقی مانده است.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }

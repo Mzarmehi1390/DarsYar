@@ -16,6 +16,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(project(":feature:planner"))
     implementation(platform(libs.androidx.compose.bom))

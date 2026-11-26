@@ -76,6 +76,6 @@ The first two documents describe the native migration baseline. The existing red
 - Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
-- Latest verified CI at `9009df8260feccd91ac4a5a192d0949c2fc1521a` completed successfully: native Build/Test/Lint and debug APK upload all passed. Continue checking each new head before claiming validation.
+- Latest verified CI at `7803eb569b4e4cfcb1ccbba950241aca33f04f37` completed successfully: native Build/Test/Lint and debug APK upload all passed. The shared Persian digit utility is now also wired into dashboard, planner task dates, exam entry/results and study statistics; this follow-up is awaiting CI.
 
 Do not guess these. Investigate and document decisions before implementation.

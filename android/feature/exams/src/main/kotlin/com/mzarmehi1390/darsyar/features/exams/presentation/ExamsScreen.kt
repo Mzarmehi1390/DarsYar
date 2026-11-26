@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamDurationOperations
@@ -164,7 +165,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                         }
                                     }
                                     Text(
-                                        "${sheet.questionCount} سؤال · ${formatExamDuration(sheet.durationSeconds)} · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار",
+                                        "${PersianDigits.format(sheet.questionCount)} سؤال · ${formatExamDuration(sheet.durationSeconds)} · ${PersianDigits.format(sheet.answers.size)} پاسخ ثبت‌شده · ${PersianDigits.format(sheet.marked.size)} سؤال علامت‌دار",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -385,9 +386,9 @@ private fun formatExamDuration(durationSeconds: Int): String {
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
     return when {
-        hours > 0 && minutes > 0 -> "${hours} ساعت و ${minutes} دقیقه"
-        hours > 0 -> "${hours} ساعت"
-        else -> "${minutes} دقیقه"
+        hours > 0 && minutes > 0 -> "${PersianDigits.format(hours)} ساعت و ${PersianDigits.format(minutes)} دقیقه"
+        hours > 0 -> "${PersianDigits.format(hours)} ساعت"
+        else -> "${PersianDigits.format(minutes)} دقیقه"
     }
 }
 
@@ -455,7 +456,7 @@ private fun ExamHistoryResultCard(
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    result.percentage?.let { "%.1f٪".format(it) } ?: "بدون کلید",
+                    result.percentage?.let { PersianDigits.toPersianDigits("%.1f٪".format(it)) } ?: "بدون کلید",
                     color = if (hasScore) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                 )
@@ -501,8 +502,8 @@ private fun ExamHistorySummaryCard(summary: ExamHistorySummary) {
             Text("خلاصهٔ عملکرد", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HistoryMetric("تعداد آزمون", summary.attemptCount.toString(), Modifier.weight(1f))
-                HistoryMetric("میانگین درصد", summary.averagePercentage?.let { "%.1f٪".format(it) } ?: "—", Modifier.weight(1f))
-                HistoryMetric("بهترین درصد", summary.bestPercentage?.let { "%.1f٪".format(it) } ?: "—", Modifier.weight(1f))
+                HistoryMetric("میانگین درصد", summary.averagePercentage?.let { PersianDigits.toPersianDigits("%.1f٪".format(it)) } ?: "—", Modifier.weight(1f))
+                HistoryMetric("بهترین درصد", summary.bestPercentage?.let { PersianDigits.toPersianDigits("%.1f٪".format(it)) } ?: "—", Modifier.weight(1f))
             }
             if (summary.recentTrend.isNotEmpty()) {
                 Text("روند ۷ نتیجهٔ قابل محاسبه", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -581,17 +582,17 @@ private fun AddExamSheetDialog(
     onSave: (name: String, questionCount: Int, durationSeconds: Int, negativeMarking: Boolean, configureAnswerKey: Boolean) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
-    var count by remember { mutableStateOf("20") }
-    var hours by remember { mutableStateOf("0") }
-    var minutes by remember { mutableStateOf("30") }
-    var seconds by remember { mutableStateOf("0") }
+    var count by remember { mutableStateOf(PersianDigits.format(20)) }
+    var hours by remember { mutableStateOf(PersianDigits.format(0)) }
+    var minutes by remember { mutableStateOf(PersianDigits.format(30)) }
+    var seconds by remember { mutableStateOf(PersianDigits.format(0)) }
     var negativeMarking by remember { mutableStateOf(false) }
     var configureAnswerKey by remember { mutableStateOf(true) }
-    val parsedCount = count.toIntOrNull()
+    val parsedCount = PersianDigits.toLatinDigits(count).toIntOrNull()
     val parsedDuration = ExamDurationOperations.toSeconds(
-        hours.toIntOrNull() ?: -1,
-        minutes.toIntOrNull() ?: -1,
-        seconds.toIntOrNull() ?: -1,
+        PersianDigits.toLatinDigits(hours).toIntOrNull() ?: -1,
+        PersianDigits.toLatinDigits(minutes).toIntOrNull() ?: -1,
+        PersianDigits.toLatinDigits(seconds).toIntOrNull() ?: -1,
     )
 
     AlertDialog(
@@ -607,7 +608,7 @@ private fun AddExamSheetDialog(
                 )
                 OutlinedTextField(
                     value = count,
-                    onValueChange = { count = it.filter(Char::isDigit).take(3) },
+                    onValueChange = { count = PersianDigits.toPersianDigits(PersianDigits.toLatinDigits(it).filter(Char::isDigit).take(3)) },
                     label = { Text("تعداد سؤال") },
                     singleLine = true,
                 )
@@ -615,21 +616,21 @@ private fun AddExamSheetDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = hours,
-                        onValueChange = { hours = it.filter(Char::isDigit).take(2) },
+                        onValueChange = { hours = PersianDigits.toPersianDigits(PersianDigits.toLatinDigits(it).filter(Char::isDigit).take(2)) },
                         modifier = Modifier.weight(1f),
                         label = { Text("ساعت") },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = minutes,
-                        onValueChange = { minutes = it.filter(Char::isDigit).take(2) },
+                        onValueChange = { minutes = PersianDigits.toPersianDigits(PersianDigits.toLatinDigits(it).filter(Char::isDigit).take(2)) },
                         modifier = Modifier.weight(1f),
                         label = { Text("دقیقه") },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = seconds,
-                        onValueChange = { seconds = it.filter(Char::isDigit).take(2) },
+                        onValueChange = { seconds = PersianDigits.toPersianDigits(PersianDigits.toLatinDigits(it).filter(Char::isDigit).take(2)) },
                         modifier = Modifier.weight(1f),
                         label = { Text("ثانیه") },
                         singleLine = true,
@@ -642,13 +643,13 @@ private fun AddExamSheetDialog(
                     listOf(15, 30, 45, 60, 90, 120).forEach { preset ->
                         TextButton(
                             onClick = {
-                                hours = (preset / 60).toString()
-                                minutes = (preset % 60).toString()
-                                seconds = "0"
+                                hours = PersianDigits.format(preset / 60)
+                                minutes = PersianDigits.format(preset % 60)
+                                seconds = PersianDigits.format(0)
                             },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Text(preset.toString(), style = MaterialTheme.typography.labelSmall)
+                            Text(PersianDigits.format(preset), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -763,7 +764,7 @@ private fun ExamTakingDialog(
                     }
                 }
                 Text(
-                    "${answeredCount} پاسخ ثبت‌شده · ${unansweredCount} بی‌پاسخ · ${marked.size} علامت‌دار",
+                    "${PersianDigits.format(answeredCount)} پاسخ ثبت‌شده · ${PersianDigits.format(unansweredCount)} بی‌پاسخ · ${PersianDigits.format(marked.size)} علامت‌دار",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -799,7 +800,7 @@ private fun ExamTakingDialog(
                                 contentColor = content,
                             ),
                             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                        ) { Text(number.toString()) }
+                        ) { Text(PersianDigits.format(number)) }
                     }
                 }
 
@@ -809,7 +810,7 @@ private fun ExamTakingDialog(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("سؤال $currentQuestion از ${sheet.questionCount}", fontWeight = FontWeight.Bold)
+                            Text("سؤال ${PersianDigits.format(currentQuestion)} از ${PersianDigits.format(sheet.questionCount)}", fontWeight = FontWeight.Bold)
                             TextButton(onClick = {
                                 marked = if (currentQuestion in marked) marked - currentQuestion else marked + currentQuestion
                                 onDraftChanged(sheet.copy(answers = answers, marked = marked))
@@ -954,7 +955,7 @@ private fun AnswerKeyDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "${answerKey.size} پاسخ از ${sheet.questionCount} سؤال کلیدگذاری شده",
+                        "${PersianDigits.format(answerKey.size)} پاسخ از ${PersianDigits.format(sheet.questionCount)} سؤال کلیدگذاری شده",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -983,7 +984,7 @@ private fun AnswerKeyDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text("سؤال $question", fontWeight = FontWeight.SemiBold)
+                                    Text("سؤال ${PersianDigits.format(question)}", fontWeight = FontWeight.SemiBold)
                                     TextButton(
                                         onClick = {
                                             answerKey = ExamSheetOperations.setAnswerKeyOption(
@@ -1035,15 +1036,13 @@ private fun AnswerKeyDialog(
 
 @Composable
 private fun ExamPercentageCalculatorCard() {
-    var correct by remember { mutableStateOf("0") }
-    var wrong by remember { mutableStateOf("0") }
-    var unanswered by remember { mutableStateOf("0") }
+    var correct by remember { mutableStateOf(PersianDigits.format(0)) }
+    var wrong by remember { mutableStateOf(PersianDigits.format(0)) }
+    var unanswered by remember { mutableStateOf(PersianDigits.format(0)) }
 
-    fun parseCount(value: String): Int = value.fold(0) { total, char ->
-        total * 10 + (char.digitToIntOrNull() ?: 0)
-    }
+    fun parseCount(value: String): Int = PersianDigits.toLatinDigits(value).toIntOrNull() ?: 0
 
-    fun sanitize(value: String): String = value.filter { it.digitToIntOrNull() != null }.take(3)
+    fun sanitize(value: String): String = PersianDigits.toPersianDigits(PersianDigits.toLatinDigits(value).filter(Char::isDigit).take(3))
 
     val correctCount = parseCount(correct)
     val wrongCount = parseCount(wrong)
@@ -1095,7 +1094,7 @@ private fun ExamPercentageCalculatorCard() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("بدون نمرهٔ منفی", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    result.withoutPenalty?.let { "%.1f٪".format(it) } ?: "—",
+                    result.withoutPenalty?.let { PersianDigits.toPersianDigits("%.1f٪".format(it)) } ?: "—",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
@@ -1103,7 +1102,7 @@ private fun ExamPercentageCalculatorCard() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("با نمرهٔ منفی (هر ۳ غلط = ۱ درست)", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    result.withPenalty?.let { "%.1f٪".format(it) } ?: "—",
+                    result.withPenalty?.let { PersianDigits.toPersianDigits("%.1f٪".format(it)) } ?: "—",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
