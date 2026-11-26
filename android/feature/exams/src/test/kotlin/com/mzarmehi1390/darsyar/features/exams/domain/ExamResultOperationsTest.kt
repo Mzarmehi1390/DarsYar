@@ -97,4 +97,42 @@ class ExamResultOperationsTest {
         assertEquals(result().percentage, renamed[0].percentage)
         assertEquals(unrelated, renamed[2])
     }
+
+    @Test
+    fun recalculateAppliesNegativeMarkingChoiceAndKeepsAttemptMetadata() {
+        val original = result()
+        val key = mapOf(1 to 0, 2 to 0, 3 to 0)
+
+        val withPenalty = ExamResultOperations.recalculate(original, key, negativeMarking = true)
+        val withoutPenalty = ExamResultOperations.recalculate(original, key, negativeMarking = false)
+
+        assertEquals(1, withPenalty.correct)
+        assertEquals(2, withPenalty.wrong)
+        assertEquals(1, withPenalty.unanswered)
+        assertEquals(11.11111111111111, withPenalty.percentage!!, 0.000001)
+        assertEquals(1, withoutPenalty.correct)
+        assertEquals(2, withoutPenalty.wrong)
+        assertEquals(33.33333333333333, withoutPenalty.percentage!!, 0.000001)
+        assertEquals(original.answers, withPenalty.answers)
+        assertEquals(original.id, withPenalty.id)
+        assertEquals(original.examId, withPenalty.examId)
+        assertEquals(original.completedAt, withPenalty.completedAt)
+        assertEquals(false, withoutPenalty.negativeMarking)
+    }
+
+    @Test
+    fun recalculateSanitizesInvalidKeyEntriesWithoutChangingStoredAnswers() {
+        val original = result()
+        val recalculated = ExamResultOperations.recalculate(
+            original,
+            mapOf(0 to 1, 1 to 2, 2 to 9, 3 to 0, 5 to 1),
+            negativeMarking = false,
+        )
+
+        assertEquals(mapOf(1 to 2, 3 to 0), recalculated.answerKey)
+        assertEquals(original.answers, recalculated.answers)
+        assertEquals(2, recalculated.keyedQuestions)
+        assertEquals(2, recalculated.correct)
+        assertEquals(0, recalculated.wrong)
+    }
 }
