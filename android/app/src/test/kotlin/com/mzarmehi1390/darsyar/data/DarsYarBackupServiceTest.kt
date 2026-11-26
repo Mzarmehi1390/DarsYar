@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
+import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
@@ -77,6 +78,67 @@ class DarsYarBackupServiceTest {
         backupService.restoreBackup(backup)
 
         assertEquals(original, repository.createBackupSnapshot())
+    }
+
+    @Test
+    fun restoreBackup_preservesEveryHistoricalResultWhenLegacyIdsCollide() = runBlocking {
+        val snapshot = DarsYarSnapshot(
+            tasks = emptyList(),
+            studySessions = emptyList(),
+            exams = listOf(ExamSheet(id = "exam-1", name = "آزمون")),
+            results = listOf(
+                ExamResult(
+                    id = "duplicate-id",
+                    examId = "exam-1",
+                    examName = "نتیجهٔ اول",
+                    completedAt = "2026-11-24T10:00:00Z",
+                    questionCount = 2,
+                    correct = 1,
+                    wrong = 0,
+                    unanswered = 1,
+                    keyedQuestions = 1,
+                    percentage = 100.0,
+                ),
+                ExamResult(
+                    id = "duplicate-id",
+                    examId = "exam-1",
+                    examName = "نتیجهٔ دوم",
+                    completedAt = "2026-11-24T11:00:00Z",
+                    questionCount = 2,
+                    correct = 0,
+                    wrong = 1,
+                    unanswered = 1,
+                    keyedQuestions = 1,
+                    percentage = 0.0,
+                ),
+                ExamResult(
+                    id = "legacy-result-1",
+                    examId = "exam-1",
+                    examName = "شناسهٔ رزروشده",
+                    completedAt = "2026-11-24T12:00:00Z",
+                    questionCount = 1,
+                    correct = 1,
+                    wrong = 0,
+                    unanswered = 0,
+                    keyedQuestions = 1,
+                    percentage = 100.0,
+                ),
+            ),
+            activeExamId = "exam-1",
+        )
+        val backup = DarsYarBackupCodec.encode(snapshot, "2026-11-26T12:00:00Z")
+
+        backupService.restoreBackup(backup)
+
+        val restored = repository.createBackupSnapshot().results
+        assertEquals(3, restored.size)
+        assertEquals(3, restored.map { it.id }.toSet().size)
+        assertEquals(
+            setOf("نتیجهٔ اول", "نتیجهٔ دوم", "شناسهٔ رزروشده"),
+            restored.map { it.examName }.toSet(),
+        )
+        assertEquals(1, restored.count { it.id == "duplicate-id" })
+        assertTrue(restored.none { it.id == "legacy-result-1" && it.examName == "نتیجهٔ دوم" })
     }
 
     @Test
