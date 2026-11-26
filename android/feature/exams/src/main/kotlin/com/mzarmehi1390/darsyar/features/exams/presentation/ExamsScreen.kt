@@ -32,7 +32,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +65,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ExamsScreen(viewModel: ExamViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showAddSheet by remember { mutableStateOf(false) }
@@ -80,11 +84,16 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     }
     val savedSheets = remember(state.sheets) { state.sheets.asReversed() }
 
-    LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
+    // The persisted deadline remains authoritative in the background. Refresh only
+    // while the screen is resumed, avoiding a needless per-second coroutine wakeup.
+    LaunchedEffect(takingSheet?.id, state.takingState.isTaking, lifecycleOwner) {
         if (takingSheet != null && state.takingState.isTaking) {
-            while (true) {
-                delay(1_000)
+            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.refreshTimer()
+                while (true) {
+                    delay(1_000)
+                    viewModel.refreshTimer()
+                }
             }
         }
     }
