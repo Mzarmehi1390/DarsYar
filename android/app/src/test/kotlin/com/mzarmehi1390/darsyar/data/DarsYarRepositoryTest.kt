@@ -520,6 +520,37 @@ class DarsYarRepositoryTest {
     }
 
     @Test
+    fun copyDayPlan_materializesLegacyRecurringSessionOnAnotherMatchingWeekday() = runBlocking {
+        val sourceDate = LocalDate.parse("2026-11-24")
+        val targetDate = LocalDate.parse("2026-12-01")
+        val legacy = StudySession(
+            id = "legacy-recurring",
+            title = "جلسهٔ هفتگی",
+            subject = "ریاضی",
+            weekday = 2,
+            startMinutes = 9 * 60,
+            durationMinutes = 45,
+            completed = true,
+        )
+        repository.upsertStudySession(legacy)
+
+        val plan = PlannerDayCopyService().createPlan(
+            repository.observeStudySessions().first(),
+            sourceDate,
+            targetDate,
+        ) { "copy-${it.id}" }
+
+        assertEquals(PlannerDayCopyResult.Copied(1), repository.copyDayPlan(plan))
+        val persisted = repository.observeStudySessions().first().associateBy(StudySession::id)
+        assertEquals(legacy, persisted[legacy.id])
+        val copy = persisted.getValue("copy-legacy-recurring")
+        assertEquals("2026-12-01", copy.scheduledDate)
+        assertEquals(2, copy.weekday)
+        assertFalse(copy.completed)
+        assertEquals(2, persisted.size)
+    }
+
+    @Test
     fun copyDayPlan_rejectsOccupiedTargetAndPreservesEveryExistingRecord() = runBlocking {
         val sourceDate = LocalDate.parse("2026-11-24")
         val targetDate = LocalDate.parse("2026-11-26")

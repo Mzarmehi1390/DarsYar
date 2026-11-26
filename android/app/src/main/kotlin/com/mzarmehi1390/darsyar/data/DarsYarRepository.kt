@@ -223,7 +223,16 @@ class DarsYarRepository @Inject constructor(
 
             val targetDateKey = PlannerCalendar.dateKey(plan.targetDate)
             val targetWeekday = PlannerCalendar.weekdayForDate(plan.targetDate)
-            if (currentSessions.any { current ->
+            // Legacy weekday-only rows are recurring templates. When copying one
+            // occurrence to another date with the same weekday, exclude the selected
+            // source templates from target occupancy and overlap checks; otherwise
+            // each template would incorrectly occupy every future matching weekday.
+            val copiedLegacySourceIds = currentSource
+                .asSequence()
+                .filter { it.scheduledDate == null }
+                .mapTo(hashSetOf(), StudySession::id)
+            val existingOutsideSource = currentSessions.filterNot { it.id in copiedLegacySourceIds }
+            if (existingOutsideSource.any { current ->
                     PlannerCalendar.sameOccurrence(
                         firstDateKey = current.scheduledDate,
                         firstWeekday = current.weekday,
@@ -257,7 +266,7 @@ class DarsYarRepository @Inject constructor(
 
             val accepted = mutableListOf<StudySession>()
             for (candidate in plan.copiedSessions) {
-                if (PlannerOperations.hasOverlap(currentSessions + accepted, candidate)) {
+                if (PlannerOperations.hasOverlap(existingOutsideSource + accepted, candidate)) {
                     return@withTransaction PlannerDayCopyResult.SessionConflict
                 }
                 accepted += candidate
