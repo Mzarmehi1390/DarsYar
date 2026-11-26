@@ -307,12 +307,12 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     if (showAddSheet) {
         AddExamSheetDialog(
             onDismiss = { showAddSheet = false },
-            onSave = { name, count, durationMinutes, negativeMarking, configureAnswerKey ->
+            onSave = { name, count, durationSeconds, negativeMarking, configureAnswerKey ->
                 val createdSheet = ExamSheet(
                     id = UUID.randomUUID().toString(),
                     name = name.trim(),
                     questionCount = count,
-                    durationSeconds = durationMinutes * 60,
+                    durationSeconds = durationSeconds,
                     negativeMarking = negativeMarking,
                 )
                 viewModel.saveSheet(createdSheet) { result ->
@@ -518,15 +518,21 @@ private fun EmptyExamCard(message: String) {
 @Composable
 private fun AddExamSheetDialog(
     onDismiss: () -> Unit,
-    onSave: (name: String, questionCount: Int, durationMinutes: Int, negativeMarking: Boolean, configureAnswerKey: Boolean) -> Unit,
+    onSave: (name: String, questionCount: Int, durationSeconds: Int, negativeMarking: Boolean, configureAnswerKey: Boolean) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var count by remember { mutableStateOf("20") }
-    var durationMinutes by remember { mutableStateOf("30") }
+    var hours by remember { mutableStateOf("0") }
+    var minutes by remember { mutableStateOf("30") }
+    var seconds by remember { mutableStateOf("0") }
     var negativeMarking by remember { mutableStateOf(false) }
     var configureAnswerKey by remember { mutableStateOf(true) }
     val parsedCount = count.toIntOrNull()
-    val parsedDuration = durationMinutes.toIntOrNull()
+    val parsedDuration = ExamDurationOperations.toSeconds(
+        hours.toIntOrNull() ?: -1,
+        minutes.toIntOrNull() ?: -1,
+        seconds.toIntOrNull() ?: -1,
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -545,12 +551,51 @@ private fun AddExamSheetDialog(
                     label = { Text("تعداد سؤال") },
                     singleLine = true,
                 )
-                OutlinedTextField(
-                    value = durationMinutes,
-                    onValueChange = { durationMinutes = it.filter(Char::isDigit).take(4) },
-                    label = { Text("مدت آزمون (دقیقه)") },
-                    supportingText = { Text("از ۱ تا ۱۴۴۰ دقیقه") },
-                    singleLine = true,
+                Text("مدت آزمون", style = MaterialTheme.typography.labelLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = hours,
+                        onValueChange = { hours = it.filter(Char::isDigit).take(2) },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("ساعت") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = minutes,
+                        onValueChange = { minutes = it.filter(Char::isDigit).take(2) },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("دقیقه") },
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = seconds,
+                        onValueChange = { seconds = it.filter(Char::isDigit).take(2) },
+                        modifier = Modifier.weight(1f),
+                        label = { Text("ثانیه") },
+                        singleLine = true,
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOf(15, 30, 45, 60, 90, 120).forEach { preset ->
+                        TextButton(
+                            onClick = {
+                                hours = (preset / 60).toString()
+                                minutes = (preset % 60).toString()
+                                seconds = "0"
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(preset.toString(), style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+                Text(
+                    "زمان باید بین ۱ ثانیه تا ۲۴ ساعت باشد.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
@@ -575,7 +620,7 @@ private fun AddExamSheetDialog(
                 },
                 enabled = name.isNotBlank() &&
                     parsedCount != null && parsedCount in 1..200 &&
-                    parsedDuration != null && parsedDuration in 1..1440,
+                    parsedDuration != null,
             ) {
                 Text("ذخیره")
             }
