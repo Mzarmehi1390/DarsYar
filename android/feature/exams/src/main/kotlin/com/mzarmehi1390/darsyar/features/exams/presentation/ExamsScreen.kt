@@ -68,6 +68,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
     var historicalResult by remember { mutableStateOf<ExamResult?>(null) }
     var renameSheet by remember { mutableStateOf<ExamSheet?>(null) }
+    var deleteSheet by remember { mutableStateOf<ExamSheet?>(null) }
     val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
@@ -173,11 +174,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                             }
                                         }) { Text("ثبت نتیجه") }
                                         TextButton(
-                                            onClick = {
-                                                viewModel.deleteSheet(sheet.id) { result ->
-                                                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                                }
-                                            },
+                                            onClick = { deleteSheet = sheet },
                                             enabled = state.sheets.size > 1,
                                         ) { Text("حذف", color = MaterialTheme.colorScheme.error) }
                                     }
@@ -219,6 +216,31 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     scope.launch { snackbar.showSnackbar(result.toMessage()) }
                 }
                 answerKeySheet = null
+            },
+        )
+    }
+
+    deleteSheet?.let { sheet ->
+        val matchingNameCount = state.sheets.count { it.name == sheet.name }
+        val linkedHistoryCount = state.results.count { result ->
+            result.examId == sheet.id ||
+                (matchingNameCount == 1 && result.examId == null && result.examName == sheet.name)
+        }
+        DeleteExamSheetDialog(
+            sheet = sheet,
+            linkedHistoryCount = linkedHistoryCount,
+            onDismiss = { deleteSheet = null },
+            onConfirm = {
+                viewModel.deleteSheet(sheet.id) { result ->
+                    scope.launch {
+                        snackbar.showSnackbar(
+                            if (result == ExamActionResult.Success) {
+                                "برگهٔ آزمون و تاریخچهٔ مرتبط حذف شدند"
+                            } else result.toMessage(),
+                        )
+                    }
+                }
+                deleteSheet = null
             },
         )
     }
