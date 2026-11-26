@@ -33,6 +33,7 @@ fun DashboardScreen(
     onToggleTask: (StudyTask) -> Unit,
 ) {
     val tasks = state.tasks
+    val errorMessage = state.errorMessage
     val completedCount = tasks.count(StudyTask::done)
     val pendingTasks = tasks.asSequence().filterNot(StudyTask::done).take(3).toList()
     val progress = if (tasks.isEmpty()) 0f else completedCount.toFloat() / tasks.size
@@ -62,7 +63,7 @@ fun DashboardScreen(
                     LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                     when {
                         state.isLoading -> Text("در حال دریافت اطلاعات…", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        state.errorMessage != null -> Text(state.errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                        errorMessage != null -> Text(errorMessage, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                         tasks.isEmpty() -> Text("هنوز کاری ثبت نکرده‌ای. از برنامه‌ریز اولین کار خودت را اضافه کن.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         else -> Text("${tasks.size - completedCount} کار باقی مانده است.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
