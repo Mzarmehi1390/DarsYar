@@ -45,6 +45,7 @@ import com.mzarmehi1390.darsyar.features.exams.presentation.ExamsScreen
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerScreen
 import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerViewModel
 import com.mzarmehi1390.darsyar.features.settings.presentation.BackupSettingsScreen
+import com.mzarmehi1390.darsyar.features.statistics.presentation.StatisticsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -92,6 +93,7 @@ private fun NativeAppNavigation(
         AppDestination("home", "خانه", "⌂"),
         AppDestination("planner", "برنامه‌ریز", "▦"),
         AppDestination("exams", "آزمون‌ها", "✓"),
+        AppDestination("statistics", "آمار", "▤"),
         AppDestination("settings", "تنظیمات", "⚙"),
     )
     Scaffold(bottomBar = {
@@ -131,6 +133,11 @@ private fun NativeAppNavigation(
             composable("exams") {
                 val viewModel: ExamViewModel = hiltViewModel()
                 ExamsScreen(viewModel)
+            }
+            composable("statistics") {
+                val plannerViewModel: PlannerViewModel = hiltViewModel()
+                val plannerState by plannerViewModel.uiState.collectAsStateWithLifecycle()
+                StatisticsScreen(sessions = plannerState.sessions, tasks = plannerState.tasks)
             }
             composable("settings") { BackupSettingsScreen(backupSettingsGateway, preferencesRepository) }
         }

@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":feature:planner"))
     implementation(project(":feature:exams"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:statistics"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
