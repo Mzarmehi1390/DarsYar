@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
 import com.mzarmehi1390.darsyar.core.database.entity.StudyTaskEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -439,7 +440,7 @@ class LegacyPreferencesImporterTest {
             .commit()
 
         assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
-        val exams = database.examSheetDao().getAll().associateBy { it.id }
+        val exams = database.examSheetDao().observeAll().first().associateBy { it.id }
         assertEquals(2, exams.size)
         assertEquals("آزمون", exams["default"]?.name)
         assertEquals(20, exams["default"]?.questionCount)
