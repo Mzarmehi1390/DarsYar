@@ -153,4 +153,24 @@ class TaskOperationsTest {
 
         assertEquals(listOf(existing), result)
     }
+    @Test
+    fun combinedSearchAndOverdueFiltersReturnOnlyMatchingIncompletePastDueTasks() {
+        val tasks = listOf(
+            StudyTask("math-overdue", "تمرین قدیمی", "ریاضی", dueDate = "2026-11-25"),
+            StudyTask("science-overdue", "مرور قدیمی", "علوم", dueDate = "2026-11-24"),
+            StudyTask("science-today", "تمرین امروز", "علوم", dueDate = "2026-11-26"),
+            StudyTask("science-done", "تمام‌شده", "علوم", done = true, dueDate = "2026-11-20"),
+        )
+
+        assertEquals(
+            listOf("science-overdue"),
+            TaskOperations.filter(
+                tasks = tasks,
+                query = "علوم",
+                status = TaskStatusFilter.OVERDUE,
+                today = LocalDate.parse("2026-11-26"),
+            ).map(StudyTask::id),
+        )
+    }
+
 }

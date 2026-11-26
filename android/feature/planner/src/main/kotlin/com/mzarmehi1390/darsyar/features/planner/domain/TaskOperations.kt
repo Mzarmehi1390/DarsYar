@@ -21,14 +21,16 @@ object TaskOperations {
             val matchesQuery = normalizedQuery.isEmpty() ||
                 task.title.contains(normalizedQuery, ignoreCase = true) ||
                 task.subject.contains(normalizedQuery, ignoreCase = true)
-            val dueDate = PlannerCalendar.parseDateKey(task.dueDate)
-            val matchesStatus = when (status) {
+            if (!matchesQuery) return@filter false
+            when (status) {
                 TaskStatusFilter.ALL -> true
                 TaskStatusFilter.ACTIVE -> !task.done
                 TaskStatusFilter.COMPLETED -> task.done
-                TaskStatusFilter.OVERDUE -> !task.done && dueDate?.isBefore(today) == true
+                // Date parsing is only needed for overdue filtering, and only after
+                // the task has passed the text query. Keep the common filters cheap.
+                TaskStatusFilter.OVERDUE -> !task.done &&
+                    PlannerCalendar.parseDateKey(task.dueDate)?.isBefore(today) == true
             }
-            matchesQuery && matchesStatus
         }
     }
     fun completedCount(tasks: Iterable<StudyTask>): Int = tasks.count(StudyTask::done)
