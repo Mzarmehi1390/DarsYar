@@ -66,6 +66,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
     var historicalResult by remember { mutableStateOf<ExamResult?>(null) }
+    var renameSheet by remember { mutableStateOf<ExamSheet?>(null) }
     val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
@@ -138,7 +139,21 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                         items(state.sheets, key = { it.id }) { sheet ->
                             Card(modifier = Modifier.darsYarAnimateContentSize()) {
                                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Text(sheet.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            sheet.name,
+                                            modifier = Modifier.weight(1f),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        TextButton(onClick = { renameSheet = sheet }) {
+                                            Text("تغییر نام")
+                                        }
+                                    }
                                     Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         Button(onClick = {
@@ -266,6 +281,29 @@ fun ExamsScreen(viewModel: ExamViewModel) {
         )
     }
 
+    renameSheet?.let { sheet ->
+        RenameExamDialog(
+            sheet = sheet,
+            onDismiss = { renameSheet = null },
+            onSave = { name ->
+                val updated = runCatching { ExamSheetOperations.rename(sheet, name) }.getOrNull()
+                if (updated == null) {
+                    scope.launch { snackbar.showSnackbar("نام آزمون نمی‌تواند خالی باشد") }
+                } else {
+                    viewModel.saveSheet(updated) { result ->
+                        scope.launch {
+                            snackbar.showSnackbar(
+                                if (result == ExamActionResult.Success) "نام آزمون و نتایج مرتبط به‌روزرسانی شدند"
+                                else result.toMessage(),
+                            )
+                            if (result == ExamActionResult.Success) renameSheet = null
+                        }
+                    }
+                }
+            },
+        )
+    }
+
     if (showAddSheet) {
         AddExamSheetDialog(
             onDismiss = { showAddSheet = false },
@@ -301,6 +339,38 @@ private fun historyTimestamp(value: String): Long =
 
 private fun formatHistoryDate(value: String): String =
     runCatching { historyDateFormatter.format(Instant.parse(value)) }.getOrElse { value }
+
+@Composable
+private fun RenameExamDialog(
+    sheet: ExamSheet,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
+    var name by remember(sheet.id) { mutableStateOf(sheet.name) }
+    val normalizedName = name.trim()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("تغییر نام پاسخ‌برگ") },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("نام آزمون") },
+                singleLine = true,
+                supportingText = { Text("نام جدید در نتایج مرتبط نیز هماهنگ می‌شود") },
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(normalizedName) },
+                enabled = normalizedName.isNotEmpty() && normalizedName != sheet.name,
+            ) { Text("ذخیرهٔ نام") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
+    )
+}
+
 
 @Composable
 private fun ExamHistoryResultCard(

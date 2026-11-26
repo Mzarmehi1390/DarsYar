@@ -44,6 +44,21 @@ class ExamSheetOperationsTest {
     }
 
     @Test
+    fun renameTrimsWhitespaceAndPreservesEveryAnswerSheetField() {
+        val original = sheet().copy(
+            durationSeconds = 75 * 60,
+            negativeMarking = true,
+            isCompleted = true,
+        )
+
+        val renamed = ExamSheetOperations.rename(original, "  آزمون نهایی  ")
+
+        assertEquals("آزمون نهایی", renamed.name)
+        assertEquals(original.copy(name = "آزمون نهایی"), renamed)
+        assertEquals("آزمون", original.name)
+    }
+
+    @Test
     fun resizeRemovesOutOfRangeAnswersKeysAndMarks() {
         val resized = ExamSheetOperations.resize(sheet(), 2)
 
