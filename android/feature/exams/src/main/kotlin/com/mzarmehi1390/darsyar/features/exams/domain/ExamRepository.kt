@@ -37,6 +37,8 @@ interface ExamRepository {
     suspend fun upsertExamSheet(sheet: ExamSheet)
     /** Returns null when the requested sheet no longer exists. */
     suspend fun completeExam(sheetId: String, resultId: String, completedAt: String): ExamResult?
+    /** Atomically replaces a saved historical result when its ID still exists. */
+    suspend fun updateExamResult(result: ExamResult): Boolean
     /** Returns false when the sheet is missing or is the final remaining sheet. */
     suspend fun deleteExamSheet(id: String): Boolean
 }

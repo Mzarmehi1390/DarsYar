@@ -35,15 +35,20 @@ object ExamResultOperations {
         )
     }
 
-    fun recalculate(result: ExamResult, answerKey: Map<Int, Int>): ExamResult {
+    fun recalculate(
+        result: ExamResult,
+        answerKey: Map<Int, Int>,
+        negativeMarking: Boolean = result.negativeMarking,
+    ): ExamResult {
         val safeKey = answerKey.filter { (question, option) ->
             question in 1..result.questionCount && option in 0..3
         }
         val score = AnswerScoring.calculate(
             answers = result.answers,
             answerKey = safeKey,
+            negativeMarking = negativeMarking,
             questionCount = result.questionCount,
-            negativeMarking = result.negativeMarking,
+            negativeMarking = negativeMarking,
         )
         return result.copy(
             correct = score.correct,

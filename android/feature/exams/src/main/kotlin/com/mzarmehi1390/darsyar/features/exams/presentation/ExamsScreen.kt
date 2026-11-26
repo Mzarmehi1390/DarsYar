@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
+import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
@@ -52,6 +53,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var showAddSheet by remember { mutableStateOf(false) }
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
+    var historicalResult by remember { mutableStateOf<ExamResult?>(null) }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
         if (takingSheet != null && state.takingState.isTaking) {
@@ -171,6 +173,9 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                         fontWeight = FontWeight.Bold,
                                     )
                                     Text(result.completedAt, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    TextButton(onClick = { historicalResult = result }) {
+                                        Text("ویرایش کلید و محاسبهٔ مجدد")
+                                    }
                                 }
                             }
                         }
@@ -190,6 +195,39 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     scope.launch { snackbar.showSnackbar(result.toMessage()) }
                 }
                 answerKeySheet = null
+            },
+        )
+    }
+
+    historicalResult?.let { result ->
+        val historySheet = remember(result.id, result.answerKey, result.negativeMarking) {
+            ExamSheet(
+                id = "history-${result.id}",
+                name = result.examName,
+                questionCount = result.questionCount,
+                negativeMarking = result.negativeMarking,
+                answers = result.answers,
+                answerKey = result.answerKey,
+            )
+        }
+        AnswerKeyDialog(
+            sheet = historySheet,
+            onDismiss = { historicalResult = null },
+            onSave = { updated ->
+                viewModel.updateHistoricalAnswerKey(
+                    resultId = result.id,
+                    answerKey = updated.answerKey,
+                    negativeMarking = updated.negativeMarking,
+                ) { action ->
+                    scope.launch {
+                        snackbar.showSnackbar(
+                            if (action == ExamActionResult.Success) {
+                                "کلید ذخیره شد و درصد نتیجه دوباره محاسبه شد"
+                            } else action.toMessage(),
+                        )
+                    }
+                }
+                historicalResult = null
             },
         )
     }

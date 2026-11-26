@@ -3,6 +3,7 @@ package com.mzarmehi1390.darsyar.features.exams.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamRepository
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamResultOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
@@ -312,6 +313,43 @@ class ExamViewModel @Inject constructor(
                 onResult(ExamActionResult.Failure(failure))
             } finally {
                 completionInFlight.remove(sheetId)
+            }
+        }
+    }
+
+    /** Recalculates a saved attempt against an edited answer key without mutating its answers. */
+    fun updateHistoricalAnswerKey(
+        resultId: String,
+        answerKey: Map<Int, Int>,
+        negativeMarking: Boolean,
+        onResult: (ExamActionResult) -> Unit = {},
+    ) {
+        if (resultId.isBlank()) {
+            onResult(ExamActionResult.Invalid("شناسهٔ نتیجه معتبر نیست"))
+            return
+        }
+        viewModelScope.launch {
+            try {
+                val existing = repository.observeExamResults().first().firstOrNull { it.id == resultId }
+                    ?: run { onResult(ExamActionResult.SheetNotFound); return@launch }
+                if (answerKey.keys.any { it !in 1..existing.questionCount } ||
+                    answerKey.values.any { it !in 0..3 }
+                ) {
+                    onResult(ExamActionResult.Invalid("کلید پاسخ شامل شمارهٔ سؤال یا گزینهٔ نامعتبر است"))
+                    return@launch
+                }
+                val updated = ExamResultOperations.recalculate(existing, answerKey, negativeMarking)
+                if (!repository.updateExamResult(updated)) {
+                    onResult(ExamActionResult.SheetNotFound)
+                    return@launch
+                }
+                actionError.update { null }
+                onResult(ExamActionResult.Success)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Throwable) {
+                actionError.update { failure.message ?: "محاسبهٔ مجدد نتیجه ناموفق بود" }
+                onResult(ExamActionResult.Failure(failure))
             }
         }
     }

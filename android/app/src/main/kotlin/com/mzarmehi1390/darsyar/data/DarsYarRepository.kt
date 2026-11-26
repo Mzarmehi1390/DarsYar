@@ -329,6 +329,12 @@ class DarsYarRepository @Inject constructor(
         result
     }
 
+    override suspend fun updateExamResult(result: ExamResult): Boolean = database.withTransaction {
+        if (database.examResultDao().findById(result.id) == null) return@withTransaction false
+        database.examResultDao().upsertAll(listOf(result.toEntity()))
+        true
+    }
+
     override suspend fun deleteExamSheet(id: String): Boolean = database.withTransaction {
         val sheet = database.examSheetDao().findById(id) ?: return@withTransaction false
         if (database.examSheetDao().count() <= 1) return@withTransaction false

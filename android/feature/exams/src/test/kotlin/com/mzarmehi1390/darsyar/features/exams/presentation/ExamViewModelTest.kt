@@ -198,6 +198,43 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun updateHistoricalAnswerKey_recalculatesScoreAndPreservesAttemptAnswers() = runTest(mainDispatcher) {
+        val original = ExamResult(
+            id = "history-1",
+            examId = "exam-1",
+            examName = "آزمون تاریخچه",
+            completedAt = "2026-11-25T10:00:00Z",
+            questionCount = 2,
+            correct = 0,
+            wrong = 1,
+            unanswered = 1,
+            keyedQuestions = 1,
+            percentage = 0.0,
+            answers = mapOf(1 to 2),
+            answerKey = mapOf(1 to 0),
+        )
+        val repository = FakeExamRepository(initialResults = listOf(original))
+        val viewModel = ExamViewModel(repository)
+        var action: ExamActionResult? = null
+
+        viewModel.updateHistoricalAnswerKey(
+            resultId = original.id,
+            answerKey = mapOf(1 to 2, 2 to 1),
+            negativeMarking = false,
+        ) { action = it }
+        advanceUntilIdle()
+
+        val updated = repository.results.value.single()
+        assertEquals(ExamActionResult.Success, action)
+        assertEquals(mapOf(1 to 2), updated.answers)
+        assertEquals(mapOf(1 to 2, 2 to 1), updated.answerKey)
+        assertEquals(1, updated.correct)
+        assertEquals(0, updated.wrong)
+        assertEquals(1, updated.unanswered)
+        assertEquals(100.0, updated.percentage!!, 0.000001)
+    }
+
+    @Test
     fun completeExam_returnsPersistedResult() = runTest(mainDispatcher) {
         val expected = ExamResult(
             id = "result-1",
@@ -631,9 +668,10 @@ class ExamViewModelTest {
     private class FakeExamRepository(
         initialSheets: List<ExamSheet> = emptyList(),
         private val completion: ExamResult? = null,
+        initialResults: List<ExamResult> = emptyList(),
     ) : ExamRepository {
         val sheets = MutableStateFlow(initialSheets)
-        private val results = MutableStateFlow<List<ExamResult>>(emptyList())
+        val results = MutableStateFlow(initialResults)
         val savedSheets = mutableListOf<ExamSheet>()
         var examSheetObservationCount: Int = 0
         var sessionSaveCalls: Int = 0
@@ -709,6 +747,12 @@ class ExamViewModelTest {
                 examSession.value = null
             }
             return completion
+        }
+
+        override suspend fun updateExamResult(result: ExamResult): Boolean {
+            if (results.value.none { it.id == result.id }) return false
+            results.value = results.value.map { if (it.id == result.id) result else it }
+            return true
         }
 
         override suspend fun deleteExamSheet(id: String): Boolean {
