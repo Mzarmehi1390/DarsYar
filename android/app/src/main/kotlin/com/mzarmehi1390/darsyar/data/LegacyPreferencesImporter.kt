@@ -117,7 +117,7 @@ class LegacyPreferencesImporter @Inject constructor(
         // keys, so reserve explicit IDs up front and normalize only result IDs.
         val reservedResultIds = if (key == RESULTS_KEY) {
             (0 until array.length()).mapNotNull { index ->
-                array.optJSONObject(index)?.stringOrNull("id")?.takeIf(String::isNotBlank)
+                (array.optJSONObject(index)?.opt("id") as? String)?.takeIf(String::isNotBlank)
             }.toSet()
         } else {
             emptySet()
@@ -138,7 +138,7 @@ class LegacyPreferencesImporter @Inject constructor(
                 "Legacy collection '$key' contains an invalid item at index $index.",
             )
             val value: T = if (parsedValue is ExamResultEntity) {
-                val rawId = item.stringOrNull("id")?.takeIf(String::isNotBlank)
+                val rawId = (item.opt("id") as? String)?.takeIf(String::isNotBlank)
                 val needsGeneratedId = parsedValue.id in seenIds ||
                     (rawId == null && parsedValue.id in reservedResultIds)
                 if (needsGeneratedId) {
@@ -191,7 +191,7 @@ class LegacyPreferencesImporter @Inject constructor(
             title = title,
             subject = json.stringOrNull("subject") ?: "عمومی",
             isDone = json.optBoolean("done", false),
-            dueDate = json.stringOrNull("dueDate")?.takeIf(::isDateKey),
+            dueDate = json.stringIfString("dueDate")?.takeIf(::isDateKey),
         )
     }
 
@@ -200,7 +200,7 @@ class LegacyPreferencesImporter @Inject constructor(
         val title = json.stringOrNull("title")?.takeIf(String::isNotBlank) ?: return null
         val start = json.optInt("startMinutes", 960).coerceIn(0, 1439)
         val duration = json.optInt("durationMinutes", 55).coerceIn(1, 1440 - start)
-        val date = json.stringOrNull("scheduledDate")?.takeIf(::isDateKey)
+        val date = json.stringIfString("scheduledDate")?.takeIf(::isDateKey)
         val weekday = if (date != null) {
             runCatching {
                 val parts = date.split("-").map(String::toInt)
@@ -269,7 +269,7 @@ class LegacyPreferencesImporter @Inject constructor(
     )
 
     private fun parseResult(json: JSONObject, index: Int): ExamResultEntity? {
-        val rawId = json.stringOrNull("id")?.takeIf(String::isNotBlank)
+        val rawId = (json.opt("id") as? String)?.takeIf(String::isNotBlank)
         val id = rawId ?: "legacy-result-$index"
         val questionCount = json.optInt("questionCount", 0).coerceIn(0, 200)
         val keyed = json.optInt("keyedQuestions", 0).coerceIn(0, questionCount)
@@ -292,9 +292,9 @@ class LegacyPreferencesImporter @Inject constructor(
         }
         return ExamResultEntity(
             id = id,
-            examId = json.stringOrNull("examId"),
-            examName = json.stringOrNull("examName")?.takeIf(String::isNotBlank) ?: "آزمون",
-            completedAt = json.stringOrNull("completedAt") ?: "",
+            examId = json.opt("examId") as? String,
+            examName = (json.opt("examName") as? String)?.takeIf(String::isNotBlank) ?: "آزمون",
+            completedAt = json.opt("completedAt") as? String ?: "",
             questionCount = questionCount,
             correct = correct,
             wrong = wrong,
@@ -354,8 +354,14 @@ class LegacyPreferencesImporter @Inject constructor(
         sorted().forEach { put(it) }
     }.toString()
 
-    private fun JSONObject.stringOrNull(key: String): String? =
-        if (!has(key) || isNull(key)) null else optString(key).takeIf { it != "null" }
+    private fun JSONObject.stringOrNull(key: String): String? {
+        if (!has(key) || isNull(key)) return null
+        return opt(key) as? String
+            ?: throw IllegalStateException("Legacy field '$key' must be a string.")
+    }
+
+    /** Mirrors Dart fields that intentionally ignore non-string optional values. */
+    private fun JSONObject.stringIfString(key: String): String? = opt(key) as? String
 
     private fun isDateKey(value: String): Boolean {
         if (!Regex("\\d{4}-\\d{2}-\\d{2}").matches(value)) return false

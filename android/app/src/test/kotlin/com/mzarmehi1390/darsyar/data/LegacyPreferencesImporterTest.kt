@@ -323,4 +323,41 @@ class LegacyPreferencesImporterTest {
         assertEquals(0.0, results["low-percentage"]?.percentage!!, 0.0001)
     }
 
+    @Test
+    fun rejectsWrongTypedLegacyTaskFieldsWithoutCompletingImport() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"task-1","title":"Task","subject":42}]""",
+            )
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("A non-string task subject must fail like the Flutter model cast.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("darsyar.tasks"))
+        }
+
+        assertEquals(0, database.studyTaskDao().count())
+        assertEquals(null, database.appStateDao().get())
+    }
+
+    @Test
+    fun nonStringLegacyResultFieldsUseFlutterModelFallbacks() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.results",
+                """[{"id":42,"examId":42,"examName":42,"completedAt":42}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        val result = database.examResultDao().getAll().single()
+        assertEquals("legacy-result-0", result.id)
+        assertEquals(null, result.examId)
+        assertEquals("آزمون", result.examName)
+        assertEquals("", result.completedAt)
+    }
+
 }
