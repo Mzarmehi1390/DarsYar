@@ -173,4 +173,36 @@ class TaskOperationsTest {
         )
     }
 
+
+    @Test
+    fun nonOverdueFiltersKeepUndatedAndMalformedLegacyTasksVisible() {
+        val tasks = listOf(
+            StudyTask("undated-active", "بدون تاریخ", "علوم"),
+            StudyTask("malformed-active", "تاریخ خراب", "ریاضی", dueDate = "31/02/2026"),
+            StudyTask("undated-done", "تکمیل‌شده", "علوم", done = true),
+            StudyTask("malformed-done", "تکمیل‌شده با تاریخ خراب", "ریاضی", done = true, dueDate = "2026-02-31"),
+        )
+        val today = LocalDate.parse("2026-11-26")
+
+        assertEquals(
+            listOf("undated-active", "malformed-active"),
+            TaskOperations.filter(tasks, status = TaskStatusFilter.ACTIVE, today = today)
+                .map(StudyTask::id),
+        )
+        assertEquals(
+            listOf("undated-active", "malformed-active", "undated-done", "malformed-done"),
+            TaskOperations.filter(tasks, status = TaskStatusFilter.ALL, today = today)
+                .map(StudyTask::id),
+        )
+        assertEquals(
+            listOf("undated-done", "malformed-done"),
+            TaskOperations.filter(tasks, status = TaskStatusFilter.COMPLETED, today = today)
+                .map(StudyTask::id),
+        )
+        assertEquals(
+            emptyList<String>(),
+            TaskOperations.filter(tasks, status = TaskStatusFilter.OVERDUE, today = today)
+                .map(StudyTask::id),
+        )
+    }
 }
