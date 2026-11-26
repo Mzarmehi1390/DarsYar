@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar.features.exams.presentation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -8,6 +9,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -38,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamHistoryAnalytics
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamHistorySummary
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
@@ -54,6 +61,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var takingSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var answerKeySheet by remember { mutableStateOf<ExamSheet?>(null) }
     var historicalResult by remember { mutableStateOf<ExamResult?>(null) }
+    val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
         if (takingSheet != null && state.takingState.isTaking) {
@@ -158,6 +166,9 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     }
                     item {
                         Text("تاریخچهٔ نتایج", modifier = Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    }
+                    if (state.results.isNotEmpty()) {
+                        item(key = "exam-history-summary") { ExamHistorySummaryCard(historySummary) }
                     }
                     if (state.results.isEmpty()) {
                         item { EmptyExamCard("پس از ثبت نتیجه، کارنامه‌ها در این بخش نمایش داده می‌شوند.") }
@@ -280,6 +291,76 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                 showAddSheet = false
             },
         )
+    }
+}
+
+
+@Composable
+private fun ExamHistorySummaryCard(summary: ExamHistorySummary) {
+    Card(modifier = Modifier.fillMaxWidth().darsYarAnimateContentSize()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text("خلاصهٔ عملکرد", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HistoryMetric("تعداد آزمون", summary.attemptCount.toString(), Modifier.weight(1f))
+                HistoryMetric("میانگین درصد", summary.averagePercentage?.let { "%.1f٪".format(it) } ?: "—", Modifier.weight(1f))
+                HistoryMetric("بهترین درصد", summary.bestPercentage?.let { "%.1f٪".format(it) } ?: "—", Modifier.weight(1f))
+            }
+            if (summary.recentTrend.isNotEmpty()) {
+                Text("روند ۷ نتیجهٔ قابل محاسبه", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+                    summary.recentTrend.forEachIndexed { index, value ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("${value.toInt()}٪", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Box(
+                                modifier = Modifier.fillMaxWidth().height(34.dp)
+                                    .clip(RoundedCornerShape(7.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.BottomCenter,
+                            ) {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .fillMaxHeight((value / 100.0).coerceIn(0.0, 1.0).toFloat())
+                                        .clip(RoundedCornerShape(7.dp))
+                                        .background(MaterialTheme.colorScheme.primary),
+                                )
+                            }
+                            Text("${index + 1}", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+            if (summary.scoredAttemptCount < summary.attemptCount) {
+                Text(
+                    "${summary.attemptCount - summary.scoredAttemptCount} نتیجه بدون کلید پاسخ، از میانگین کنار گذاشته شده است.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistoryMetric(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
