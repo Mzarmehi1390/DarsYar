@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerSummary
+import com.mzarmehi1390.darsyar.features.planner.domain.TaskOperations
+import com.mzarmehi1390.darsyar.features.planner.domain.TaskStatusFilter
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
@@ -60,6 +62,8 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     val scope = rememberCoroutineScope()
     var showTaskEditor by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
+    var taskSearchQuery by remember { mutableStateOf("") }
+    var taskStatusFilter by remember { mutableStateOf(TaskStatusFilter.ALL) }
     var showSessionEditor by remember { mutableStateOf(false) }
     var showWeekCopyConfirmation by remember { mutableStateOf(false) }
     var showDayCopyMenu by remember { mutableStateOf(false) }
@@ -79,11 +83,33 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
         }
     }
     val weeklySummary = remember(state.sessions) { PlannerSummary.fromSessions(state.sessions) }
-    val selectedDaySessions = state.sessions.filter { session ->
-        val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-        if (date != null) date == selectedDate
-        else session.weekday == PlannerCalendar.weekdayForDate(selectedDate)
-    }.sortedBy(StudySession::startMinutes)
+    // Cache derived collections so typing in the task search does not re-filter
+    // or re-sort the selected day's schedule.
+    val selectedDaySessions = remember(state.sessions, selectedDate) {
+        val selectedWeekday = PlannerCalendar.weekdayForDate(selectedDate)
+        state.sessions.filter { session ->
+            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
+            if (date != null) date == selectedDate else session.weekday == selectedWeekday
+        }.sortedBy(StudySession::startMinutes)
+    }
+    val today = LocalDate.now()
+    val visibleTasks = remember(state.tasks, taskSearchQuery, taskStatusFilter, today) {
+        TaskOperations.filter(
+            tasks = state.tasks,
+            query = taskSearchQuery,
+            status = taskStatusFilter,
+            today = today,
+        )
+    }
+    val sessionCountsByDate = remember(state.sessions, weekDates) {
+        weekDates.associateWith { date ->
+            val weekday = PlannerCalendar.weekdayForDate(date)
+            state.sessions.count { session ->
+                val sessionDate = PlannerCalendar.parseDateKey(session.scheduledDate)
+                if (sessionDate != null) sessionDate == date else session.weekday == weekday
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -151,10 +177,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(weekDates, key = { it.toString() }) { date ->
                                 val day = PlannerCalendar.weekdayForDate(date)
-                                val count = state.sessions.count { session ->
-                                    val sessionDate = PlannerCalendar.parseDateKey(session.scheduledDate)
-                                    if (sessionDate != null) sessionDate == date else session.weekday == day
-                                }
+                                val count = sessionCountsByDate[date] ?: 0
                                 FilterChip(
                                     selected = selectedDate == date,
                                     onClick = { selectedDate = date },
@@ -169,11 +192,65 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         }
                     }
                     item { WeeklyPlannerReport(summary = weeklySummary) }
-                    item { SectionHeading(title = "کارهای من", detail = "${state.tasks.count { !it.done }} کار باقی‌مانده") }
+                    item {
+                        SectionHeading(
+                            title = "کارهای من",
+                            detail = "${state.tasks.count { !it.done }} کار باقی‌مانده · ${visibleTasks.size} نمایش",
+                        )
+                    }
+                    item {
+                        OutlinedTextField(
+                            value = taskSearchQuery,
+                            onValueChange = { taskSearchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("جست‌وجوی کار یا درس") },
+                            placeholder = { Text("مثلاً ریاضی یا تمرین فصل اول") },
+                        )
+                    }
+                    item {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            item {
+                                FilterChip(
+                                    selected = taskStatusFilter == TaskStatusFilter.ALL,
+                                    onClick = { taskStatusFilter = TaskStatusFilter.ALL },
+                                    label = { Text("همه") },
+                                )
+                            }
+                            item {
+                                FilterChip(
+                                    selected = taskStatusFilter == TaskStatusFilter.ACTIVE,
+                                    onClick = { taskStatusFilter = TaskStatusFilter.ACTIVE },
+                                    label = { Text("باقی‌مانده") },
+                                )
+                            }
+                            item {
+                                FilterChip(
+                                    selected = taskStatusFilter == TaskStatusFilter.COMPLETED,
+                                    onClick = { taskStatusFilter = TaskStatusFilter.COMPLETED },
+                                    label = { Text("انجام‌شده") },
+                                )
+                            }
+                            item {
+                                FilterChip(
+                                    selected = taskStatusFilter == TaskStatusFilter.OVERDUE,
+                                    onClick = { taskStatusFilter = TaskStatusFilter.OVERDUE },
+                                    label = { Text("عقب‌افتاده") },
+                                )
+                            }
+                        }
+                    }
                     if (state.tasks.isEmpty()) {
                         item { EmptyPlannerCard("هنوز کاری ثبت نکرده‌ای. با دکمهٔ افزودن کار شروع کن.") }
+                    } else if (visibleTasks.isEmpty()) {
+                        item {
+                            EmptyPlannerCard(
+                                if (taskSearchQuery.isNotBlank()) "موردی با این جست‌وجو و فیلتر پیدا نشد."
+                                else "کاری با این وضعیت پیدا نشد."
+                            )
+                        }
                     } else {
-                        items(state.tasks, key = { it.id }) { task ->
+                        items(visibleTasks, key = { it.id }) { task ->
                             PlannerTaskCard(
                                 task = task,
                                 onToggle = {

@@ -108,6 +108,38 @@ class TaskOperationsTest {
     }
 
     @Test
+    fun overdueFilterExcludesTasksDueTodayAndCompletedTasks() {
+        val tasks = listOf(
+            StudyTask("yesterday", "دیروز", "علوم", dueDate = "2026-11-25"),
+            StudyTask("today", "امروز", "علوم", dueDate = "2026-11-26"),
+            StudyTask("completed", "تکمیل‌شده", "علوم", done = true, dueDate = "2026-11-20"),
+        )
+
+        assertEquals(
+            listOf("yesterday"),
+            TaskOperations.filter(
+                tasks = tasks,
+                status = TaskStatusFilter.OVERDUE,
+                today = LocalDate.parse("2026-11-26"),
+            ).map(StudyTask::id),
+        )
+    }
+
+    @Test
+    fun blankSearchReturnsAllTasksAndWhitespaceOnlySearchIsIgnored() {
+        val tasks = listOf(
+            StudyTask("one", "ریاضی", "عمومی"),
+            StudyTask("two", "علوم", "طبیعی"),
+        )
+
+        assertEquals(
+            listOf("one", "two"),
+            TaskOperations.filter(tasks, query = "   ", today = LocalDate.parse("2026-11-26"))
+                .map(StudyTask::id),
+        )
+    }
+
+    @Test
     fun unknownEditDoesNotInsertOrChangeAnything() {
         val existing = StudyTask("t1", "Old", "Math")
         val result = TaskOperations.upsert(
