@@ -5,6 +5,7 @@ import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -372,6 +373,39 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun overlappingPauseAndResumePersistenceIsSerializedAndKeepsLatestState() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)),
+        )
+        val viewModel = ExamViewModel(repository)
+        viewModel.nowEpochMillis = { 10_000L }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        val gate = CompletableDeferred<Unit>()
+        val firstSaveStarted = CompletableDeferred<Unit>()
+        repository.saveGate = gate
+        repository.saveStarted = firstSaveStarted
+
+        viewModel.pauseExam()
+        runCurrent()
+        assertTrue(firstSaveStarted.isCompleted)
+
+        viewModel.resumeExam()
+        runCurrent()
+        assertEquals(1, repository.maxConcurrentSessionSaves)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(1, repository.maxConcurrentSessionSaves)
+        assertEquals(false, repository.examSession.value?.isPaused)
+        assertEquals(ExamTakingState::class, viewModel.uiState.value.takingState::class)
+        assertTrue(viewModel.uiState.value.takingState.isTaking)
+        assertEquals(viewModel.uiState.value.takingState.deadlineEpochMillis, repository.examSession.value?.deadlineEpochMillis)
+    }
+
+    @Test
     fun startExam_newSessionPersistsDeadline() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 5, durationSeconds = 120)))
         val viewModel = ExamViewModel(repository)
@@ -532,6 +566,10 @@ class ExamViewModelTest {
         var completedSheetId: String? = null
         var completionCalls: Int = 0
         var completionFailure: Throwable? = null
+        var saveGate: CompletableDeferred<Unit>? = null
+        var saveStarted: CompletableDeferred<Unit>? = null
+        var activeSessionSaves: Int = 0
+        var maxConcurrentSessionSaves: Int = 0
 
         override fun observeExamSheets(): Flow<List<ExamSheet>> {
             examSheetObservationCount++
@@ -558,11 +596,19 @@ class ExamViewModelTest {
         }
         override suspend fun saveExamSession(session: ExamSessionSnapshot): Boolean {
             sessionSaveCalls++
-            val sheet = sheets.value.firstOrNull { it.id == session.examId } ?: return false
-            if (activeExam.value != session.examId) return false
-            if (session.currentQuestionNumber !in 1..sheet.questionCount) return false
-            examSession.value = session
-            return true
+            activeSessionSaves++
+            maxConcurrentSessionSaves = maxOf(maxConcurrentSessionSaves, activeSessionSaves)
+            saveStarted?.complete(Unit)
+            return try {
+                saveGate?.await()
+                val sheet = sheets.value.firstOrNull { it.id == session.examId } ?: return false
+                if (activeExam.value != session.examId) return false
+                if (session.currentQuestionNumber !in 1..sheet.questionCount) return false
+                examSession.value = session
+                true
+            } finally {
+                activeSessionSaves--
+            }
         }
         override suspend fun clearActiveExam(id: String?) {
             if (id == null || activeExam.value == id) {

@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class ExamUiState(
     val sheets: List<ExamSheet> = emptyList(),
@@ -54,6 +56,7 @@ class ExamViewModel @Inject constructor(
     private var restoredExamId: String? = null
     private var activeQuestionCount: Int = 0
     private var pendingSessionPersistence: Job? = null
+    private val sessionPersistenceMutex = Mutex()
     private val completionInFlight = mutableSetOf<String>()
 
     val uiState: StateFlow<ExamUiState> = combine(
@@ -222,10 +225,13 @@ class ExamViewModel @Inject constructor(
         return persistTakingState()
     }
 
-    private suspend fun persistTakingState(): Boolean {
+    private suspend fun persistTakingState(): Boolean = sessionPersistenceMutex.withLock {
+        // Read the state only after acquiring the lock. If pause/resume/navigation
+        // requests overlap, each write persists the newest state available when
+        // its turn begins instead of allowing an older snapshot to finish last.
         val current = takingState.value
-        val examId = current.examId ?: return false
-        return repository.saveExamSession(
+        val examId = current.examId ?: return@withLock false
+        repository.saveExamSession(
             ExamSessionSnapshot(
                 examId = examId,
                 currentQuestionNumber = current.currentQuestionNumber,
