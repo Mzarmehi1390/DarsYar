@@ -15,7 +15,6 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.doubleOrNull
-import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -248,7 +247,15 @@ internal object DarsYarBackupCodec {
     private fun JsonElement?.intValue(field: String): Int {
         val primitive = this as? JsonPrimitive ?: invalid(field)
         if (primitive.isString) invalid(field)
-        return primitive.intOrNull ?: invalid(field)
+        val value = primitive.doubleOrNull ?: invalid(field)
+        if (!value.isFinite() ||
+            value % 1.0 != 0.0 ||
+            value < Int.MIN_VALUE ||
+            value > Int.MAX_VALUE
+        ) {
+            invalid(field)
+        }
+        return value.toInt()
     }
 
     private fun JsonElement?.stringValue(field: String): String =

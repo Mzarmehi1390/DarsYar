@@ -140,6 +140,46 @@ class DarsYarBackupCodecTest {
     }
 
     @Test
+    fun decode_acceptsIntegralJsonNumbersWithDecimalNotationLikeFlutter() {
+        val compatible = validBackup()
+            .replace("\"schemaVersion\": 1", "\"schemaVersion\": 1.0")
+            .replace("\"questionCount\": 2", "\"questionCount\": 2.0")
+            .replace("\"durationSeconds\": 600", "\"durationSeconds\": 600.0")
+            .replace("\"answers\": {}", "\"answers\": {\"1\": 1.0}")
+            .replace("\"answerKey\": {}", "\"answerKey\": {\"2\": 0.0}")
+            .replace("\"marked\": []", "\"marked\": [2.0]")
+            .replace("\"studySessions\": []", """
+                "studySessions": [{
+                  "id": "session-1",
+                  "title": "مرور",
+                  "weekday": 2.0,
+                  "startMinutes": 480.0,
+                  "durationMinutes": 55.0
+                }]
+            """.trimIndent())
+            .replace("\"results\": []", """
+                "results": [{
+                  "id": "result-1",
+                  "questionCount": 2.0,
+                  "keyedQuestions": 2.0,
+                  "correct": 1.0,
+                  "wrong": 0.0,
+                  "unanswered": 1.0,
+                  "answers": {"1": 1.0},
+                  "answerKey": {"1": 1.0}
+                }]
+            """.trimIndent())
+
+        val restored = DarsYarBackupCodec.decode(compatible)
+
+        assertEquals(2, restored.exams.single().questionCount)
+        assertEquals(mapOf(1 to 1), restored.exams.single().answers)
+        assertEquals(setOf(2), restored.exams.single().marked)
+        assertEquals(480, restored.studySessions.single().startMinutes)
+        assertEquals(1, restored.results.single().correct)
+    }
+
+    @Test
     fun decode_rejectsNonNumericSchemaVersion() {
         val invalidVersion = validBackup().replace(
             "\"schemaVersion\": 1",
