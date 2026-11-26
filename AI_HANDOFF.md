@@ -81,4 +81,4 @@ The first two documents describe the native migration baseline. The existing red
 Do not guess these. Investigate and document decisions before implementation.
 
 
-- Legacy planner date parity: task dueDate and session scheduledDate import now accept ISO date-only and ISO timestamp strings, normalize offset timestamps to UTC before extracting date, and ignore invalid optional values. Regression test: parsesLegacyTaskAndSessionIsoDatesLikeFlutterDateTimeTryParse.
+- Legacy planner date parity: task dueDate and session scheduledDate import accept ISO date-only and timestamp strings, normalize offset timestamps to UTC before extracting date, and ignore invalid optional values. Coverage includes lowercase `z`, compact `yyyyMMdd` dates, and offsets without a colon; this is targeted parity coverage rather than a claim to match every Dart parser edge case. Regression test: parsesLegacyTaskAndSessionIsoDatesLikeFlutterDateTimeTryParse.

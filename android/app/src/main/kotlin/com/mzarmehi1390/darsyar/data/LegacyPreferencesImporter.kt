@@ -382,7 +382,15 @@ class LegacyPreferencesImporter @Inject constructor(
      * are normalized to UTC before extracting the calendar date, as Dart does.
      */
     private fun parseDateOnly(value: String): String? {
-        val normalized = value.replace(' ', 'T')
+        // Dart DateTime.tryParse accepts a space separator, lowercase z and
+        // numeric offsets both with and without the colon (for example +02:00
+        // and +0200). Normalize those spellings before using java.time.
+        val normalized = value.trim()
+            .replace(' ', 'T')
+            .replace(Regex("([+-]\\d{2})(\\d{2})$")) { match ->
+                "${match.groupValues[1]}:${match.groupValues[2]}"
+            }
+            .let { if (it.endsWith('z')) it.dropLast(1) + "Z" else it }
         val date = runCatching {
             java.time.OffsetDateTime.parse(normalized)
                 .withOffsetSameInstant(java.time.ZoneOffset.UTC)
@@ -390,6 +398,9 @@ class LegacyPreferencesImporter @Inject constructor(
         }.getOrNull()
             ?: runCatching { java.time.LocalDateTime.parse(normalized).toLocalDate() }.getOrNull()
             ?: runCatching { java.time.LocalDate.parse(value) }.getOrNull()
+            ?: runCatching {
+                java.time.LocalDate.parse(value, java.time.format.DateTimeFormatter.BASIC_ISO_DATE)
+            }.getOrNull()
             ?: return null
         return date.toString()
     }

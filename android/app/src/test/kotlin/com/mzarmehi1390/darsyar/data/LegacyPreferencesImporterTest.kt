@@ -100,6 +100,9 @@ class LegacyPreferencesImporterTest {
                 "flutter.darsyar.tasks",
                 """[
                     {"id":"task-date","title":"Task","dueDate":"2026-11-24T23:15:00Z"},
+                    {"id":"task-lowercase-z","title":"Lowercase UTC","dueDate":"2026-11-24T23:15:00z"},
+                    {"id":"task-compact-date","title":"Compact date","dueDate":"20261125"},
+                    {"id":"task-offset-without-colon","title":"Compact offset","dueDate":"2026-11-24T00:30:00+0200"},
                     {"id":"task-invalid-date","title":"Invalid date","dueDate":"not-a-date"}
                 ]""".trimIndent(),
             )
@@ -113,6 +116,9 @@ class LegacyPreferencesImporterTest {
 
         assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
         assertEquals("2026-11-24", database.studyTaskDao().findById("task-date")?.dueDate)
+        assertEquals("2026-11-24", database.studyTaskDao().findById("task-lowercase-z")?.dueDate)
+        assertEquals("2026-11-25", database.studyTaskDao().findById("task-compact-date")?.dueDate)
+        assertEquals("2026-11-23", database.studyTaskDao().findById("task-offset-without-colon")?.dueDate)
         assertEquals(null, database.studyTaskDao().findById("task-invalid-date")?.dueDate)
         val session = database.studySessionDao().findById("session-date")
         assertEquals("2026-11-23", session?.scheduledDate)
