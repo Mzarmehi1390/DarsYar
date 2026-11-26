@@ -95,10 +95,51 @@ class DarsYarRepository @Inject constructor(
     /** Atomically inserts a prepared week without overwriting target records. */
     override suspend fun copyWeekPlan(plan: PlannerWeekCopyPlan): PlannerWeekCopyResult =
         database.withTransaction {
-            val targetStart = PlannerCalendar.startOfWeek(plan.targetWeekStart)
+            val sourceStart = PlannerCalendar.startOfWeek(plan.sourceWeekStart)
+            val targetStart = sourceStart.plusDays(7)
+            if (plan.sourceWeekStart != sourceStart || plan.targetWeekStart != targetStart) {
+                return@withTransaction PlannerWeekCopyResult.InvalidPlan
+            }
             val targetEnd = targetStart.plusDays(7)
             val existingSessions = database.studySessionDao().observeAll().first().map { it.toDomain() }
             val existingTasks = database.studyTaskDao().observeAll().first().map { it.toDomain() }
+            val currentSourceSessions = existingSessions.filter { item ->
+                PlannerCalendar.parseDateKey(item.scheduledDate)?.let {
+                    PlannerCalendar.isInWeek(it, sourceStart)
+                } == true
+            }
+            val currentSourceTasks = existingTasks.filter { item ->
+                PlannerCalendar.parseDateKey(item.dueDate)?.let {
+                    PlannerCalendar.isInWeek(it, sourceStart)
+                } == true
+            }
+            if (currentSourceSessions != plan.sourceSessions || currentSourceTasks != plan.sourceTasks) {
+                return@withTransaction PlannerWeekCopyResult.SourceChanged
+            }
+            if (plan.copiedSessions.size != plan.sourceSessions.size ||
+                plan.copiedTasks.size != plan.sourceTasks.size
+            ) return@withTransaction PlannerWeekCopyResult.InvalidPlan
+
+            val sessionCopiesMatch = plan.sourceSessions.zip(plan.copiedSessions).all { (source, copy) ->
+                val sourceDate = PlannerCalendar.parseDateKey(source.scheduledDate)
+                sourceDate != null && copy == source.copy(
+                    id = copy.id,
+                    completed = false,
+                    scheduledDate = PlannerCalendar.dateKey(sourceDate.plusDays(7)),
+                )
+            }
+            val taskCopiesMatch = plan.sourceTasks.zip(plan.copiedTasks).all { (source, copy) ->
+                val sourceDate = PlannerCalendar.parseDateKey(source.dueDate)
+                sourceDate != null && copy == source.copy(
+                    id = copy.id,
+                    done = false,
+                    dueDate = PlannerCalendar.dateKey(sourceDate.plusDays(7)),
+                )
+            }
+            if (!sessionCopiesMatch || !taskCopiesMatch) {
+                return@withTransaction PlannerWeekCopyResult.InvalidPlan
+            }
+
             val targetOccupied = existingSessions.any { item ->
                 PlannerCalendar.parseDateKey(item.scheduledDate)?.let {
                     !it.isBefore(targetStart) && it.isBefore(targetEnd)
@@ -131,7 +172,7 @@ class DarsYarRepository @Inject constructor(
                     val date = PlannerCalendar.parseDateKey(item.dueDate)
                     date == null || date.isBefore(targetStart) || !date.isBefore(targetEnd)
                 }
-            ) return@withTransaction PlannerWeekCopyResult.IdCollision
+            ) return@withTransaction PlannerWeekCopyResult.InvalidPlan
 
             database.studySessionDao().upsertAll(plan.copiedSessions.map { it.toEntity() })
             database.studyTaskDao().upsertAll(plan.copiedTasks.map { it.toEntity() })
