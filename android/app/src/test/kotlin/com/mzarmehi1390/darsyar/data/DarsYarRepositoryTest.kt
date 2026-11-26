@@ -652,4 +652,36 @@ class DarsYarRepositoryTest {
         assertEquals(exam.id, snapshot.activeExamId)
     }
 
+
+    @Test
+    fun updateExamResult_persistsRecalculatedSnapshotAndRejectsUnknownId() = runBlocking {
+        val sheet = ExamSheet(
+            id = "exam-history-update",
+            name = "آزمون تاریخچه",
+            questionCount = 3,
+            answers = mapOf(1 to 2, 2 to 1),
+            answerKey = mapOf(1 to 0, 2 to 0),
+        )
+        repository.upsertExamSheet(sheet)
+        val original = repository.completeExam(
+            sheetId = sheet.id,
+            resultId = "history-update-1",
+            completedAt = "2026-11-25T10:00:00Z",
+        )
+        assertNotNull(original)
+
+        val updated = original!!.copy(
+            correct = 2,
+            wrong = 0,
+            unanswered = 1,
+            keyedQuestions = 2,
+            percentage = 100.0,
+            negativeMarking = false,
+            answerKey = mapOf(1 to 2, 2 to 1),
+        )
+        assertTrue(repository.updateExamResult(updated))
+        assertEquals(updated, database.examResultDao().findById(updated.id)?.toDomain())
+        assertFalse(repository.updateExamResult(updated.copy(id = "missing-history")))
+        assertEquals(1, database.examResultDao().getAll().size)
+    }
 }
