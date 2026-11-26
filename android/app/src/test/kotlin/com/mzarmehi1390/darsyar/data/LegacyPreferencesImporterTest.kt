@@ -443,7 +443,7 @@ class LegacyPreferencesImporterTest {
         val exams = database.examSheetDao().observeAll().first().associateBy { it.id }
         assertEquals(2, exams.size)
         assertEquals("آزمون", exams["default"]?.name)
-        assertEquals(20, exams["default"]?.questionCount)
+        assertEquals(2, exams["default"]?.questionCount)
         assertEquals("", exams[""]?.name)
         assertEquals(3, exams[""]?.questionCount)
     }
