@@ -129,6 +129,8 @@ class LegacyPreferencesImporterTest {
     fun wrongTypedLegacyCollectionAndActiveExamKeysUseFlutterStringFallbacks() = runBlocking {
         preferences.edit()
             .putInt("flutter.darsyar.tasks", 42)
+            .putInt("flutter.darsyar.exams", 42)
+            .putString("flutter.darsyar.answers", """{"1":2}""")
             .putInt("flutter.darsyar.activeExamId", 99)
             .commit()
 
@@ -136,6 +138,9 @@ class LegacyPreferencesImporterTest {
         assertEquals(0, database.studyTaskDao().count())
         assertEquals("default", database.appStateDao().get()?.activeExamId)
         assertEquals(1, database.examSheetDao().count())
+        val fallbackExam = database.examSheetDao().findById("default")
+        assertEquals(20, fallbackExam?.questionCount)
+        assertEquals("{}", fallbackExam?.answersJson)
     }
 
     @Test
