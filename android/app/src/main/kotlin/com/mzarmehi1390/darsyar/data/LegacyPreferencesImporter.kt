@@ -190,7 +190,7 @@ class LegacyPreferencesImporter @Inject constructor(
             id = id,
             title = title,
             subject = json.stringOrNull("subject") ?: "عمومی",
-            isDone = json.optBoolean("done", false),
+            isDone = json.booleanOrDefault("done", false),
             dueDate = json.stringIfString("dueDate")?.takeIf(::isDateKey),
         )
     }
@@ -198,16 +198,16 @@ class LegacyPreferencesImporter @Inject constructor(
     private fun parseSession(json: JSONObject, index: Int): StudySessionEntity? {
         val id = json.stringOrNull("id")?.takeIf(String::isNotBlank) ?: return null
         val title = json.stringOrNull("title")?.takeIf(String::isNotBlank) ?: return null
-        val start = json.optInt("startMinutes", 960).coerceIn(0, 1439)
-        val duration = json.optInt("durationMinutes", 55).coerceIn(1, 1440 - start)
+        val start = json.intFromNumber("startMinutes", 960).coerceIn(0, 1439)
+        val duration = json.intFromNumber("durationMinutes", 55).coerceIn(1, 1440 - start)
         val date = json.stringIfString("scheduledDate")?.takeIf(::isDateKey)
         val weekday = if (date != null) {
             runCatching {
                 val parts = date.split("-").map(String::toInt)
                 java.time.LocalDate.of(parts[0], parts[1], parts[2]).dayOfWeek.value % 7
-            }.getOrDefault(json.optInt("weekday", 0).coerceIn(0, 6))
+            }.getOrDefault(json.intFromNumber("weekday", 0).coerceIn(0, 6))
         } else {
-            json.optInt("weekday", 0).coerceIn(0, 6)
+            json.intFromNumber("weekday", 0).coerceIn(0, 6)
         }
         return StudySessionEntity(
             id = id,
@@ -216,7 +216,7 @@ class LegacyPreferencesImporter @Inject constructor(
             weekday = weekday,
             startMinutes = start,
             durationMinutes = duration,
-            completed = json.optBoolean("completed", false),
+            completed = json.booleanOrDefault("completed", false),
             scheduledDate = date,
         )
     }
@@ -224,14 +224,14 @@ class LegacyPreferencesImporter @Inject constructor(
     private fun parseExam(json: JSONObject, index: Int): ExamSheetEntity? {
         val id = json.stringOrNull("id")?.takeIf(String::isNotBlank) ?: return null
         val name = json.stringOrNull("name")?.takeIf(String::isNotBlank) ?: "آزمون"
-        val count = json.optInt("questionCount", 20).coerceIn(1, 200)
+        val count = json.intFromNumber("questionCount", 20).coerceIn(1, 200)
         return ExamSheetEntity(
             id = id,
             name = name,
             questionCount = count,
-            durationSeconds = json.optInt("durationSeconds", 1800).coerceIn(1, 86400),
-            negativeMarking = json.optBoolean("negativeMarking", false),
-            isCompleted = json.optBoolean("isCompleted", false),
+            durationSeconds = json.intFromNumber("durationSeconds", 1800).coerceIn(1, 86400),
+            negativeMarking = json.opt("negativeMarking") == true,
+            isCompleted = json.opt("isCompleted") == true,
             answersJson = filteredAnswers(json.optJSONObject("answers"), count).toJson(),
             answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), count).toJson(),
             markedJson = filteredMarked(json.optJSONArray("marked"), count).toJson(),
@@ -271,11 +271,11 @@ class LegacyPreferencesImporter @Inject constructor(
     private fun parseResult(json: JSONObject, index: Int): ExamResultEntity? {
         val rawId = (json.opt("id") as? String)?.takeIf(String::isNotBlank)
         val id = rawId ?: "legacy-result-$index"
-        val questionCount = json.optInt("questionCount", 0).coerceIn(0, 200)
-        val keyed = json.optInt("keyedQuestions", 0).coerceIn(0, questionCount)
-        val correct = json.optInt("correct", 0).coerceIn(0, keyed)
-        val wrong = json.optInt("wrong", 0).coerceIn(0, keyed - correct)
-        val negativeMarking = json.optBoolean("negativeMarking", false)
+        val questionCount = json.intFromNumber("questionCount", 0).coerceIn(0, 200)
+        val keyed = json.intFromNumber("keyedQuestions", 0).coerceIn(0, questionCount)
+        val correct = json.intFromNumber("correct", 0).coerceIn(0, keyed)
+        val wrong = json.intFromNumber("wrong", 0).coerceIn(0, keyed - correct)
+        val negativeMarking = json.opt("negativeMarking") == true
         // Match Dart's ExamResult.fromJson: numeric values are clamped,
         // while missing, null, non-numeric and non-finite values are recalculated.
         val storedPercentage = (json.opt("percentage") as? Number)
@@ -298,10 +298,10 @@ class LegacyPreferencesImporter @Inject constructor(
             questionCount = questionCount,
             correct = correct,
             wrong = wrong,
-            unanswered = json.optInt("unanswered", 0).coerceIn(0, questionCount),
+            unanswered = json.intFromNumber("unanswered", 0).coerceIn(0, questionCount),
             keyedQuestions = keyed,
             percentage = rawPercentage,
-            negativeMarking = json.optBoolean("negativeMarking", false),
+            negativeMarking = negativeMarking,
             answersJson = filteredAnswers(json.optJSONObject("answers"), questionCount).toJson(),
             answerKeyJson = filteredAnswers(json.optJSONObject("answerKey"), questionCount).toJson(),
         )
@@ -330,7 +330,7 @@ class LegacyPreferencesImporter @Inject constructor(
         while (keys.hasNext()) {
             val rawQuestion = keys.next()
             val question = rawQuestion.toIntOrNull() ?: continue
-            val answer = source.optInt(rawQuestion, -1)
+            val answer = (source.opt(rawQuestion) as? Number)?.toInt() ?: -1
             if (question in 1..questionCount && answer in 0..3) result[question] = answer
         }
         return result
@@ -340,7 +340,7 @@ class LegacyPreferencesImporter @Inject constructor(
         if (source == null) return emptySet()
         return buildSet {
             for (index in 0 until source.length()) {
-                val question = source.optInt(index, -1)
+                val question = (source.opt(index) as? Number)?.toInt() ?: -1
                 if (question in 1..questionCount) add(question)
             }
         }
@@ -353,6 +353,17 @@ class LegacyPreferencesImporter @Inject constructor(
     private fun Set<Int>.toJson() = JSONArray().apply {
         sorted().forEach { put(it) }
     }.toString()
+
+    /** Dart's num? casts reject numeric strings but accept JSON numbers. */
+    private fun JSONObject.intFromNumber(key: String, fallback: Int): Int =
+        (opt(key) as? Number)?.toInt() ?: fallback
+
+    /** Mirrors nullable bool casts used by task/session models. */
+    private fun JSONObject.booleanOrDefault(key: String, fallback: Boolean): Boolean {
+        if (!has(key) || isNull(key)) return fallback
+        return opt(key) as? Boolean
+            ?: throw IllegalStateException("Legacy field '$key' must be a boolean.")
+    }
 
     private fun JSONObject.stringOrNull(key: String): String? {
         if (!has(key) || isNull(key)) return null

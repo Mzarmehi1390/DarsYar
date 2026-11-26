@@ -76,6 +76,6 @@ The first two documents describe the native migration baseline. The existing red
 - Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Validate v1 backup export/import compatibility against real Flutter-generated fixtures and complete end-to-end restore testing.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
-- Latest verified CI at `7d9bbf3f3dcd743c8d2b627f72c7d8e6103cb92c` completed successfully (run `45868809196`): native Build/Test/Lint and debug APK upload all passed. This includes regression coverage for preserving every legacy exam result when IDs are missing, duplicated, or collide with generated fallback IDs. A further importer regression test now covers blank IDs and explicit IDs reserved later in the collection.
+- Latest verified CI at `ac7de4a1575c2f75e1e7d61b6b0acd008c4d06cc` completed successfully (run `45872037155`): native Build/Test/Lint and debug APK upload all passed. Importer coverage now includes collision-safe historical result IDs, Dart-compatible percentage clamping, wrong-typed string fields, and non-string fallback behavior. The next importer parity pass is validating JSON numeric/boolean type semantics; device verification of the actual Flutter SharedPreferences format remains a release gate.
 
 Do not guess these. Investigate and document decisions before implementation.

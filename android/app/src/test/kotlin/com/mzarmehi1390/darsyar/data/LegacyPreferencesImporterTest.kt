@@ -360,4 +360,69 @@ class LegacyPreferencesImporterTest {
         assertEquals("", result.completedAt)
     }
 
+
+    @Test
+    fun numericAndBooleanLegacyFieldsKeepDartTypeSemantics() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.studySessions",
+                """[{"id":"session-1","title":"Session","weekday":"4","startMinutes":"600","durationMinutes":55.9,"completed":false}]""",
+            )
+            .putString(
+                "flutter.darsyar.exams",
+                """[{"id":"exam-1","name":"Exam","questionCount":"3","durationSeconds":"60","negativeMarking":"true","isCompleted":"true","answers":{"1":"2","2":2.9},"answerKey":{"1":"1"},"marked":["2",2.8]}]""",
+            )
+            .putString(
+                "flutter.darsyar.results",
+                """[{"id":"result-1","questionCount":4,"keyedQuestions":3,"correct":"2","wrong":1.8,"unanswered":"1","negativeMarking":"true","answers":{"1":"2","2":2.9}}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+
+        val session = database.studySessionDao().findById("session-1")
+        assertEquals(0, session?.weekday)
+        assertEquals(960, session?.startMinutes)
+        assertEquals(55, session?.durationMinutes)
+        assertEquals(false, session?.completed)
+
+        val exam = database.examSheetDao().findById("exam-1")
+        assertEquals(20, exam?.questionCount)
+        assertEquals(1800, exam?.durationSeconds)
+        assertEquals(false, exam?.negativeMarking)
+        assertEquals(false, exam?.isCompleted)
+        assertEquals("{\"2\":2}", exam?.answersJson)
+        assertEquals("[2]", exam?.markedJson)
+
+        val result = database.examResultDao().getAll().single()
+        assertEquals(4, result.questionCount)
+        assertEquals(3, result.keyedQuestions)
+        assertEquals(0, result.correct)
+        assertEquals(1, result.wrong)
+        assertEquals(0, result.unanswered)
+        assertEquals(false, result.negativeMarking)
+        assertEquals("{\"2\":2}", result.answersJson)
+    }
+
+    @Test
+    fun wrongTypedNullableTaskBooleanRejectsImport() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"task-1","title":"Task","done":"true"}]""",
+            )
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("A string must not be coerced into a legacy boolean.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("darsyar.tasks"))
+        }
+
+        assertEquals(0, database.studyTaskDao().count())
+        assertEquals(null, database.appStateDao().get())
+    }
+
+
 }
