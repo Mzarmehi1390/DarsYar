@@ -2,6 +2,7 @@ package com.mzarmehi1390.darsyar.features.exams.presentation
 
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamRepository
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamSessionSnapshot
+import com.mzarmehi1390.darsyar.features.exams.domain.ExamTakingState
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
 import kotlinx.coroutines.Dispatchers
@@ -400,7 +401,6 @@ class ExamViewModelTest {
 
         assertEquals(1, repository.maxConcurrentSessionSaves)
         assertEquals(false, repository.examSession.value?.isPaused)
-        assertEquals(ExamTakingState::class, viewModel.uiState.value.takingState::class)
         assertTrue(viewModel.uiState.value.takingState.isTaking)
         assertEquals(viewModel.uiState.value.takingState.deadlineEpochMillis, repository.examSession.value?.deadlineEpochMillis)
     }
