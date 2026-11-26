@@ -64,6 +64,20 @@ object ExamSheetOperations {
     fun replaceAnswerKey(sheet: ExamSheet, answerKey: Map<Int, Int>): ExamSheet =
         sheet.copy(answerKey = validAnswers(answerKey, sheet.questionCount))
 
+    /** Updates one key entry; null removes it. Invalid indices leave the sheet unchanged. */
+    fun setAnswerKeyOption(sheet: ExamSheet, question: Int, answer: Int?): ExamSheet {
+        if (question !in 1..sheet.questionCount || (answer != null && answer !in 0..3)) {
+            return sheet
+        }
+        val updated = sheet.answerKey.toMutableMap()
+        if (answer == null) updated.remove(question) else updated[question] = answer
+        return sheet.copy(answerKey = updated)
+    }
+
+    /** Clears the full answer key without changing answers or exam settings. */
+    fun clearAnswerKey(sheet: ExamSheet): ExamSheet =
+        sheet.copy(answerKey = emptyMap())
+
     private fun validAnswers(values: Map<Int, Int>, questionCount: Int): Map<Int, Int> =
         values.filter { (question, answer) ->
             question in 1..questionCount && answer in 0..3

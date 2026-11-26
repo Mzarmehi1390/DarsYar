@@ -927,10 +927,30 @@ private fun AnswerKeyDialog(
                     Checkbox(checked = negativeMarking, onCheckedChange = { negativeMarking = it })
                     Text("اعمال نمرهٔ منفی (هر ۳ غلط = ۱ درست)")
                 }
-                Text(
-                    "${answerKey.size} پاسخ از ${sheet.questionCount} سؤال کلیدگذاری شده",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "${answerKey.size} پاسخ از ${sheet.questionCount} سؤال کلیدگذاری شده",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(
+                        onClick = {
+                            answerKey = ExamSheetOperations.clearAnswerKey(
+                                sheet.copy(answerKey = answerKey),
+                            ).answerKey
+                        },
+                        enabled = answerKey.isNotEmpty(),
+                    ) {
+                        Text("پاک‌کردن همه")
+                    }
+                }
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { answerKey.size.toFloat() / sheet.questionCount.coerceAtLeast(1) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     items(sheet.questionCount) { index ->
@@ -943,7 +963,15 @@ private fun AnswerKeyDialog(
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text("سؤال $question", fontWeight = FontWeight.SemiBold)
-                                    TextButton(onClick = { answerKey = answerKey - question }) {
+                                    TextButton(
+                                        onClick = {
+                                            answerKey = ExamSheetOperations.setAnswerKeyOption(
+                                                sheet.copy(answerKey = answerKey),
+                                                question,
+                                                null,
+                                            ).answerKey
+                                        },
+                                    ) {
                                         Text("بدون کلید")
                                     }
                                 }
@@ -956,7 +984,13 @@ private fun AnswerKeyDialog(
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             RadioButton(
                                                 selected = answerKey[question] == option,
-                                                onClick = { answerKey = answerKey + (question to option) },
+                                                onClick = {
+                                                    answerKey = ExamSheetOperations.setAnswerKeyOption(
+                                                        sheet.copy(answerKey = answerKey),
+                                                        question,
+                                                        option,
+                                                    ).answerKey
+                                                },
                                             )
                                             Text(listOf("۱", "۲", "۳", "۴")[option], style = MaterialTheme.typography.labelSmall)
                                         }

@@ -115,4 +115,38 @@ class ExamSheetOperationsTest {
 
         assertEquals(mapOf(1 to 0), replaced.answerKey)
     }
+
+    @Test
+    fun settingAndRemovingSingleAnswerKeyEntryPreservesOtherSheetData() {
+        val original = sheet()
+        val updated = ExamSheetOperations.setAnswerKeyOption(original, 3, 2)
+        val removed = ExamSheetOperations.setAnswerKeyOption(updated, 1, null)
+
+        assertEquals(mapOf(2 to 0, 3 to 2, 5 to 3), updated.answerKey)
+        assertEquals(mapOf(2 to 0, 3 to 2, 5 to 3), removed.answerKey)
+        assertEquals(original.answers, removed.answers)
+        assertEquals(original.marked, removed.marked)
+        assertEquals(mapOf(1 to 2, 2 to 0, 5 to 3), original.answerKey)
+    }
+
+    @Test
+    fun clearingAnswerKeyDoesNotChangeAnswersSettingsOrReviewMarks() {
+        val original = sheet().copy(negativeMarking = true, durationSeconds = 900)
+        val cleared = ExamSheetOperations.clearAnswerKey(original)
+
+        assertTrue(cleared.answerKey.isEmpty())
+        assertEquals(original.answers, cleared.answers)
+        assertEquals(original.marked, cleared.marked)
+        assertEquals(original.negativeMarking, cleared.negativeMarking)
+        assertEquals(original.durationSeconds, cleared.durationSeconds)
+        assertEquals(3, original.answerKey.size)
+    }
+
+    @Test
+    fun invalidAnswerKeyEntryUpdateDoesNotMutateSheet() {
+        val original = sheet()
+
+        assertEquals(original, ExamSheetOperations.setAnswerKeyOption(original, 0, 1))
+        assertEquals(original, ExamSheetOperations.setAnswerKeyOption(original, 2, 4))
+    }
 }
