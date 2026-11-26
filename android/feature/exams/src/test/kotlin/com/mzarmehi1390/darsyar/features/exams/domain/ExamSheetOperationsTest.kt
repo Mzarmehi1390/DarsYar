@@ -122,7 +122,7 @@ class ExamSheetOperationsTest {
         val updated = ExamSheetOperations.setAnswerKeyOption(original, 3, 2)
         val removed = ExamSheetOperations.setAnswerKeyOption(updated, 1, null)
 
-        assertEquals(mapOf(2 to 0, 3 to 2, 5 to 3), updated.answerKey)
+        assertEquals(mapOf(1 to 2, 2 to 0, 3 to 2, 5 to 3), updated.answerKey)
         assertEquals(mapOf(2 to 0, 3 to 2, 5 to 3), removed.answerKey)
         assertEquals(original.answers, removed.answers)
         assertEquals(original.marked, removed.marked)
