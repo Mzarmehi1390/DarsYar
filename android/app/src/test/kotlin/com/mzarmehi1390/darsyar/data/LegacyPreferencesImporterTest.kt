@@ -126,6 +126,27 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun taskAndSessionRequiredStringsPreserveFlutterEmptyAndWhitespaceValues() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"","title":""},{"id":"   ","title":"   "}]""",
+            )
+            .putString(
+                "flutter.darsyar.studySessions",
+                """[{"id":"","title":""},{"id":"   ","title":"   "}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+
+        assertEquals("", database.studyTaskDao().findById("")?.title)
+        assertEquals("   ", database.studyTaskDao().findById("   ")?.title)
+        assertEquals("", database.studySessionDao().findById("")?.title)
+        assertEquals("   ", database.studySessionDao().findById("   ")?.title)
+    }
+
+    @Test
     fun wrongTypedLegacyCollectionAndActiveExamKeysUseFlutterStringFallbacks() = runBlocking {
         preferences.edit()
             .putInt("flutter.darsyar.tasks", 42)

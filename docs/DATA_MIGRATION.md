@@ -195,3 +195,8 @@ The one-time SharedPreferences importer accepts Flutter-compatible ISO date-only
 ### Legacy result identifier parity
 
 Flutter's `ExamResult.fromJson` preserves every non-empty string ID, including whitespace-only strings; only an empty string or non-string ID receives a fallback. The native SharedPreferences importer follows that distinction while still normalizing duplicate IDs when Room requires unique primary keys. Robolectric coverage verifies whitespace-only, empty and missing IDs.
+
+
+### Legacy task/session required-string parity
+
+Flutter's task and session models cast required `id` and `title` fields to strings without trimming or rejecting empty values. The native importer preserves empty and whitespace-only required strings as well; it rejects missing or non-string values. Robolectric coverage exercises both empty and whitespace-only values for task and session records.

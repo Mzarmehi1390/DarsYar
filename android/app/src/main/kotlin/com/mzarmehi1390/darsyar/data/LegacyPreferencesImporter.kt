@@ -185,8 +185,8 @@ class LegacyPreferencesImporter @Inject constructor(
     }
 
     private fun parseTask(json: JSONObject, index: Int): StudyTaskEntity? {
-        val id = json.stringOrNull("id")?.takeIf(String::isNotBlank) ?: return null
-        val title = json.stringOrNull("title")?.takeIf(String::isNotBlank) ?: return null
+        val id = json.stringOrNull("id") ?: return null
+        val title = json.stringOrNull("title") ?: return null
         return StudyTaskEntity(
             id = id,
             title = title,
@@ -197,8 +197,8 @@ class LegacyPreferencesImporter @Inject constructor(
     }
 
     private fun parseSession(json: JSONObject, index: Int): StudySessionEntity? {
-        val id = json.stringOrNull("id")?.takeIf(String::isNotBlank) ?: return null
-        val title = json.stringOrNull("title")?.takeIf(String::isNotBlank) ?: return null
+        val id = json.stringOrNull("id") ?: return null
+        val title = json.stringOrNull("title") ?: return null
         val start = json.intFromNumber("startMinutes", 960).coerceIn(0, 1439)
         val duration = json.intFromNumber("durationMinutes", 55).coerceIn(1, 1440 - start)
         val date = json.stringIfString("scheduledDate")?.let(::parseDateOnly)
