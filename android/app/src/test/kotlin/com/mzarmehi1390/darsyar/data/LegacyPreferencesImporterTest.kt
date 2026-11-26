@@ -165,6 +165,57 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun invalidRecordAfterValidRecordRollsBackEntireImportAndCanBeRetried() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"valid-task","title":"Valid task"},{"id":"invalid-task"}]""",
+            )
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("An invalid record must fail the entire import.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("index 1"))
+        }
+
+        assertEquals(0, database.studyTaskDao().count())
+        assertEquals(null, database.appStateDao().get())
+
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"valid-task","title":"Valid task"},{"id":"repaired-task","title":"Repaired task"}]""",
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        assertEquals(2, database.studyTaskDao().count())
+        assertTrue(database.appStateDao().get()?.legacyImportCompleted == true)
+    }
+
+    @Test
+    fun duplicateLegacyIdentifiersRejectImportWithoutDroppingRecords() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.tasks",
+                """[{"id":"duplicate","title":"First"},{"id":"duplicate","title":"Second"}]""",
+            )
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("Duplicate identifiers must fail the import.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("duplicate"))
+        }
+
+        assertEquals(0, database.studyTaskDao().count())
+        assertEquals(null, database.appStateDao().get())
+    }
+
+    @Test
     fun skipsImportWhenNativeDataAlreadyExists() = runBlocking {
         database.studyTaskDao().upsertAll(
             listOf(

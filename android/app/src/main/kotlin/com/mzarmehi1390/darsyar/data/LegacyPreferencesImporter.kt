@@ -113,8 +113,20 @@ class LegacyPreferencesImporter @Inject constructor(
         val parsed = ArrayList<T>(array.length())
         val seenIds = mutableSetOf<String>()
         for (index in 0 until array.length()) {
-            val item = array.optJSONObject(index) ?: continue
-            val value = runCatching { parser(item, index) }.getOrNull() ?: continue
+            val item = array.optJSONObject(index)
+                ?: throw IllegalStateException(
+                    "Legacy collection '$key' contains a non-object item at index $index.",
+                )
+            val value = try {
+                parser(item, index)
+            } catch (exception: Exception) {
+                throw IllegalStateException(
+                    "Unable to import item $index from legacy collection '$key'.",
+                    exception,
+                )
+            } ?: throw IllegalStateException(
+                "Legacy collection '$key' contains an invalid item at index $index.",
+            )
             val id = when (value) {
                 is StudyTaskEntity -> value.id
                 is StudySessionEntity -> value.id
@@ -122,7 +134,12 @@ class LegacyPreferencesImporter @Inject constructor(
                 is ExamResultEntity -> value.id
                 else -> null
             }
-            if (id == null || seenIds.add(id)) parsed += value
+            if (id != null && !seenIds.add(id)) {
+                throw IllegalStateException(
+                    "Legacy collection '$key' contains duplicate identifier '$id'.",
+                )
+            }
+            parsed += value
         }
         return parsed
     }
