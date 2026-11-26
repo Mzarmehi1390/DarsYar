@@ -231,7 +231,7 @@ class ExamViewModelTest {
         assertEquals(1, updated.correct)
         assertEquals(0, updated.wrong)
         assertEquals(1, updated.unanswered)
-        assertEquals(100.0, updated.percentage!!, 0.000001)
+        assertEquals(50.0, updated.percentage!!, 0.000001)
     }
 
     @Test
