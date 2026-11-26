@@ -174,11 +174,11 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         item { EmptyPlannerCard("هنوز کاری ثبت نکرده‌ای. با دکمهٔ افزودن کار شروع کن.") }
                     } else {
                         items(state.tasks, key = { it.id }) { task ->
-                            TaskCard(
+                            PlannerTaskCard(
                                 task = task,
                                 onToggle = {
                                     viewModel.toggleTask(task) { result ->
-                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                                     }
                                 },
                                 onEdit = {
@@ -419,28 +419,6 @@ private fun SectionHeading(title: String, detail: String) {
 }
 
 @Composable
-private fun TaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
-    var actionsExpanded by remember(task.id) { mutableStateOf(false) }
-    Card(modifier = Modifier.darsYarAnimateContentSize()) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(task.title, fontWeight = FontWeight.SemiBold, color = if (task.done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
-                Text(task.subject, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(task.dueDate?.let { "سررسید: ${formatDueDate(it)}" } ?: "بدون تاریخ سررسید", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                TextButton(onClick = { actionsExpanded = true }) { Text("عملیات") }
-                DropdownMenu(expanded = actionsExpanded, onDismissRequest = { actionsExpanded = false }) {
-                    DropdownMenuItem(text = { Text("ویرایش") }, onClick = { actionsExpanded = false; onEdit() })
-                    DropdownMenuItem(text = { Text(if (task.done) "بازگردانی" else "انجام شد") }, onClick = { actionsExpanded = false; onToggle() })
-                    DropdownMenuItem(text = { Text("حذف", color = MaterialTheme.colorScheme.error) }, onClick = { actionsExpanded = false; onDelete() })
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun SessionCard(
     session: StudySession,
     onToggle: () -> Unit,
@@ -475,70 +453,6 @@ private fun SessionCard(
 private fun EmptyPlannerCard(message: String) {
     Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Text(message, modifier = Modifier.fillMaxWidth().padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (StudyTask) -> Unit) {
-    var title by remember(task?.id) { mutableStateOf(task?.title.orEmpty()) }
-    var subject by remember(task?.id) { mutableStateOf(task?.subject.orEmpty()) }
-    var dueDate by remember(task?.id) { mutableStateOf(task?.dueDate) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    val pickerState = key(dueDate) {
-        rememberDatePickerState(
-            initialSelectedDateMillis = dueDate?.let { date ->
-                runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
-            },
-        )
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(if (task == null) "کار جدید" else "ویرایش کار") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("عنوان کار") }, singleLine = true)
-                OutlinedTextField(value = subject, onValueChange = { subject = it }, label = { Text("درس (اختیاری)") }, singleLine = true)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("تاریخ سررسید", style = MaterialTheme.typography.labelLarge)
-                        Text(dueDate?.let(::formatDueDate) ?: "تاریخی انتخاب نشده", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    TextButton(onClick = { showDatePicker = true }) { Text("انتخاب تاریخ") }
-                    if (dueDate != null) TextButton(onClick = { dueDate = null }) { Text("پاک‌کردن") }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onSave(StudyTask(
-                        id = task?.id ?: UUID.randomUUID().toString(),
-                        title = title.trim(),
-                        subject = subject.trim(),
-                        done = task?.done ?: false,
-                        dueDate = dueDate,
-                    ))
-                },
-                enabled = title.isNotBlank(),
-            ) { Text("ذخیره") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("انصراف") } },
-    )
-
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    dueDate = pickerState.selectedDateMillis?.let { millis ->
-                        Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
-                    }
-                    showDatePicker = false
-                }, enabled = pickerState.selectedDateMillis != null) { Text("تأیید") }
-            },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } },
-        ) { DatePicker(state = pickerState) }
     }
 }
 
@@ -697,7 +611,7 @@ private fun formatDueDate(value: String): String = runCatching {
     "%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth)
 }.getOrDefault(value)
 
-private fun PlannerActionResult.toMessage(): String = when (this) {
+fun PlannerActionResult.toUserMessage(): String = when (this) {
     PlannerActionResult.Success -> "عملیات با موفقیت انجام شد"
     is PlannerActionResult.Invalid -> reason
     is PlannerActionResult.Failure -> cause.message ?: "عملیات ناموفق بود"

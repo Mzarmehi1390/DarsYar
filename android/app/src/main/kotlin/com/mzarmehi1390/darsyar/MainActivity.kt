@@ -124,6 +124,8 @@ private fun NativeAppNavigation(
                     onExams = { navController.navigate("exams") },
                     onSettings = { navController.navigate("settings") },
                     onToggleTask = plannerViewModel::toggleTask,
+                    onSaveTask = plannerViewModel::saveTask,
+                    onDeleteTask = plannerViewModel::deleteTask,
                 )
             }
             composable("planner") {
