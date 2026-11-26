@@ -325,6 +325,28 @@ class LegacyPreferencesImporterTest {
     }
 
     @Test
+    fun preservesWhitespaceOnlyNonEmptyResultIdsLikeFlutterModel() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.results",
+                """[
+                    {"id":"   ","examName":"شناسهٔ فاصله"},
+                    {"id":"","examName":"شناسهٔ خالی"},
+                    {"examName":"شناسهٔ حذف‌شده"}
+                ]""".trimIndent(),
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        val results = database.examResultDao().getAll().associateBy { it.examName }
+
+        assertEquals(3, results.size)
+        assertEquals("   ", results["شناسهٔ فاصله"]?.id)
+        assertEquals("legacy-result-1", results["شناسهٔ خالی"]?.id)
+        assertEquals("legacy-result-2", results["شناسهٔ حذف‌شده"]?.id)
+    }
+
+    @Test
     fun skipsImportWhenNativeDataAlreadyExists() = runBlocking {
         database.studyTaskDao().upsertAll(
             listOf(

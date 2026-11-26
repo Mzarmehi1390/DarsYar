@@ -118,7 +118,7 @@ class LegacyPreferencesImporter @Inject constructor(
         // keys, so reserve explicit IDs up front and normalize only result IDs.
         val reservedResultIds = if (key == RESULTS_KEY) {
             (0 until array.length()).mapNotNull { index ->
-                (array.optJSONObject(index)?.opt("id") as? String)?.takeIf(String::isNotBlank)
+                (array.optJSONObject(index)?.opt("id") as? String)?.takeIf(String::isNotEmpty)
             }.toSet()
         } else {
             emptySet()
@@ -139,7 +139,7 @@ class LegacyPreferencesImporter @Inject constructor(
                 "Legacy collection '$key' contains an invalid item at index $index.",
             )
             val value: T = if (parsedValue is ExamResultEntity) {
-                val rawId = (item.opt("id") as? String)?.takeIf(String::isNotBlank)
+                val rawId = (item.opt("id") as? String)?.takeIf(String::isNotEmpty)
                 val needsGeneratedId = parsedValue.id in seenIds ||
                     (rawId == null && parsedValue.id in reservedResultIds)
                 if (needsGeneratedId) {
@@ -272,7 +272,7 @@ class LegacyPreferencesImporter @Inject constructor(
     )
 
     private fun parseResult(json: JSONObject, index: Int): ExamResultEntity? {
-        val rawId = (json.opt("id") as? String)?.takeIf(String::isNotBlank)
+        val rawId = (json.opt("id") as? String)?.takeIf(String::isNotEmpty)
         val id = rawId ?: "legacy-result-$index"
         val questionCount = json.intFromNumber("questionCount", 0).coerceIn(0, 200)
         val keyed = json.intFromNumber("keyedQuestions", 0).coerceIn(0, questionCount)

@@ -190,3 +190,8 @@ Create fixtures from synthetic data, never real user data:
 ### Legacy planner date parsing parity
 
 The one-time SharedPreferences importer accepts Flutter-compatible ISO date-only and ISO timestamp strings for task due dates and session scheduled dates. Offset-bearing timestamps are normalized to UTC before extracting the calendar date, matching the legacy Dart DateTime.tryParse then date-only conversion path. Invalid or non-string optional date values remain unset.
+
+
+### Legacy result identifier parity
+
+Flutter's `ExamResult.fromJson` preserves every non-empty string ID, including whitespace-only strings; only an empty string or non-string ID receives a fallback. The native SharedPreferences importer follows that distinction while still normalizing duplicate IDs when Room requires unique primary keys. Robolectric coverage verifies whitespace-only, empty and missing IDs.
