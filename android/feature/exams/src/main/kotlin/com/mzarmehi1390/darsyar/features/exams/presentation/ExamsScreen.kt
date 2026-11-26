@@ -72,7 +72,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
     // The timer updates once per second; keep list derivations tied to their source data.
     val orderedResults = remember(state.results) {
-        state.results.sortedByDescending(::historyTimestamp)
+        state.results.sortedByDescending { historyTimestamp(it.completedAt) }
     }
     val activeSheet = remember(state.sheets, state.activeExamId) {
         state.sheets.firstOrNull { it.id == state.activeExamId }
