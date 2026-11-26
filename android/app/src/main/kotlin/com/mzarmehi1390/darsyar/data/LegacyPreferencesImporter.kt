@@ -91,10 +91,11 @@ class LegacyPreferencesImporter @Inject constructor(
     private fun prefKey(key: String) = FLUTTER_KEY_PREFIX + key
 
     private fun readString(key: String): String? {
-        val fullKey = prefKey(key)
-        if (!preferences.contains(fullKey)) return null
-        return preferences.getString(fullKey, null)
-            ?: throw IllegalStateException("Legacy preference '$key' is not a string.")
+        // Flutter's DarsYarStorageSnapshot.stringValue returns null for a
+        // present value whose runtime type is not String. SharedPreferences
+        // getString() throws ClassCastException for that same value, so read
+        // the untyped map and preserve the legacy fallback behavior instead.
+        return preferences.all[prefKey(key)] as? String
     }
 
     private fun readInt(key: String, fallback: Int): Int =

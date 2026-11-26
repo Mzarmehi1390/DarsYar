@@ -109,6 +109,7 @@ The detailed normalized child-table proposal below remains a future design optio
 Implementation status: implemented for the current native baseline; keep the following as the acceptance contract and close remaining device-verification gaps.
 
 - JSON numeric fields and answer-map/list values follow Dart `num` casts: numeric strings are not coerced, while fractional numbers are truncated with `toInt()`. Task/session nullable boolean casts reject non-boolean values; exam/result boolean flags are true only for the JSON boolean `true`. Exam-sheet missing/null IDs and names use Flutter defaults while explicit empty strings are preserved. Robolectric regression tests cover these distinctions.
+- Legacy preference reads mirror `DarsYarStorageSnapshot.stringValue`: a missing key or a present non-string value resolves to null rather than throwing from Android `SharedPreferences.getString()`. Regression coverage verifies wrong-typed collection and active-exam keys use safe fallback behavior.
 - Legacy task/session date parsing accepts ISO date-only values and timestamps, including lowercase `z`, compact `yyyyMMdd` dates, and numeric timezone offsets with or without a colon. Offset timestamps are converted to UTC before extracting the calendar date. Invalid optional date strings become null; this is targeted compatibility coverage, not a claim of complete equivalence with every Dart `DateTime.tryParse` edge case.
 
 1. Open native database and inspect migration metadata.
