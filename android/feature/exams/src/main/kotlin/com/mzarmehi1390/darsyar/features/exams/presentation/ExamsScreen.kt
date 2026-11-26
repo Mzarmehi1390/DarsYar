@@ -70,6 +70,13 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var renameSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var deleteSheet by remember { mutableStateOf<ExamSheet?>(null) }
     val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
+    // The timer updates once per second; keep list derivations tied to their source data.
+    val orderedResults = remember(state.results) {
+        state.results.sortedByDescending(::historyTimestamp)
+    }
+    val activeSheet = remember(state.sheets, state.activeExamId) {
+        state.sheets.firstOrNull { it.id == state.activeExamId }
+    }
     val savedSheets = remember(state.sheets) { state.sheets.asReversed() }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
@@ -84,7 +91,6 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     LaunchedEffect(state.activeExamId, state.isLoading) {
         val activeId = state.activeExamId
         if (!state.isLoading && activeId != null && takingSheet == null) {
-            val activeSheet = state.sheets.firstOrNull { it.id == activeId }
             if (activeSheet == null) {
                 viewModel.clearActiveExam(activeId)
             } else {
@@ -123,7 +129,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                 ) {
                     item {
                         state.activeExamId?.let { activeId ->
-                            state.sheets.firstOrNull { it.id == activeId }?.let { activeSheet ->
+                            activeSheet?.let { activeSheet ->
                                 Card(modifier = Modifier.darsYarAnimateContentSize(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                                     Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                         Text("آزمون فعال", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
@@ -207,7 +213,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                         item { EmptyExamCard("پس از ثبت نتیجه، کارنامه‌ها در این بخش نمایش داده می‌شوند.") }
                     } else {
                         items(
-                            state.results.sortedByDescending { historyTimestamp(it.completedAt) },
+                            orderedResults,
                             key = { it.id },
                         ) { result ->
                             ExamHistoryResultCard(
