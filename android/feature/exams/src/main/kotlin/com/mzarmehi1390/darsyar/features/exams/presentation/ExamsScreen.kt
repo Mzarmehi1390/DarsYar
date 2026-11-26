@@ -305,8 +305,13 @@ fun ExamsScreen(viewModel: ExamViewModel) {
             takingState = state.takingState,
             onPause = viewModel::pauseExam,
             onResume = viewModel::resumeExam,
+            onBeginFinish = { viewModel.beginFinish() },
+            onCancelFinish = viewModel::cancelFinish,
             onQuestionSelected = viewModel::selectQuestion,
-            onDismiss = { takingSheet = null },
+            onDismiss = {
+                viewModel.cancelFinish()
+                takingSheet = null
+            },
             onDraftChanged = { updated -> viewModel.saveSheet(updated) },
             onFinish = { updated ->
                 viewModel.saveSheet(updated) { saveResult ->
@@ -700,6 +705,8 @@ private fun ExamTakingDialog(
     takingState: ExamTakingState,
     onPause: () -> Unit,
     onResume: () -> Unit,
+    onBeginFinish: () -> Boolean,
+    onCancelFinish: () -> Unit,
     onQuestionSelected: (Int) -> Unit,
     onDismiss: () -> Unit,
     onDraftChanged: (ExamSheet) -> Unit,
@@ -876,7 +883,9 @@ private fun ExamTakingDialog(
                     Text(if (takingState.isSavingResult) "در حال ثبت نتیجه..." else "تلاش دوباره برای ثبت نتیجه")
                 }
             } else {
-                Button(onClick = { showFinishConfirmation = true }) { Text("پایان و ثبت نتیجه") }
+                Button(onClick = {
+                    if (onBeginFinish()) showFinishConfirmation = true
+                }) { Text("پایان و ثبت نتیجه") }
             }
         },
         dismissButton = {
@@ -886,7 +895,10 @@ private fun ExamTakingDialog(
 
     if (showFinishConfirmation) {
         AlertDialog(
-            onDismissRequest = { showFinishConfirmation = false },
+            onDismissRequest = {
+                showFinishConfirmation = false
+                onCancelFinish()
+            },
             title = { Text("ثبت نهایی آزمون؟") },
             text = {
                 Text(
@@ -900,7 +912,10 @@ private fun ExamTakingDialog(
                 }) { Text("ثبت نتیجه") }
             },
             dismissButton = {
-                TextButton(onClick = { showFinishConfirmation = false }) { Text("بازگشت به آزمون") }
+                TextButton(onClick = {
+                    showFinishConfirmation = false
+                    onCancelFinish()
+                }) { Text("بازگشت به آزمون") }
             },
         )
     }
