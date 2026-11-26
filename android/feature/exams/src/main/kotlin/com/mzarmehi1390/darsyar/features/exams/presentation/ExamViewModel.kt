@@ -193,6 +193,18 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch { persistTakingStateImmediately() }
     }
 
+    /** Opens manual finish confirmation without pausing the deadline-driven timer. */
+    fun beginFinish(): Boolean {
+        val updated = ExamTakingOperations.beginFinish(takingState.value) ?: return false
+        takingState.value = updated
+        return true
+    }
+
+    /** Cancels only a manual finish request; an expired exam remains in finishing state. */
+    fun cancelFinish() {
+        takingState.update { ExamTakingOperations.cancelFinish(it) }
+    }
+
     /**
      * Refreshes the deadline-derived timer while the exam UI is visible.
      * The persisted deadline remains authoritative while the UI is backgrounded.
@@ -200,7 +212,7 @@ class ExamViewModel @Inject constructor(
      */
     fun refreshTimer() {
         val current = takingState.value
-        if (!current.isTaking || current.isFinishing) return
+        if (!current.isTaking) return
         val tick = ExamTakingOperations.tick(current, nowEpochMillis())
         if (tick.state != current) takingState.value = tick.state
         if (tick.expired) {

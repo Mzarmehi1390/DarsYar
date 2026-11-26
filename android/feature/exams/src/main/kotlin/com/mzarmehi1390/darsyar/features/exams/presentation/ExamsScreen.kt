@@ -363,7 +363,11 @@ private fun ExamTakingDialog(
 
     LaunchedEffect(takingState.isFinishing, takingState.remainingSeconds) {
         // Expiry is submitted automatically by the ViewModel; only manual finish asks for confirmation.
-        if (takingState.isFinishing && takingState.remainingSeconds > 0) showFinishConfirmation = true
+        if (takingState.isFinishing && takingState.remainingSeconds > 0) {
+            showFinishConfirmation = true
+        } else if (takingState.remainingSeconds == 0) {
+            showFinishConfirmation = false
+        }
     }
 
     AlertDialog(

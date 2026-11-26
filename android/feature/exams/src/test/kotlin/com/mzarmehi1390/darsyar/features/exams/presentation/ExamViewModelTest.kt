@@ -110,6 +110,73 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun manualFinishKeepsTimerRunningAndCanBeCancelled() = runTest(mainDispatcher) {
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", durationSeconds = 10)),
+        )
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        var now = 5_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.beginFinish())
+        assertTrue(viewModel.uiState.value.takingState.isFinishing)
+        now += 3_250L
+        viewModel.refreshTimer()
+
+        assertEquals(7, viewModel.uiState.value.takingState.remainingSeconds)
+        assertTrue(viewModel.uiState.value.takingState.isTaking)
+        assertTrue(viewModel.uiState.value.takingState.isFinishing)
+
+        viewModel.cancelFinish()
+        assertTrue(viewModel.uiState.value.takingState.isTaking)
+        assertTrue(!viewModel.uiState.value.takingState.isFinishing)
+        assertEquals(7, viewModel.uiState.value.takingState.remainingSeconds)
+        stateJob.cancel()
+    }
+
+    @Test
+    fun timerExpiryDuringManualFinishStillCompletesExamAutomatically() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-expired-manual",
+            examId = "exam-1",
+            examName = "آزمون زمان‌دار",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 0,
+            wrong = 0,
+            unanswered = 1,
+            keyedQuestions = 1,
+            percentage = 0.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", questionCount = 1, durationSeconds = 5)),
+            completion = expected,
+        )
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        var now = 10_000L
+        viewModel.nowEpochMillis = { now }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.beginFinish())
+        now += 5_000L
+        viewModel.refreshTimer()
+        advanceUntilIdle()
+
+        assertEquals(1, repository.completionCalls)
+        assertEquals(ExamTakingState(), viewModel.uiState.value.takingState)
+        stateJob.cancel()
+    }
+
+    @Test
     fun clearActiveExam_clearsPersistedSelection() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(
             initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون ریاضی")),
