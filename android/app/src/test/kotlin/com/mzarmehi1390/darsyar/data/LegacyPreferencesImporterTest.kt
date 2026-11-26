@@ -289,6 +289,26 @@ class LegacyPreferencesImporterTest {
 
 
     @Test
+    fun duplicateLegacyExamIdentifiersRejectImportWithoutDroppingSheets() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.exams",
+                """[{"id":"same","name":"First"},{"id":"same","name":"Second"}]""",
+            )
+            .commit()
+
+        try {
+            importer.importIfNeeded()
+            throw AssertionError("Duplicate exam identifiers must fail the entire import.")
+        } catch (expected: IllegalStateException) {
+            assertTrue(expected.message.orEmpty().contains("duplicate"))
+        }
+
+        assertEquals(0, database.examSheetDao().count())
+        assertEquals(null, database.appStateDao().get())
+    }
+
+    @Test
     fun importsEveryHistoricalResultAndNormalizesOnlyCollidingLegacyIds() = runBlocking {
         preferences.edit()
             .putString(

@@ -66,8 +66,9 @@ class LegacyPreferencesImporter @Inject constructor(
             listOf(parseLegacySingleExam())
         }.ifEmpty { listOf(defaultExam()) }
 
-        val uniqueExams = exams.distinctBy { it.id }
-        val safeExams = uniqueExams.ifEmpty { listOf(defaultExam()) }
+        // readCollection already rejects duplicate IDs; avoid a second full
+        // traversal/allocation for exam sheets after validation.
+        val safeExams = exams.ifEmpty { listOf(defaultExam()) }
         val requestedActiveId = readString(ACTIVE_EXAM_KEY)
         val activeExamId = requestedActiveId
             ?.takeIf { requested -> safeExams.any { it.id == requested } }
