@@ -180,6 +180,43 @@ class DarsYarBackupCodecTest {
     }
 
     @Test
+    fun decode_rejectsExplicitNullResultAnswerMapsLikeFlutter() {
+        listOf("answers", "answerKey").forEach { field ->
+            val invalid = validBackup().replace(
+                "\"results\": []",
+                "\"results\": [{\"questionCount\": 2, \"$field\": null}]",
+            )
+            assertThrows(BackupFormatException::class.java) {
+                DarsYarBackupCodec.decode(invalid)
+            }
+        }
+    }
+
+    @Test
+    fun decode_normalizesLegacyResultIdCollisionsWithoutDroppingRecords() {
+        val backup = validBackup().replace(
+            "\"results\": []",
+            """
+            "results": [
+              {"id": "duplicate", "examName": "اول"},
+              {"id": "duplicate", "examName": "دوم"},
+              {"id": "", "examName": "سوم"},
+              {"examName": "چهارم"},
+              {"id": "legacy-result-2", "examName": "پنجم"}
+            ]
+            """.trimIndent(),
+        )
+
+        val results = DarsYarBackupCodec.decode(backup).results
+
+        assertEquals(5, results.size)
+        assertEquals("duplicate", results.first().id)
+        assertEquals(5, results.map { it.id }.toSet().size)
+        assertTrue(results.all { it.id.isNotEmpty() })
+        assertEquals(listOf("اول", "دوم", "سوم", "چهارم", "پنجم"), results.map { it.examName })
+    }
+
+    @Test
     fun decode_rejectsNonNumericSchemaVersion() {
         val invalidVersion = validBackup().replace(
             "\"schemaVersion\": 1",

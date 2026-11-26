@@ -188,8 +188,26 @@ internal object DarsYarBackupCodec {
         if (exams.isEmpty()) throw BackupFormatException("Backup has no exam sheets.")
         validateUniqueIds(exams.map { it.id }, "exams")
 
-        val results = root.requiredArray("results").mapIndexed { index, element ->
+        val resultElements = root.requiredArray("results")
+        // Flutter accepts missing/empty result IDs and does not enforce result-ID
+        // uniqueness. Room uses the ID as a primary key, so normalize collisions
+        // deterministically instead of rejecting a valid legacy backup or silently
+        // replacing one historical result with another during restore.
+        val preferredResultIds = resultElements.mapIndexed { index, element ->
+            element.objectValue("results[$index]")
+                .optionalString("id", "results[$index]")
+                ?.takeIf(String::isNotEmpty)
+        }
+        val reservedResultIds = preferredResultIds.filterNotNull().toSet()
+        val assignedResultIds = hashSetOf<String>()
+        val results = resultElements.mapIndexed { index, element ->
             val item = element.objectValue("results[$index]")
+            val preferredId = preferredResultIds[index]
+            val resultId = preferredId
+                ?.takeIf(assignedResultIds::add)
+                ?: generateUniqueLegacyResultId(index, reservedResultIds, assignedResultIds).also {
+                    assignedResultIds += it
+                }
             val count = item.optionalInt("questionCount", "results[$index]") ?: 0
             val keyed = item.optionalInt("keyedQuestions", "results[$index]") ?: 0
             val correct = item.optionalInt("correct", "results[$index]") ?: 0
@@ -204,7 +222,7 @@ internal object DarsYarBackupCodec {
                 invalid("results[$index].percentage")
             }
             ExamResult(
-                id = item.optionalString("id", "results[$index]") ?: "legacy-result-$index",
+                id = resultId,
                 examId = item.optionalString("examId", "results[$index]"),
                 examName = item.optionalString("examName", "results[$index]") ?: "آزمون",
                 completedAt = item.optionalString("completedAt", "results[$index]") ?: "",
@@ -215,8 +233,8 @@ internal object DarsYarBackupCodec {
                 keyedQuestions = keyed,
                 percentage = percentage,
                 negativeMarking = item.optionalBoolean("negativeMarking", "results[$index]") ?: false,
-                answers = item.optionalQuestionMap("answers", count, "results[$index]"),
-                answerKey = item.optionalQuestionMap("answerKey", count, "results[$index]"),
+                answers = item.optionalQuestionMap("answers", count, "results[$index]", nullAsEmpty = false),
+                answerKey = item.optionalQuestionMap("answerKey", count, "results[$index]", nullAsEmpty = false),
             )
         }
         validateUniqueIds(results.map { it.id }, "results")
@@ -292,13 +310,32 @@ internal object DarsYarBackupCodec {
         return value
     }
 
+    private fun generateUniqueLegacyResultId(
+        index: Int,
+        reservedIds: Set<String>,
+        assignedIds: Set<String>,
+    ): String {
+        val base = "legacy-result-$index"
+        var candidate = base
+        var suffix = 1
+        while (candidate in reservedIds || candidate in assignedIds) {
+            candidate = "$base-$suffix"
+            suffix++
+        }
+        return candidate
+    }
+
     private fun JsonObject.optionalQuestionMap(
         key: String,
         questionCount: Int,
         scope: String,
+        nullAsEmpty: Boolean = true,
     ): Map<Int, Int> {
         val element = this[key] ?: return emptyMap()
-        if (element === JsonNull) return emptyMap()
+        if (element === JsonNull) {
+            if (nullAsEmpty) return emptyMap()
+            invalid("$scope.$key")
+        }
         val source = element as? JsonObject ?: invalid("$scope.$key")
         return buildMap {
             source.forEach { (rawQuestion, rawAnswer) ->
