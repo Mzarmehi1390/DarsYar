@@ -414,6 +414,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     if (showTaskEditor) {
         TaskEditorDialog(
             task = editingTask,
+            initialDueDate = selectedDate,
             onDismiss = { showTaskEditor = false },
             onSave = { task ->
                 viewModel.saveTask(task) { result ->

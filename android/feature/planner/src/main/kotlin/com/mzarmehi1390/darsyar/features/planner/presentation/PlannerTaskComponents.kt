@@ -70,10 +70,10 @@ fun PlannerTaskCard(task: StudyTask, onToggle: () -> Unit, onEdit: () -> Unit, o
 }
 
 @Composable
-fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (StudyTask) -> Unit) {
+fun TaskEditorDialog(task: StudyTask?, initialDueDate: LocalDate, onDismiss: () -> Unit, onSave: (StudyTask) -> Unit) {
     var title by remember(task?.id) { mutableStateOf(task?.title.orEmpty()) }
     var subject by remember(task?.id) { mutableStateOf(task?.subject.orEmpty()) }
-    var dueDate by remember(task?.id) { mutableStateOf(task?.dueDate) }
+    var dueDate by remember(task?.id, initialDueDate) { mutableStateOf(task?.dueDate ?: initialDueDate.toString()) }
     var showDatePicker by remember { mutableStateOf(false) }
     val pickerState = key(dueDate) {
         rememberDatePickerState(
