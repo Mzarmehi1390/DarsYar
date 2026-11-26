@@ -56,6 +56,8 @@ sealed interface PlannerWeekCopyResult {
     data object TargetWeekNotEmpty : PlannerWeekCopyResult
     data object SessionConflict : PlannerWeekCopyResult
     data object IdCollision : PlannerWeekCopyResult
+    data object SourceChanged : PlannerWeekCopyResult
+    data object InvalidPlan : PlannerWeekCopyResult
 }
 
 data class PlannerWeekCopyPlan(
