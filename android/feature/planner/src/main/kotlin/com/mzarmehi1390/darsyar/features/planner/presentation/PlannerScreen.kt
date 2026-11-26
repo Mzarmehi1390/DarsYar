@@ -187,7 +187,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 },
                                 onDelete = {
                                     viewModel.deleteTask(task.id) { result ->
-                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                                     }
                                 },
                             )
@@ -245,7 +245,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 session = session,
                                 onToggle = {
                                     viewModel.toggleSession(session) { result ->
-                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                                     }
                                 },
                                 onEdit = {
@@ -254,7 +254,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 },
                                 onDelete = {
                                     viewModel.deleteSession(session.id) { result ->
-                                        scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                        scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                                     }
                                 },
                             )
@@ -284,7 +284,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         viewModel.copySelectedDayTo(selectedDate, target) { result ->
                             isCopyingDay = false
                             dayCopyTarget = null
-                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                            scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                         }
                     },
                 ) { Text(if (isCopyingDay) "در حال کپی…" else "تأیید کپی") }
@@ -320,7 +320,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         showWeekCopyConfirmation = false
                         viewModel.copyWeekToNext(weekStart) { result ->
                             isCopyingWeek = false
-                            scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                            scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                             if (result == PlannerActionResult.Success) {
                                 weekStart = weekStart.plusDays(7)
                                 selectedDate = weekStart
@@ -343,7 +343,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
             onDismiss = { showTaskEditor = false },
             onSave = { task ->
                 viewModel.saveTask(task) { result ->
-                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                    scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                     if (result is PlannerActionResult.Success) showTaskEditor = false
                 }
             },
@@ -357,7 +357,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
             onDismiss = { showSessionEditor = false },
             onSave = { session ->
                 viewModel.saveSession(session) { result ->
-                    scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                    scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
                     if (result is PlannerActionResult.Success) showSessionEditor = false
                 }
             },

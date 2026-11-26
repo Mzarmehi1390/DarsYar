@@ -93,14 +93,12 @@ fun TaskEditorDialog(task: StudyTask?, onDismiss: () -> Unit, onSave: (StudyTask
                     onValueChange = { title = it.take(100) },
                     label = { Text("عنوان کار") },
                     singleLine = true,
-                    maxLength = 100,
                 )
                 OutlinedTextField(
                     value = subject,
                     onValueChange = { subject = it.take(50) },
                     label = { Text("درس (اختیاری)") },
                     singleLine = true,
-                    maxLength = 50,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
