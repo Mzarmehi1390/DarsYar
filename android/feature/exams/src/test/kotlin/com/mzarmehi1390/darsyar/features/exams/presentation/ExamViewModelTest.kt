@@ -371,6 +371,52 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun failedManualSubmissionReleasesFinishGuardAndCanBeRetried() = runTest(mainDispatcher) {
+        val expected = ExamResult(
+            id = "result-manual-retry",
+            examId = "exam-1",
+            examName = "آزمون قابل تکرار",
+            completedAt = "2026-11-23T12:00:00Z",
+            questionCount = 1,
+            correct = 1,
+            wrong = 0,
+            unanswered = 0,
+            keyedQuestions = 1,
+            percentage = 100.0,
+        )
+        val repository = FakeExamRepository(
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون قابل تکرار", questionCount = 1, durationSeconds = 30)),
+            completion = expected,
+        )
+        repository.completionFailure = IllegalStateException("temporary storage failure")
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        viewModel.nowEpochMillis = { 5_000L }
+        viewModel.startExam("exam-1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.beginFinish())
+        viewModel.completeExam("exam-1", expected.completedAt, "result-manual-retry")
+        advanceUntilIdle()
+
+        val failedState = viewModel.uiState.value.takingState
+        assertTrue(failedState.isTaking)
+        assertEquals(false, failedState.isFinishing)
+        assertEquals(false, failedState.isSavingResult)
+        assertTrue(viewModel.beginFinish())
+
+        repository.completionFailure = null
+        viewModel.completeExam("exam-1", expected.completedAt, "result-manual-retry")
+        advanceUntilIdle()
+
+        assertEquals(2, repository.completionCalls)
+        assertEquals(ExamTakingState(), viewModel.uiState.value.takingState)
+        stateJob.cancel()
+    }
+
+    @Test
     fun failedAutoSubmissionCanBeRetried() = runTest(mainDispatcher) {
         val expected = ExamResult(
             id = "result-retry",

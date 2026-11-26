@@ -301,19 +301,33 @@ class ExamViewModel @Inject constructor(
                     activeQuestionCount = 0
                     actionError.update { null }
                 } else if (result == null) {
-                    takingState.update { if (it.examId == sheetId) it.copy(isSavingResult = false) else it }
+                    releaseFailedCompletion(sheetId)
                     actionError.update { "نتیجهٔ آزمون ثبت نشد؛ می‌توانی دوباره تلاش کنی" }
                 }
                 onResult(result?.let(ExamActionResult::Completed) ?: ExamActionResult.SheetNotFound)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
-                takingState.update { if (it.examId == sheetId) it.copy(isSavingResult = false) else it }
+                releaseFailedCompletion(sheetId)
                 actionError.update { failure.message ?: "ثبت نتیجهٔ آزمون با خطا روبه‌رو شد" }
                 onResult(ExamActionResult.Failure(failure))
             } finally {
                 completionInFlight.remove(sheetId)
             }
+        }
+    }
+
+    /**
+     * Releases a failed manual submission so the user can reopen confirmation and retry.
+     * An expired exam is not taking anymore, so its finishing state remains locked for retry.
+     */
+    private fun releaseFailedCompletion(sheetId: String) {
+        takingState.update { current ->
+            if (current.examId != sheetId) current
+            else current.copy(
+                isSavingResult = false,
+                isFinishing = if (current.isTaking) false else current.isFinishing,
+            )
         }
     }
 
