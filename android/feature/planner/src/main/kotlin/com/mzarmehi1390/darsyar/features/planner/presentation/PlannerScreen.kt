@@ -90,11 +90,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     // Cache derived collections so typing in the task search does not re-filter
     // or re-sort the selected day's schedule.
     val selectedDaySessions = remember(state.sessions, selectedDate) {
-        val selectedWeekday = PlannerCalendar.weekdayForDate(selectedDate)
-        state.sessions.filter { session ->
-            val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-            if (date != null) date == selectedDate else session.weekday == selectedWeekday
-        }.sortedBy(StudySession::startMinutes)
+        PlannerOperations.sessionsForPlannerDate(state.sessions, selectedDate)
     }
     val today = LocalDate.now()
     val visibleTasks = remember(state.tasks, taskSearchQuery, taskStatusFilter, today) {
@@ -105,14 +101,16 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
             today = today,
         )
     }
-    val sessionCountsByDate = remember(state.sessions, weekDates) {
-        weekDates.associateWith { date ->
-            val weekday = PlannerCalendar.weekdayForDate(date)
-            state.sessions.count { session ->
-                val sessionDate = PlannerCalendar.parseDateKey(session.scheduledDate)
-                if (sessionDate != null) sessionDate == date else session.weekday == weekday
-            }
+    val remainingTaskCount = remember(state.tasks) { state.tasks.count { !it.done } }
+    val datedTaskCount = remember(state.tasks, weekStart) {
+        state.tasks.count { task ->
+            PlannerCalendar.parseDateKey(task.dueDate)
+                ?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
         }
+    }
+    // Aggregate the week strip in O(n), parsing each session date once.
+    val sessionCountsByDate = remember(state.sessions, weekDates) {
+        PlannerOperations.sessionCountsByDate(state.sessions, weekDates)
     }
 
     Scaffold(
@@ -169,9 +167,6 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                     }
                     item {
                         val copyableSessionCount = sessionsInWeek.size
-                        val datedTaskCount = state.tasks.count { task ->
-                            PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
-                        }
                         TextButton(
                             enabled = !isCopyingWeek && copyableSessionCount + datedTaskCount > 0,
                             onClick = { showWeekCopyConfirmation = true },
@@ -199,7 +194,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                     item {
                         SectionHeading(
                             title = "کارهای من",
-                            detail = "${state.tasks.count { !it.done }} کار باقی‌مانده · ${visibleTasks.size} نمایش",
+                            detail = "${remainingTaskCount} کار باقی‌مانده · ${visibleTasks.size} نمایش",
                         )
                     }
                     item {
@@ -380,9 +375,6 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
 
     if (showWeekCopyConfirmation) {
         val datedSessionCount = sessionsInWeek.size
-        val datedTaskCount = state.tasks.count { task ->
-            PlannerCalendar.parseDateKey(task.dueDate)?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
-        }
         AlertDialog(
             onDismissRequest = { if (!isCopyingWeek) showWeekCopyConfirmation = false },
             title = { Text("کپی برنامهٔ هفتگی") },

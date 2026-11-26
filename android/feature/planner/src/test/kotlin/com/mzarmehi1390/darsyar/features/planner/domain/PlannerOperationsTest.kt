@@ -119,4 +119,46 @@ class PlannerOperationsTest {
         assertEquals("2026-11-24", migrated[1].scheduledDate)
         assertEquals(2, migrated[1].weekday)
     }
+
+    @Test
+    fun sessionCountsByDate_scansOccurrencesAndExcludesMalformedDatedRecords() {
+        val dates = (0L..6L).map { LocalDate.parse("2026-11-21").plusDays(it) }
+        val sessions = listOf(
+            session("dated-saturday", weekday = 0, date = "2026-11-21"),
+            session("dated-tuesday", weekday = 0, date = "2026-11-24"),
+            session("legacy-saturday", weekday = 6),
+            session("legacy-tuesday", weekday = 2),
+            session("outside-week", weekday = 2, date = "2026-11-30"),
+            session("malformed", weekday = 2, date = "24/11/2026"),
+        )
+
+        assertEquals(
+            dates.associateWith { date ->
+                when (date) {
+                    LocalDate.parse("2026-11-21") -> 2
+                    LocalDate.parse("2026-11-24") -> 2
+                    else -> 0
+                }
+            },
+            PlannerOperations.sessionCountsByDate(sessions, dates),
+        )
+    }
+
+    @Test
+    fun sessionsForPlannerDate_combinesExactDateAndLegacyWeekdayAndSorts() {
+        val date = LocalDate.parse("2026-11-24")
+        val datedLate = session("dated-late", start = 11 * 60, date = "2026-11-24")
+        val legacyEarly = session("legacy-early", weekday = 2, start = 8 * 60)
+        val datedOtherWeek = session("other-week", date = "2026-12-01")
+        val malformed = session("malformed", weekday = 2, date = "24/11/2026")
+
+        assertEquals(
+            listOf(legacyEarly, datedLate),
+            PlannerOperations.sessionsForPlannerDate(
+                listOf(datedLate, malformed, datedOtherWeek, legacyEarly),
+                date,
+            ),
+        )
+    }
+
 }
