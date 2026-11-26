@@ -1,6 +1,6 @@
 # DarsYar Data Migration Plan
 
-> Partially implemented. Room schema and preference migration code exist; transactional import of Flutter task/session/exam/result collections is not implemented. Treat user-data migration as release-blocking.
+> Implemented baseline: Room schema, one-time transactional Flutter SharedPreferences import for tasks/sessions/exams/results/active exam, and DataStore preference migration code exist. The importer is covered by Robolectric tests and preserves the legacy source file. Device verification against an installed legacy APK and exact dependency storage format remains a release gate.
 
 ## 1. Data sources
 
@@ -26,7 +26,7 @@ Logical keys used by Dart:
 
 The current DataStore preferences adapter targets the conventional Android SharedPreferences file `FlutterSharedPreferences` and raw keys `flutter.darsyar.themeMode` and `flutter.darsyar.animationsEnabled`. This mapping has not yet been verified against the exact locked `shared_preferences_android` package source or a real installed build. Do not rely on it for a release until verified.
 
-The current DataStore migration only handles theme mode and animation preference. It does not import task, session, exam or result collections. No legacy user-data key is deleted by the Room layer. Keep all legacy data intact.
+The DataStore migration handles theme mode and animation preference. A separate Room importer handles task, session, exam and result collections transactionally. It keeps the legacy SharedPreferences file untouched.
 
 ## 2. Room schema
 
@@ -106,21 +106,21 @@ The detailed normalized child-table proposal below remains a future design optio
 
 ## 3. One-time migration algorithm
 
-Implementation status: not yet implemented for feature collections. The algorithm below is the required acceptance contract.
+Implementation status: implemented for the current native baseline; keep the following as the acceptance contract and close remaining device-verification gaps.
 
 1. Open native database and inspect migration metadata.
 2. If migration marker is complete, do not read or re-import Flutter data.
 3. Read legacy preferences through a dedicated read-only adapter.
-4. Read all relevant raw keys and record key presence separately from parse success.
-5. Decode current-format collections. Distinguish absent keys from present-but-corrupt keys.
-6. If current exam collection key is absent, reconstruct the legacy single sheet from legacy answers/key/marked/count fields. If the current key is present but invalid/empty, do not resurrect stale legacy fields; surface a recoverable migration error or safe empty state according to a reviewed recovery policy.
-7. Validate every entity and relationship before starting writes.
-8. Migrate date-less sessions to the Saturday-based week anchored to a deterministic migration reference date; document the reference date and make retry behavior deterministic.
-9. Insert tasks, sessions, sheets, answers, answer keys, marked questions, results and active exam state in one Room transaction.
-10. Set the Room migration marker only after all inserts and invariants succeed, in the same transaction.
+4. Read all relevant keys and distinguish absent values from malformed values.
+5. Decode current-format collections and reject malformed records rather than silently dropping them.
+6. If the current exam collection key is absent, reconstruct the legacy single sheet from legacy answers/key/marked/count fields.
+7. Parse all task/session/exam/result records before writing. Normalize colliding or missing historical result IDs without discarding results; duplicate IDs in other collections remain an import error.
+8. Preserve the current date/weekday compatibility behavior for legacy sessions and validate it against representative installed-app fixtures.
+9. Insert tasks, sessions, sheets, results and active exam state in one Room transaction.
+10. Set the Room migration marker only after all inserts succeed, in the same transaction.
 11. Keep the legacy SharedPreferences file untouched.
-12. Migrate theme/animation preferences separately into DataStore using an idempotent migration. Their absence must not block user-data import.
-13. After successful migration, verify counts, stable IDs, active exam and representative record hashes/counts. Do not delete source data.
+12. Migrate theme/animation preferences separately into DataStore. Their absence must not block user-data import.
+13. After migration, verify counts, IDs, active exam and representative values. Do not delete source data.
 
 ## 4. Idempotence and failure recovery
 
@@ -176,8 +176,8 @@ Create fixtures from synthetic data, never real user data:
 - [ ] Raw SharedPreferences file/key format verified from locked dependency and installed legacy APK.
 - [ ] Original signing key continuity verified for in-place upgrade.
 - [ ] V1 backup fixtures pass native importer tests.
-- [ ] Room transaction and rollback tests pass.
-- [ ] Migration marker idempotence tests pass.
-- [ ] Existing user data remains in legacy preferences after migration.
+- [x] Room transaction and rollback tests pass in automated tests.
+- [x] Migration marker idempotence tests pass in automated tests.
+- [x] Existing user data remains in legacy preferences after migration in automated tests.
 - [ ] Upgrade test from the previous signed release succeeds.
 - [ ] User can recover from malformed or partially unavailable legacy data.

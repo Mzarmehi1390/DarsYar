@@ -306,7 +306,12 @@ class LegacyPreferencesImporterTest {
         preferences.edit()
             .putString(
                 "flutter.darsyar.results",
-                """[{"id":"missing-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0},{"id":"invalid-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0,"percentage":"invalid","negativeMarking":true}]""",
+                """[
+                    {"id":"missing-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0},
+                    {"id":"invalid-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0,"percentage":"invalid","negativeMarking":true},
+                    {"id":"high-percentage","questionCount":3,"keyedQuestions":3,"correct":1,"wrong":2,"unanswered":0,"percentage":150},
+                    {"id":"low-percentage","questionCount":3,"keyedQuestions":3,"correct":2,"wrong":1,"unanswered":0,"percentage":-10}
+                ]""".trimIndent(),
             )
             .commit()
 
@@ -314,6 +319,8 @@ class LegacyPreferencesImporterTest {
         val results = database.examResultDao().getAll().associateBy { it.id }
         assertEquals(200.0 / 3.0, results["missing-percentage"]?.percentage!!, 0.0001)
         assertEquals(500.0 / 9.0, results["invalid-percentage"]?.percentage!!, 0.0001)
+        assertEquals(100.0, results["high-percentage"]?.percentage!!, 0.0001)
+        assertEquals(0.0, results["low-percentage"]?.percentage!!, 0.0001)
     }
 
 }

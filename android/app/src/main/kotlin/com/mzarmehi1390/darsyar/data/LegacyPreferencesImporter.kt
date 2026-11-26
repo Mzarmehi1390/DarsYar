@@ -276,12 +276,12 @@ class LegacyPreferencesImporter @Inject constructor(
         val correct = json.optInt("correct", 0).coerceIn(0, keyed)
         val wrong = json.optInt("wrong", 0).coerceIn(0, keyed - correct)
         val negativeMarking = json.optBoolean("negativeMarking", false)
-        val storedPercentage = if (json.has("percentage") && !json.isNull("percentage")) {
-            json.optDouble("percentage", Double.NaN)
-                .takeIf { it.isFinite() && it in 0.0..100.0 }
-        } else {
-            null
-        }
+        // Match Dart's ExamResult.fromJson: numeric values are clamped,
+        // while missing, null, non-numeric and non-finite values are recalculated.
+        val storedPercentage = (json.opt("percentage") as? Number)
+            ?.toDouble()
+            ?.takeIf(Double::isFinite)
+            ?.coerceIn(0.0, 100.0)
         // Match the legacy Dart model: preserve a valid stored percentage,
         // otherwise recalculate it from the keyed-question score.
         val rawPercentage = storedPercentage ?: if (keyed == 0) {
