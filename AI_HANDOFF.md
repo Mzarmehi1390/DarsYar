@@ -91,3 +91,5 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Dashboard refinement: one-pass bounded task aggregates, Flutter-equivalent primary quick actions and planner view-all affordance are implemented and tested. A parity audit then found the Room task query sorted by due date, unlike Flutter and the native task operations contract (append new tasks; preserve position when editing). The task DAO now reads insertion order, and repository updates existing task rows in place instead of REPLACE/reinsert; regression test `taskOrder_matchesFlutterAppendAndEditPreservesPosition` covers no-date/mixed-date insertion, editing, and appending.
+
+- CI follow-up (`4d93f7f`, run `45885178699`): Gradle configuration stopped before compilation because the Kotlin Compose plugin marker `2.2.20` could not be resolved from the configured plugin repositories. The Compose Compiler plugin is version-coupled to Kotlin, so the version catalog was advanced together to the published patch release `2.2.21`; the next CI run is the verification gate. This does not establish a source-code failure in the task-ordering change; compilation and tests had not started.
