@@ -124,15 +124,18 @@ class ExamViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.beginFinish())
+        runCurrent()
         assertTrue(viewModel.uiState.value.takingState.isFinishing)
         now += 3_250L
         viewModel.refreshTimer()
+        runCurrent()
 
         assertEquals(7, viewModel.uiState.value.takingState.remainingSeconds)
         assertTrue(viewModel.uiState.value.takingState.isTaking)
         assertTrue(viewModel.uiState.value.takingState.isFinishing)
 
         viewModel.cancelFinish()
+        runCurrent()
         assertTrue(viewModel.uiState.value.takingState.isTaking)
         assertTrue(!viewModel.uiState.value.takingState.isFinishing)
         assertEquals(7, viewModel.uiState.value.takingState.remainingSeconds)

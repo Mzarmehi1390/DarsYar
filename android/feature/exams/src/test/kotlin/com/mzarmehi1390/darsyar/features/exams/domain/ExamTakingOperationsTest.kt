@@ -89,6 +89,24 @@ class ExamTakingOperationsTest {
     }
 
     @Test
+    fun countdownContinuesWhileManualFinishConfirmationIsOpen() {
+        val running = ExamTakingOperations.begin(ExamTakingState(), "exam-1", 10, 5, 5_000L)
+        val confirmation = ExamTakingOperations.beginFinish(running)!!
+        val tick = ExamTakingOperations.tick(confirmation, 8_250L)
+
+        assertEquals(7, tick.state.remainingSeconds)
+        assertTrue(tick.state.isTaking)
+        assertTrue(tick.state.isFinishing)
+        assertFalse(tick.expired)
+
+        val cancelled = ExamTakingOperations.cancelFinish(tick.state)
+        assertTrue(cancelled.isTaking)
+        assertFalse(cancelled.isFinishing)
+        assertEquals(7, cancelled.remainingSeconds)
+        assertEquals(running.deadlineEpochMillis, cancelled.deadlineEpochMillis)
+    }
+
+    @Test
     fun resetClearsAllSessionState() {
         val running = ExamTakingOperations.begin(ExamTakingState(), "exam-1", 30, 5, 0L)
         assertEquals(ExamTakingState(), ExamTakingOperations.stop(running, reset = true))
