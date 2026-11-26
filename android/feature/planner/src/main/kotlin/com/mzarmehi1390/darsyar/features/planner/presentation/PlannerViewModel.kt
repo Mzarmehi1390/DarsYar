@@ -201,7 +201,11 @@ class PlannerViewModel @Inject constructor(
                         PlannerWeekCopyResult.SessionConflict ->
                             PlannerActionResult.Invalid("جلسه‌های کپی‌شده با برنامه‌های هفتگی موجود تداخل دارند")
                         PlannerWeekCopyResult.IdCollision ->
-                            PlannerActionResult.Invalid("اطلاعات برنامهٔ کپی‌شده معتبر نیست")
+                            PlannerActionResult.Invalid("شناسهٔ برنامهٔ کپی‌شده تکراری است")
+                        PlannerWeekCopyResult.SourceChanged ->
+                            PlannerActionResult.Invalid("برنامهٔ هفتهٔ مبدأ تغییر کرده است؛ دوباره تلاش کن")
+                        PlannerWeekCopyResult.InvalidPlan ->
+                            PlannerActionResult.Invalid("ساختار برنامهٔ هفتگی کپی‌شده معتبر نیست؛ دوباره تلاش کن")
                     }
                 }
             } catch (cancelled: CancellationException) {
