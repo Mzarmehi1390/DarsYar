@@ -397,6 +397,51 @@ class DarsYarRepositoryTest {
 
 
     @Test
+    fun copyWeekPlan_migratesLegacyWeekdaySessionsIntoConcreteTargetDatesAtomically() = runBlocking {
+        val sourceStart = LocalDate.parse("2026-11-21")
+        val legacy = StudySession(
+            id = "legacy-weekly",
+            title = "جلسهٔ هفتگی قدیمی",
+            subject = "علوم",
+            weekday = 2,
+            startMinutes = 9 * 60,
+            durationMinutes = 45,
+            completed = true,
+        )
+        val malformed = StudySession(
+            id = "malformed-legacy",
+            title = "دادهٔ تاریخ خراب",
+            subject = "عمومی",
+            weekday = 2,
+            startMinutes = 11 * 60,
+            durationMinutes = 30,
+            scheduledDate = "24/11/2026",
+        )
+        repository.upsertStudySession(legacy)
+        repository.upsertStudySession(malformed)
+
+        val service = PlannerWeekCopyService()
+        val plan = service.createNextWeekPlan(
+            repository.observeStudySessions().first(),
+            repository.observeTasks().first(),
+            sourceStart,
+            { "copy-${it.id}" },
+            { "copy-${it.id}" },
+        )
+
+        assertEquals(listOf(legacy), plan.sourceSessions)
+        assertEquals(PlannerWeekCopyResult.Copied(1, 0), repository.copyWeekPlan(plan))
+        val persisted = repository.observeStudySessions().first().associateBy(StudySession::id)
+        assertEquals(legacy, persisted[legacy.id])
+        assertEquals(malformed, persisted[malformed.id])
+        val copied = persisted.getValue("copy-legacy-weekly")
+        assertEquals("2026-12-01", copied.scheduledDate)
+        assertEquals(2, copied.weekday)
+        assertFalse(copied.completed)
+        assertEquals(3, persisted.size)
+    }
+
+    @Test
     fun copyWeekPlan_rejectsChangedSourceSnapshotWithoutWritingAnyCopies() = runBlocking {
         val sourceStart = LocalDate.parse("2026-11-21")
         val session = StudySession("week-source-session", "مرور فیزیک", "فیزیک", 2, 600, 45, true, "2026-11-24")

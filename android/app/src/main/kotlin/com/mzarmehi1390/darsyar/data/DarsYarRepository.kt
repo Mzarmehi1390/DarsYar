@@ -103,10 +103,15 @@ class DarsYarRepository @Inject constructor(
             val targetEnd = targetStart.plusDays(7)
             val existingSessions = database.studySessionDao().observeAll().first().map { it.toDomain() }
             val existingTasks = database.studyTaskDao().observeAll().first().map { it.toDomain() }
+            // Legacy rows without a concrete date are recurring weekday sessions.
+            // Resolve them as part of every selected source week, matching the planner
+            // service's migration-aware snapshot instead of reporting a false stale plan.
             val currentSourceSessions = existingSessions.filter { item ->
-                PlannerCalendar.parseDateKey(item.scheduledDate)?.let {
-                    PlannerCalendar.isInWeek(it, sourceStart)
-                } == true
+                when {
+                    item.scheduledDate != null -> PlannerCalendar.parseDateKey(item.scheduledDate)
+                        ?.let { PlannerCalendar.isInWeek(it, sourceStart) } == true
+                    else -> item.weekday in 0..6
+                }
             }
             val currentSourceTasks = existingTasks.filter { item ->
                 PlannerCalendar.parseDateKey(item.dueDate)?.let {
@@ -122,8 +127,14 @@ class DarsYarRepository @Inject constructor(
 
             val sessionCopiesMatch = plan.sourceSessions.zip(plan.copiedSessions).all { (source, copy) ->
                 val sourceDate = PlannerCalendar.parseDateKey(source.scheduledDate)
+                    ?: if (source.scheduledDate == null && source.weekday in 0..6) {
+                        PlannerCalendar.dateForWeekday(sourceStart, source.weekday)
+                    } else {
+                        null
+                    }
                 sourceDate != null && copy == source.copy(
                     id = copy.id,
+                    weekday = PlannerCalendar.weekdayForDate(sourceDate.plusDays(7)),
                     completed = false,
                     scheduledDate = PlannerCalendar.dateKey(sourceDate.plusDays(7)),
                 )
