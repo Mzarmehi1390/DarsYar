@@ -138,7 +138,7 @@ class DarsYarBackupServiceTest {
             restored.map { it.examName }.toSet(),
         )
         assertEquals(1, restored.count { it.id == "duplicate-id" })
-        assertTrue(restored.none { it.id == "legacy-result-1" && it.examName == "نتیجهٔ دوم" })
+        assertEquals("شناسهٔ رزروشده", restored.single { it.id == "legacy-result-1" }.examName)
     }
 
     @Test
