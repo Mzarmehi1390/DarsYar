@@ -170,12 +170,21 @@ class DarsYarRepository @Inject constructor(
                 taskIds.any { database.studyTaskDao().findById(it) != null }
             ) return@withTransaction PlannerWeekCopyResult.IdCollision
 
+            // A legacy weekday-only source row represents the occurrence being
+            // materialized in the target week. Do not let that same recurring row
+            // collide with its own dated copy; unrelated legacy rows remain protected.
+            val copiedLegacySourceIds = plan.sourceSessions
+                .asSequence()
+                .filter { it.scheduledDate == null }
+                .mapTo(hashSetOf(), StudySession::id)
+            val overlapBaseline = existingSessions.filterNot { it.id in copiedLegacySourceIds }
+
             val accepted = mutableListOf<StudySession>()
             for (candidate in plan.copiedSessions) {
                 val date = PlannerCalendar.parseDateKey(candidate.scheduledDate)
                     ?: return@withTransaction PlannerWeekCopyResult.SessionConflict
                 if (date.isBefore(targetStart) || !date.isBefore(targetEnd) ||
-                    PlannerOperations.hasOverlap(existingSessions + accepted, candidate)
+                    PlannerOperations.hasOverlap(overlapBaseline + accepted, candidate)
                 ) return@withTransaction PlannerWeekCopyResult.SessionConflict
                 accepted += candidate
             }
