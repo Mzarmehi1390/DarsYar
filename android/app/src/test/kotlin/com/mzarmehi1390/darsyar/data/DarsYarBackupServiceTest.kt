@@ -80,6 +80,33 @@ class DarsYarBackupServiceTest {
     }
 
     @Test
+    fun restoreBackup_migratesLegacySessionsIntoSaturdayBasedCurrentWeek() = runBlocking {
+        val snapshot = DarsYarSnapshot(
+            tasks = emptyList(),
+            studySessions = listOf(
+                StudySession("legacy-sun", "یکشنبه", "عمومی", 0, 540, 45),
+                StudySession("legacy-thu", "پنجشنبه", "عمومی", 4, 600, 50),
+                StudySession("dated", "جلسهٔ تاریخ‌دار", "علوم", 3, 720, 40, scheduledDate = "2026-11-25"),
+            ),
+            exams = listOf(ExamSheet(id = "exam-1", name = "آزمون")),
+            results = emptyList(),
+            activeExamId = "exam-1",
+        )
+        val backup = DarsYarBackupCodec.encode(snapshot, "2026-11-26T12:00:00Z")
+
+        backupService.restoreBackup(backup, java.time.LocalDate.of(2026, 11, 26))
+
+        assertEquals(
+            listOf(
+                StudySession("legacy-sun", "یکشنبه", "عمومی", 0, 540, 45, scheduledDate = "2026-11-22"),
+                StudySession("dated", "جلسهٔ تاریخ‌دار", "علوم", 3, 720, 40, scheduledDate = "2026-11-25"),
+                StudySession("legacy-thu", "پنجشنبه", "عمومی", 4, 600, 50, scheduledDate = "2026-11-26"),
+            ),
+            repository.createBackupSnapshot().studySessions.sortedBy(StudySession::id),
+        )
+    }
+
+    @Test
     fun restoreBackup_rejectsInvalidInputWithoutMutatingExistingData() = runBlocking {
         val task = StudyTask("task-preserved", "اطلاعات محفوظ", "ریاضی", true)
         val exam = ExamSheet(id = "exam-preserved", name = "آزمون محفوظ")

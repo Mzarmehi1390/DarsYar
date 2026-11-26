@@ -1,6 +1,8 @@
 package com.mzarmehi1390.darsyar.data
 
 import java.time.Instant
+import java.time.LocalDate
+import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,10 +34,18 @@ class DarsYarBackupService @Inject constructor(
         )
     }
 
-    suspend fun restoreBackup(raw: String) {
+    suspend fun restoreBackup(raw: String, referenceDate: LocalDate = LocalDate.now()) {
         // Decode and validate the complete document before the transaction
         // starts; malformed input can never partially replace existing data.
-        val snapshot = DarsYarBackupCodec.decode(raw)
+        // Match the Flutter importer: legacy weekday-only sessions are materialized
+        // into the Saturday-based week containing the restore date.
+        val decoded = DarsYarBackupCodec.decode(raw)
+        val snapshot = decoded.copy(
+            studySessions = PlannerOperations.migrateLegacySessions(
+                decoded.studySessions,
+                referenceDate,
+            ),
+        )
         repository.replaceAll(snapshot)
     }
 }
