@@ -138,7 +138,8 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     if (state.sheets.isEmpty()) {
                         item { EmptyExamCard("هنوز برگه‌ای ثبت نشده است.") }
                     } else {
-                        items(state.sheets, key = { it.id }) { sheet ->
+                        val savedSheets = remember(state.sheets) { state.sheets.asReversed() }
+                        items(savedSheets, key = { it.id }) { sheet ->
                             Card(modifier = Modifier.darsYarAnimateContentSize()) {
                                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Row(
@@ -156,23 +157,37 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                                             Text("تغییر نام")
                                         }
                                     }
-                                    Text("${sheet.questionCount} سؤال · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        "${sheet.questionCount} سؤال · ${formatExamDuration(sheet.durationSeconds)} · ${sheet.answers.size} پاسخ ثبت‌شده · ${sheet.marked.size} سؤال علامت‌دار",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Button(onClick = {
-                                            viewModel.startExam(sheet.id) { result ->
-                                                if (result == ExamActionResult.Success) {
-                                                    takingSheet = state.sheets.firstOrNull { it.id == sheet.id } ?: sheet
-                                                } else {
+                                        if (sheet.isCompleted) {
+                                            Text(
+                                                "آزمون پایان یافته",
+                                                modifier = Modifier.align(Alignment.CenterVertically),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.SemiBold,
+                                            )
+                                        } else {
+                                            Button(onClick = {
+                                                viewModel.startExam(sheet.id) { result ->
+                                                    if (result == ExamActionResult.Success) {
+                                                        takingSheet = state.sheets.firstOrNull { it.id == sheet.id } ?: sheet
+                                                    } else {
+                                                        scope.launch { snackbar.showSnackbar(result.toMessage()) }
+                                                    }
+                                                }
+                                            }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
+                                            Button(onClick = {
+                                                viewModel.completeExam(sheet.id) { result ->
                                                     scope.launch { snackbar.showSnackbar(result.toMessage()) }
                                                 }
-                                            }
-                                        }) { Text(if (sheet.answers.isEmpty()) "شروع آزمون" else "ادامه آزمون") }
+                                            }) { Text("ثبت نتیجه") }
+                                        }
                                         TextButton(onClick = { answerKeySheet = sheet }) { Text("کلید پاسخ") }
-                                        Button(onClick = {
-                                            viewModel.completeExam(sheet.id) { result ->
-                                                scope.launch { snackbar.showSnackbar(result.toMessage()) }
-                                            }
-                                        }) { Text("ثبت نتیجه") }
                                         TextButton(
                                             onClick = { deleteSheet = sheet },
                                             enabled = state.sheets.size > 1,
@@ -353,6 +368,17 @@ fun ExamsScreen(viewModel: ExamViewModel) {
 }
 
 
+
+private fun formatExamDuration(durationSeconds: Int): String {
+    val totalMinutes = (durationSeconds.coerceAtLeast(0) + 59) / 60
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours > 0 && minutes > 0 -> "${hours} ساعت و ${minutes} دقیقه"
+        hours > 0 -> "${hours} ساعت"
+        else -> "${minutes} دقیقه"
+    }
+}
 
 private val historyDateFormatter: DateTimeFormatter =
     DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm").withZone(ZoneId.systemDefault())
