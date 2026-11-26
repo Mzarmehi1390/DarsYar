@@ -70,6 +70,7 @@ fun ExamsScreen(viewModel: ExamViewModel) {
     var renameSheet by remember { mutableStateOf<ExamSheet?>(null) }
     var deleteSheet by remember { mutableStateOf<ExamSheet?>(null) }
     val historySummary = remember(state.results) { ExamHistoryAnalytics.summarize(state.results) }
+    val savedSheets = remember(state.sheets) { state.sheets.asReversed() }
 
     LaunchedEffect(takingSheet?.id, state.takingState.isTaking) {
         if (takingSheet != null && state.takingState.isTaking) {
@@ -138,7 +139,6 @@ fun ExamsScreen(viewModel: ExamViewModel) {
                     if (state.sheets.isEmpty()) {
                         item { EmptyExamCard("هنوز برگه‌ای ثبت نشده است.") }
                     } else {
-                        val savedSheets = remember(state.sheets) { state.sheets.asReversed() }
                         items(savedSheets, key = { it.id }) { sheet ->
                             Card(modifier = Modifier.darsYarAnimateContentSize()) {
                                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
