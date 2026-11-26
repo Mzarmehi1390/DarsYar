@@ -112,12 +112,22 @@ class LegacyPreferencesImporter @Inject constructor(
         }
         val parsed = ArrayList<T>(array.length())
         val seenIds = mutableSetOf<String>()
+        // Flutter's backup/import model retains historical results even when old
+        // records have missing or colliding IDs. Room requires unique primary
+        // keys, so reserve explicit IDs up front and normalize only result IDs.
+        val reservedResultIds = if (key == RESULTS_KEY) {
+            (0 until array.length()).mapNotNull { index ->
+                array.optJSONObject(index)?.stringOrNull("id")?.takeIf(String::isNotBlank)
+            }.toSet()
+        } else {
+            emptySet()
+        }
         for (index in 0 until array.length()) {
             val item = array.optJSONObject(index)
                 ?: throw IllegalStateException(
                     "Legacy collection '$key' contains a non-object item at index $index.",
                 )
-            val value = try {
+            val parsedValue = try {
                 parser(item, index)
             } catch (exception: Exception) {
                 throw IllegalStateException(
@@ -127,6 +137,20 @@ class LegacyPreferencesImporter @Inject constructor(
             } ?: throw IllegalStateException(
                 "Legacy collection '$key' contains an invalid item at index $index.",
             )
+            val value: T = if (parsedValue is ExamResultEntity) {
+                val rawId = item.stringOrNull("id")?.takeIf(String::isNotBlank)
+                val needsGeneratedId = parsedValue.id in seenIds ||
+                    (rawId == null && parsedValue.id in reservedResultIds)
+                if (needsGeneratedId) {
+                    parsedValue.copy(
+                        id = generateUniqueLegacyResultId(index, reservedResultIds, seenIds),
+                    ) as T
+                } else {
+                    parsedValue
+                }
+            } else {
+                parsedValue
+            }
             val id = when (value) {
                 is StudyTaskEntity -> value.id
                 is StudySessionEntity -> value.id
@@ -142,6 +166,21 @@ class LegacyPreferencesImporter @Inject constructor(
             parsed += value
         }
         return parsed
+    }
+
+    private fun generateUniqueLegacyResultId(
+        index: Int,
+        reservedIds: Set<String>,
+        assignedIds: Set<String>,
+    ): String {
+        val base = "legacy-result-$index"
+        var candidate = base
+        var suffix = 1
+        while (candidate in reservedIds || candidate in assignedIds) {
+            candidate = "$base-$suffix"
+            suffix++
+        }
+        return candidate
     }
 
     private fun parseTask(json: JSONObject, index: Int): StudyTaskEntity? {

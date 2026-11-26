@@ -215,6 +215,35 @@ class LegacyPreferencesImporterTest {
         assertEquals(null, database.appStateDao().get())
     }
 
+
+    @Test
+    fun importsEveryHistoricalResultAndNormalizesOnlyCollidingLegacyIds() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.results",
+                """[
+                    {"id":"duplicate","examName":"نتیجهٔ اول"},
+                    {"id":"duplicate","examName":"نتیجهٔ دوم"},
+                    {"id":"legacy-result-1","examName":"شناسهٔ رزروشده"},
+                    {"examName":"بدون شناسه"}
+                ]""".trimIndent(),
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        val results = database.examResultDao().getAll()
+        assertEquals(4, results.size)
+        assertEquals(4, results.map { it.id }.toSet().size)
+        assertEquals(
+            setOf("نتیجهٔ اول", "نتیجهٔ دوم", "شناسهٔ رزروشده", "بدون شناسه"),
+            results.map { it.examName }.toSet(),
+        )
+        assertEquals("duplicate", results.single { it.examName == "نتیجهٔ اول" }.id)
+        assertEquals("legacy-result-1-1", results.single { it.examName == "نتیجهٔ دوم" }.id)
+        assertEquals("legacy-result-1", results.single { it.examName == "شناسهٔ رزروشده" }.id)
+        assertEquals("legacy-result-3", results.single { it.examName == "بدون شناسه" }.id)
+    }
+
     @Test
     fun skipsImportWhenNativeDataAlreadyExists() = runBlocking {
         database.studyTaskDao().upsertAll(

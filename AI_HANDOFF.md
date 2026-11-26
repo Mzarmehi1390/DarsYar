@@ -76,6 +76,6 @@ The first two documents describe the native migration baseline. The existing red
 - Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
-- Latest verified CI at `47174789fda10905c8cb7b7ef4d4aa942d51497a` completed successfully (run `45866818594`): native Build/Test/Lint and debug APK upload all passed. The latest planner task-filter optimization passed CI. A follow-up regression test now protects the contract that undated and malformed legacy due dates remain visible in ALL/ACTIVE/COMPLETED filters and are excluded only from OVERDUE.
+- Latest verified CI at `47174789fda10905c8cb7b7ef4d4aa942d51497a` completed successfully (run `45866818594`): native Build/Test/Lint and debug APK upload all passed. The latest planner task-filter optimization and legacy-date regression test passed CI. The current follow-up adds safe preservation of duplicate/missing legacy result IDs; its CI run is pending.
 
 Do not guess these. Investigate and document decisions before implementation.
