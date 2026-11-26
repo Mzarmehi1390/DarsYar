@@ -425,4 +425,27 @@ class LegacyPreferencesImporterTest {
     }
 
 
+
+    @Test
+    fun legacyExamSheetUsesFlutterDefaultsOnlyForMissingOrNullStrings() = runBlocking {
+        preferences.edit()
+            .putString(
+                "flutter.darsyar.exams",
+                """[
+                    {"questionCount":2},
+                    {"id":"","name":"","questionCount":3}
+                ]""".trimIndent(),
+            )
+            .commit()
+
+        assertEquals(LegacyImportOutcome.IMPORTED, importer.importIfNeeded())
+        val exams = database.examSheetDao().getAll().associateBy { it.id }
+        assertEquals(2, exams.size)
+        assertEquals("آزمون", exams["default"]?.name)
+        assertEquals(20, exams["default"]?.questionCount)
+        assertEquals("", exams[""]?.name)
+        assertEquals(3, exams[""]?.questionCount)
+    }
+
+
 }

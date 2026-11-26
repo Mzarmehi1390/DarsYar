@@ -108,7 +108,7 @@ The detailed normalized child-table proposal below remains a future design optio
 
 Implementation status: implemented for the current native baseline; keep the following as the acceptance contract and close remaining device-verification gaps.
 
-- JSON numeric fields and answer-map/list values follow Dart `num` casts: numeric strings are not coerced, while fractional numbers are truncated with `toInt()`. Task/session nullable boolean casts reject non-boolean values; exam/result boolean flags are true only for the JSON boolean `true`. Robolectric regression tests cover these distinctions.
+- JSON numeric fields and answer-map/list values follow Dart `num` casts: numeric strings are not coerced, while fractional numbers are truncated with `toInt()`. Task/session nullable boolean casts reject non-boolean values; exam/result boolean flags are true only for the JSON boolean `true`. Exam-sheet missing/null IDs and names use Flutter defaults while explicit empty strings are preserved. Robolectric regression tests cover these distinctions.
 
 1. Open native database and inspect migration metadata.
 2. If migration marker is complete, do not read or re-import Flutter data.

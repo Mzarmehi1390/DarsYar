@@ -222,8 +222,10 @@ class LegacyPreferencesImporter @Inject constructor(
     }
 
     private fun parseExam(json: JSONObject, index: Int): ExamSheetEntity? {
-        val id = json.stringOrNull("id")?.takeIf(String::isNotBlank) ?: return null
-        val name = json.stringOrNull("name")?.takeIf(String::isNotBlank) ?: "آزمون"
+        // Match ExamSheet.fromJson: nullable/missing IDs and names use defaults;
+        // empty strings remain valid strings rather than being silently rewritten.
+        val id = json.stringOrNull("id") ?: "default"
+        val name = json.stringOrNull("name") ?: "آزمون"
         val count = json.intFromNumber("questionCount", 20).coerceIn(1, 200)
         return ExamSheetEntity(
             id = id,
