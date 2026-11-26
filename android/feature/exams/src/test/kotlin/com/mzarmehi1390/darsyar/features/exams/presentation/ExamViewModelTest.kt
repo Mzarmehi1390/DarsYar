@@ -379,6 +379,9 @@ class ExamViewModelTest {
             initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون", questionCount = 8)),
         )
         val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
         viewModel.nowEpochMillis = { 10_000L }
         viewModel.startExam("exam-1")
         advanceUntilIdle()
@@ -403,6 +406,7 @@ class ExamViewModelTest {
         assertEquals(false, repository.examSession.value?.isPaused)
         assertTrue(viewModel.uiState.value.takingState.isTaking)
         assertEquals(viewModel.uiState.value.takingState.deadlineEpochMillis, repository.examSession.value?.deadlineEpochMillis)
+        stateJob.cancel()
     }
 
     @Test
