@@ -38,6 +38,7 @@ import com.mzarmehi1390.darsyar.features.planner.presentation.PlannerUiState
 import com.mzarmehi1390.darsyar.features.planner.presentation.TaskEditorDialog
 import com.mzarmehi1390.darsyar.features.planner.presentation.toUserMessage
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 fun DashboardScreen(
@@ -132,6 +133,7 @@ fun DashboardScreen(
     if (showTaskEditor) {
         TaskEditorDialog(
             task = editingTask,
+            initialDueDate = LocalDate.now(),
             onDismiss = { showTaskEditor = false },
             onSave = { task ->
                 onSaveTask(task) { result ->
