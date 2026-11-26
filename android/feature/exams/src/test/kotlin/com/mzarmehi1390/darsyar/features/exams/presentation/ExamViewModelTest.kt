@@ -112,7 +112,7 @@ class ExamViewModelTest {
     @Test
     fun manualFinishKeepsTimerRunningAndCanBeCancelled() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(
-            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", durationSeconds = 10)),
+            initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", questionCount = 1, durationSeconds = 10)),
         )
         val viewModel = ExamViewModel(repository)
         val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
