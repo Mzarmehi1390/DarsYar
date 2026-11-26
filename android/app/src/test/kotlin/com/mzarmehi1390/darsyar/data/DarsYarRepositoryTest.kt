@@ -397,6 +397,53 @@ class DarsYarRepositoryTest {
 
 
     @Test
+    fun copyWeekPlan_rejectsChangedSourceSnapshotWithoutWritingAnyCopies() = runBlocking {
+        val sourceStart = LocalDate.parse("2026-11-21")
+        val session = StudySession("week-source-session", "مرور فیزیک", "فیزیک", 2, 600, 45, true, "2026-11-24")
+        val task = StudyTask("week-source-task", "تمرین جبر", "ریاضی", true, "2026-11-25")
+        repository.upsertStudySession(session)
+        repository.upsertTask(task)
+        val plan = PlannerWeekCopyService().createNextWeekPlan(
+            repository.observeStudySessions().first(),
+            repository.observeTasks().first(),
+            sourceStart,
+            { "copy-${it.id}" },
+            { "copy-${it.id}" },
+        )
+        repository.upsertStudySession(session.copy(title = "نسخهٔ ویرایش‌شده"))
+        repository.upsertTask(task.copy(title = "تمرین به‌روزشده"))
+
+        assertEquals(PlannerWeekCopyResult.SourceChanged, repository.copyWeekPlan(plan))
+        assertEquals(1, repository.observeStudySessions().first().size)
+        assertEquals("نسخهٔ ویرایش‌شده", repository.observeStudySessions().first().single().title)
+        assertEquals(1, repository.observeTasks().first().size)
+        assertEquals("تمرین به‌روزشده", repository.observeTasks().first().single().title)
+    }
+
+    @Test
+    fun copyWeekPlan_rejectsTamperedCopyPayloadWithoutPartialWrites() = runBlocking {
+        val sourceStart = LocalDate.parse("2026-11-21")
+        val session = StudySession("week-payload-session", "مرور فیزیک", "فیزیک", 2, 600, 45, true, "2026-11-24")
+        val task = StudyTask("week-payload-task", "تمرین جبر", "ریاضی", true, "2026-11-25")
+        repository.upsertStudySession(session)
+        repository.upsertTask(task)
+        val validPlan = PlannerWeekCopyService().createNextWeekPlan(
+            repository.observeStudySessions().first(),
+            repository.observeTasks().first(),
+            sourceStart,
+            { "copy-${it.id}" },
+            { "copy-${it.id}" },
+        )
+        val tamperedPlan = validPlan.copy(
+            copiedSessions = validPlan.copiedSessions.map { it.copy(title = "محتوای دست‌کاری‌شده") },
+        )
+
+        assertEquals(PlannerWeekCopyResult.InvalidPlan, repository.copyWeekPlan(tamperedPlan))
+        assertEquals(listOf(session), repository.observeStudySessions().first())
+        assertEquals(listOf(task), repository.observeTasks().first())
+    }
+
+    @Test
     fun copyDayPlan_persistsCopiesAndResetsCompletionWithoutChangingSourceOrOtherDays() = runBlocking {
         val sourceDate = LocalDate.parse("2026-11-24")
         val targetDate = LocalDate.parse("2026-11-26")
