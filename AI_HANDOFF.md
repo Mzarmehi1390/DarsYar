@@ -63,7 +63,8 @@ The first two documents describe the native migration baseline. The existing red
 - Phase 3 — Native project foundation: 10 modules, Compose entry point, Hilt application, CI, Room entities/DAOs, DataStore preference migration, typed domain models, entity mappers, transactional repository and initial scoring/planner/task/session rules are present. Exam domain now also has immutable answer-sheet operations, deterministic exam-taking/timer transitions, and immutable result creation/recalculation/key/name synchronization, with unit tests added for these rules. The app module was missing Core Library Desugaring even though the planner feature required it; this has been enabled in the app as well. CI has exposed and helped correct several issues: AGP 9 built-in Kotlin plugin conflict, unavailable Lifecycle 2.12.0 stable version, DataStore migration API usage, a missing Room DAO import, a scoring-test expectation mismatch, and a compileSdk mismatch caused by Lifecycle 2.11.1 requiring API 37. All Android modules now compile against API 37; app targetSdk remains 36. The workflow installs Android SDK Platform 37.0 and Build Tools 37.0.0. Latest run must be checked before claiming a green build.
 - Phase 4 — Liquid Glass: not started; rendering approach remains documented only.
 - Phase 5 — Core data/business logic: initial Room and DataStore foundations plus exam scoring, answer-sheet mutation, exam-taking lifecycle, result synchronization and planner/task rules are present. Room-backed lifecycle wiring, legacy user-data import and backup codec remain outstanding.
-- Phases 6–10: feature screens, full test suite, device profiling and release artifacts remain outstanding.
+- Phase 6 — Feature screens: planner and dashboard UI foundations are present; full feature parity and screen-level tests remain outstanding.
+- Phases 7–10: full test suite, device profiling and release artifacts remain outstanding.
 
 ## Important unresolved decisions
 
@@ -75,6 +76,6 @@ The first two documents describe the native migration baseline. The existing red
 - Validate final module graph and Room schema against implementation constraints. Current exam answer/key/marked collections are JSON columns for bounded records; revisit normalization after validating read/write patterns.
 - Decide v1 backup export compatibility after reviewing migration and support requirements.
 - Add and verify Gradle wrapper scripts/JAR; current CI uses a provisioned Gradle 9.6.0 installation.
-- Latest CI state must be checked against the current branch head; a previous run failed because `:app` did not enable core library desugaring required by `:feature:planner`. The app configuration is corrected, but the fix and subsequent exam tests still require a completed green run before moving into full screen implementation.
+- Latest verified CI at `9009df8260feccd91ac4a5a192d0949c2fc1521a` completed successfully: native Build/Test/Lint and debug APK upload all passed. Continue checking each new head before claiming validation.
 
 Do not guess these. Investigate and document decisions before implementation.

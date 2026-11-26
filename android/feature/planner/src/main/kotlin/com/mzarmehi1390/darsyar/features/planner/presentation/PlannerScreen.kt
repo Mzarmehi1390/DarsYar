@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
+import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerSummary
@@ -184,7 +185,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                     label = {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Text(weekdayName(day))
-                                            Text("${date.dayOfMonth} · ${count} جلسه", style = MaterialTheme.typography.labelSmall)
+                                            Text("${PersianDigits.format(date.dayOfMonth)} · ${PersianDigits.format(count)} جلسه", style = MaterialTheme.typography.labelSmall)
                                         }
                                     },
                                 )
@@ -479,7 +480,7 @@ private fun WeeklyPlannerReport(summary: PlannerSummary) {
 @Composable
 private fun WeeklyMetric(label: String, minutes: Int, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(minutes.toString(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+        Text(PersianDigits.format(minutes), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         Text("دقیقه", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
     }
@@ -510,7 +511,7 @@ private fun SessionCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text("${formatTime(session.startMinutes)} · ${session.durationMinutes} دقیقه", style = MaterialTheme.typography.bodySmall)
+                Text("${formatTime(session.startMinutes)} · ${PersianDigits.format(session.durationMinutes)} دقیقه", style = MaterialTheme.typography.bodySmall)
             }
             Column(horizontalAlignment = Alignment.End) {
                 TextButton(onClick = onToggle) { Text(if (session.completed) "انجام شد" else "انجام نشده") }
@@ -548,7 +549,7 @@ private fun SessionEditorDialog(
     }
     var weekdayMenuExpanded by remember { mutableStateOf(false) }
     var startTime by remember(session?.id) { mutableStateOf(session?.startMinutes?.let(::formatTime) ?: "16:00") }
-    var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.toString() ?: "55") }
+    var duration by remember(session?.id) { mutableStateOf(session?.durationMinutes?.let(PersianDigits::format) ?: PersianDigits.format(55)) }
     var scheduledDate by remember(session?.id, initialDate) {
         mutableStateOf<String?>(session?.scheduledDate ?: initialDate.toString())
     }
@@ -561,7 +562,7 @@ private fun SessionEditorDialog(
         )
     }
     val parsedTime = parseTime(startTime)
-    val parsedDuration = duration.toIntOrNull()
+    val parsedDuration = PersianDigits.toLatinDigits(duration).toIntOrNull()
     val validTime = parsedTime != null && parsedDuration != null && parsedDuration > 0 &&
         parsedTime in 0 until 1440 && parsedDuration <= 1440 - parsedTime
 
@@ -672,9 +673,9 @@ private fun SessionEditorDialog(
 
 private val weekdayNames = listOf("یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه")
 private fun weekdayName(day: Int): String = weekdayNames.getOrElse(day) { "روز نامشخص" }
-private fun formatTime(minutes: Int): String = "%02d:%02d".format(minutes / 60, minutes % 60)
+private fun formatTime(minutes: Int): String = PersianDigits.toPersianDigits("%02d:%02d".format(minutes / 60, minutes % 60))
 private fun parseTime(value: String): Int? {
-    val parts = value.split(":")
+    val parts = PersianDigits.toLatinDigits(value).split(":")
     if (parts.size != 2) return null
     val hour = parts[0].toIntOrNull() ?: return null
     val minute = parts[1].toIntOrNull() ?: return null
@@ -683,8 +684,8 @@ private fun parseTime(value: String): Int? {
 }
 private fun formatDueDate(value: String): String = runCatching {
     val date = LocalDate.parse(value)
-    "%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth)
-}.getOrDefault(value)
+    PersianDigits.toPersianDigits("%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth))
+}.getOrDefault(PersianDigits.toPersianDigits(value))
 
 fun PlannerActionResult.toUserMessage(): String = when (this) {
     PlannerActionResult.Success -> "عملیات با موفقیت انجام شد"
