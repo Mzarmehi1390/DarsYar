@@ -126,6 +126,20 @@ class DarsYarBackupCodecTest {
     }
 
     @Test
+    fun decode_fallsBackToFirstExamWhenActiveIdIsMissingOrMalformed() {
+        val missing = validBackup().replace(
+            """"activeExamId": "exam-1",""",
+            "",
+        )
+        val malformed = validBackup().replace(
+            """"activeExamId": "exam-1"""",
+            """"activeExamId": 42""",
+        )
+        assertEquals("exam-1", DarsYarBackupCodec.decode(missing).activeExamId)
+        assertEquals("exam-1", DarsYarBackupCodec.decode(malformed).activeExamId)
+    }
+
+    @Test
     fun decode_rejectsNonNumericSchemaVersion() {
         val invalidVersion = validBackup().replace(
             "\"schemaVersion\": 1",

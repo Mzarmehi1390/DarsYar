@@ -222,8 +222,13 @@ internal object DarsYarBackupCodec {
         }
         validateUniqueIds(results.map { it.id }, "results")
 
-        val activeId = root.requiredString("activeExamId")
-            .takeIf { requested -> exams.any { it.id == requested } }
+        // Flutter treats a missing, stale, or non-string active ID as a
+        // recoverable selection issue and falls back to the first exam.
+        val requestedActiveId = (root["activeExamId"] as? JsonPrimitive)
+            ?.takeIf { it.isString }
+            ?.content
+        val activeId = requestedActiveId
+            ?.takeIf { requested -> exams.any { it.id == requested } }
             ?: exams.first().id
 
         return DarsYarSnapshot(
