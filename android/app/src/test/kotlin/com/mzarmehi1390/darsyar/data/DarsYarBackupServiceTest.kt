@@ -98,8 +98,8 @@ class DarsYarBackupServiceTest {
 
         assertEquals(
             listOf(
-                StudySession("legacy-sun", "یکشنبه", "عمومی", 0, 540, 45, scheduledDate = "2026-11-22"),
                 StudySession("dated", "جلسهٔ تاریخ‌دار", "علوم", 3, 720, 40, scheduledDate = "2026-11-25"),
+                StudySession("legacy-sun", "یکشنبه", "عمومی", 0, 540, 45, scheduledDate = "2026-11-22"),
                 StudySession("legacy-thu", "پنجشنبه", "عمومی", 4, 600, 50, scheduledDate = "2026-11-26"),
             ),
             repository.createBackupSnapshot().studySessions.sortedBy(StudySession::id),
