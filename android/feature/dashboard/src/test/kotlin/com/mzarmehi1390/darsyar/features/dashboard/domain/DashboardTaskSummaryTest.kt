@@ -14,6 +14,7 @@ class DashboardTaskSummaryTest {
         assertEquals(0, summary.completedCount)
         assertEquals(0, summary.remainingCount)
         assertEquals(0f, summary.progress)
+        assertEquals(0, summary.progressPercent)
         assertEquals(emptyList<StudyTask>(), summary.pendingTasks)
     }
 
@@ -34,8 +35,19 @@ class DashboardTaskSummaryTest {
         assertEquals(2, summary.completedCount)
         assertEquals(4, summary.remainingCount)
         assertEquals(2f / 6f, summary.progress)
+        assertEquals(33, summary.progressPercent)
         assertEquals(listOf("pending-1", "pending-2", "pending-3"), summary.pendingTasks.map { it.id })
         assertSame(tasks[1], summary.pendingTasks[0])
+    }
+
+    @Test
+    fun progressPercentageRoundsLikeFlutterInsteadOfTruncating() {
+        val summary = DashboardTaskSummary.from(
+            listOf(task("done-1", true), task("done-2", true), task("pending")),
+        )
+
+        assertEquals(2f / 3f, summary.progress)
+        assertEquals(67, summary.progressPercent)
     }
 
     @Test

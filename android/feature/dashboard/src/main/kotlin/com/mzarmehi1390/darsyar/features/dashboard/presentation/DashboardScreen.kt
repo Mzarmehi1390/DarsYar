@@ -88,7 +88,7 @@ fun DashboardScreen(
                             Text("تمرکز امروز · پیشرفت کارها", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("${PersianDigits.format(completedCount)} از ${PersianDigits.format(summary.totalCount)} کار انجام‌شده")
-                                Text(if (tasks.isEmpty()) "—" else "${PersianDigits.format((progress * 100).toInt())}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text(if (tasks.isEmpty()) "—" else "${PersianDigits.format(summary.progressPercent)}٪", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                             when {
