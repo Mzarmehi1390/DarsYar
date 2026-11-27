@@ -52,6 +52,31 @@ class JalaliDateTest {
     }
 
     @Test
+    fun everyDayRoundTripsAcrossRepresentativeJalaliYears() {
+        for (year in 1390..1410) {
+            for (month in 1..12) {
+                val firstDay = JalaliDate.toGregorian(JalaliDate(year, month, 1))
+                val nextMonth = if (month == 12) {
+                    JalaliDate(year + 1, 1, 1)
+                } else {
+                    JalaliDate(year, month + 1, 1)
+                }
+                val nextMonthStart = JalaliDate.toGregorian(nextMonth)
+                val monthLength = (nextMonthStart.toEpochDay() - firstDay.toEpochDay()).toInt()
+
+                for (day in 1..monthLength) {
+                    val gregorian = firstDay.plusDays((day - 1).toLong())
+                    assertEquals(
+                        "Round-trip failed for Jalali $year/$month/$day",
+                        JalaliDate(year, month, day),
+                        JalaliDate.fromGregorian(gregorian),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
     fun displayStringIsZeroPadded() {
         assertEquals("1405/01/01", JalaliDate(1405, 1, 1).toDisplayString())
         assertEquals("1405/12/09", JalaliDate(1405, 12, 9).toDisplayString())
