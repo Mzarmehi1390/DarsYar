@@ -1,6 +1,7 @@
 package com.mzarmehi1390.darsyar.core.datastore
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -21,6 +22,27 @@ private const val LEGACY_ANIMATIONS_KEY = "flutter.darsyar.animationsEnabled"
 
 private val themeModeKey = stringPreferencesKey("theme_mode")
 private val animationsEnabledKey = booleanPreferencesKey("animations_enabled")
+
+internal data class LegacyAppearancePreferences(
+    val themeMode: String?,
+    val animationsEnabled: Boolean?,
+)
+
+/**
+ * Reads untyped legacy values without SharedPreferences' typed getters, which
+ * throw ClassCastException when an old key exists with an unexpected type.
+ * A mismatched value is treated like a missing value, matching Flutter's
+ * nullable typed reads and keeping appearance migration non-blocking.
+ */
+internal fun readLegacyAppearancePreferences(
+    legacy: SharedPreferences,
+): LegacyAppearancePreferences {
+    val values = legacy.all
+    return LegacyAppearancePreferences(
+        themeMode = values[LEGACY_THEME_KEY] as? String,
+        animationsEnabled = values[LEGACY_ANIMATIONS_KEY] as? Boolean,
+    )
+}
 
 internal fun migrateLegacyAppearancePreferences(
     legacyThemeMode: String?,
@@ -53,13 +75,10 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
                 migrate = { legacy, current ->
+                    val appearance = readLegacyAppearancePreferences(legacy)
                     migrateLegacyAppearancePreferences(
-                        legacyThemeMode = legacy.getString(LEGACY_THEME_KEY, null),
-                        legacyAnimationsEnabled = if (legacy.contains(LEGACY_ANIMATIONS_KEY)) {
-                            legacy.getBoolean(LEGACY_ANIMATIONS_KEY, true)
-                        } else {
-                            null
-                        },
+                        legacyThemeMode = appearance.themeMode,
+                        legacyAnimationsEnabled = appearance.animationsEnabled,
                         current = current,
                     )
                 },

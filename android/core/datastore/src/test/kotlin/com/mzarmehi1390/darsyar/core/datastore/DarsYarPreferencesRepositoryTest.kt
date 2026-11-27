@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,15 +42,16 @@ class DarsYarPreferencesRepositoryTest {
 
     @Test
     fun legacyFlutterAppearancePreferencesAreMigratedWithoutOverwritingCurrentValues() {
-        val legacy = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        val legacy = legacyPreferences()
         legacy.edit()
             .putString("flutter.darsyar.themeMode", "light")
             .putBoolean("flutter.darsyar.animationsEnabled", false)
             .commit()
 
+        val appearance = readLegacyAppearancePreferences(legacy)
         val migrated = migrateLegacyAppearancePreferences(
-            legacyThemeMode = legacy.getString("flutter.darsyar.themeMode", null),
-            legacyAnimationsEnabled = if (legacy.contains("flutter.darsyar.animationsEnabled")) legacy.getBoolean("flutter.darsyar.animationsEnabled", true) else null,
+            legacyThemeMode = appearance.themeMode,
+            legacyAnimationsEnabled = appearance.animationsEnabled,
             current = emptyPreferences(),
         )
 
@@ -58,7 +61,7 @@ class DarsYarPreferencesRepositoryTest {
 
     @Test
     fun existingDataStoreValuesTakePrecedenceOverLegacyValues() {
-        val legacy = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        val legacy = legacyPreferences()
         legacy.edit()
             .putString("flutter.darsyar.themeMode", "light")
             .putBoolean("flutter.darsyar.animationsEnabled", false)
@@ -68,14 +71,37 @@ class DarsYarPreferencesRepositoryTest {
             androidx.datastore.preferences.core.stringPreferencesKey("theme_mode") to "dark",
             androidx.datastore.preferences.core.booleanPreferencesKey("animations_enabled") to true,
         )
+        val appearance = readLegacyAppearancePreferences(legacy)
         val migrated = migrateLegacyAppearancePreferences(
-            legacyThemeMode = legacy.getString("flutter.darsyar.themeMode", null),
-            legacyAnimationsEnabled = if (legacy.contains("flutter.darsyar.animationsEnabled")) legacy.getBoolean("flutter.darsyar.animationsEnabled", true) else null,
+            legacyThemeMode = appearance.themeMode,
+            legacyAnimationsEnabled = appearance.animationsEnabled,
             current = current,
         )
 
         assertEquals("dark", migrated.asMap().entries.first { it.key.name == "theme_mode" }.value)
         assertEquals(true, migrated.asMap().entries.first { it.key.name == "animations_enabled" }.value)
+    }
+
+    @Test
+    fun wrongTypedLegacyAppearanceValuesAreIgnoredInsteadOfThrowing() {
+        val legacy = legacyPreferences()
+        legacy.edit()
+            .putInt("flutter.darsyar.themeMode", 1)
+            .putString("flutter.darsyar.animationsEnabled", "false")
+            .commit()
+
+        val appearance = readLegacyAppearancePreferences(legacy)
+
+        assertNull(appearance.themeMode)
+        assertNull(appearance.animationsEnabled)
+
+        val migrated = migrateLegacyAppearancePreferences(
+            legacyThemeMode = appearance.themeMode,
+            legacyAnimationsEnabled = appearance.animationsEnabled,
+            current = emptyPreferences(),
+        )
+        assertFalse(migrated.asMap().containsKey(androidx.datastore.preferences.core.stringPreferencesKey("theme_mode")))
+        assertFalse(migrated.asMap().containsKey(androidx.datastore.preferences.core.booleanPreferencesKey("animations_enabled")))
     }
 
     @Test
@@ -86,4 +112,9 @@ class DarsYarPreferencesRepositoryTest {
             runBlocking { repository.setThemeMode("sepia") }
         }
     }
+
+    private fun legacyPreferences() =
+        context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE).also {
+            it.edit().clear().commit()
+        }
 }
