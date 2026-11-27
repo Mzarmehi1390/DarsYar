@@ -56,11 +56,28 @@ jobs:
         run: gradle --no-daemon --stacktrace :app:assembleDebug test lint
 
       - name: Enable KVM for Android emulator
+        shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          # GitHub-hosted Ubuntu images may ship with KVM modules available
+          # but not loaded. Load the host and CPU-specific modules explicitly.
+          sudo modprobe kvm || true
+          if grep -q GenuineIntel /proc/cpuinfo; then
+            sudo modprobe kvm_intel || true
+          elif grep -q AuthenticAMD /proc/cpuinfo; then
+            sudo modprobe kvm_amd || true
+          fi
+          if [[ -e /dev/kvm ]]; then
+            sudo chmod 666 /dev/kvm
+          else
+            echo "KVM device was not created after loading available modules."
+            echo "CPU: $(grep -m1 'model name' /proc/cpuinfo || true)"
+            lsmod | grep -E '^kvm' || true
+            ls -la /dev/kvm /dev 2>&1 | head -n 40
+            exit 1
+          fi
           test -r /dev/kvm
+          test -w /dev/kvm
+          ls -l /dev/kvm
 
       - name: Verify process-death recovery on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
