@@ -59,6 +59,13 @@ jobs:
           fi
           printf 'Exported Room schemas:\n%s\n' "${schemas[@]}"
 
+      - name: Verify committed Room schema snapshots
+        working-directory: android
+        run: |
+          schema="core/database/schemas/com.mzarmehi1390.darsyar.core.database.DarsYarDatabase/2.json"
+          git ls-files --error-unmatch "$schema" >/dev/null
+          git diff --exit-code -- core/database/schemas
+
       - name: Upload Room schema snapshots
         if: success()
         uses: actions/upload-artifact@v4
