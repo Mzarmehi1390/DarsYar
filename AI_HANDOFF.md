@@ -98,3 +98,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Small-screen and large-font resilience: Settings and study-statistics screens now use vertically scrollable content containers. Their previous fixed-height `Column` layouts could clip lower controls/content on short displays or with enlarged system font scales. This is a presentation-only change; persistence, calculations and navigation contracts are unchanged.
+
+
+- Exam percentage calculator numeric fields now request the platform number keyboard, while retaining the existing Persian/Arabic digit normalization and three-digit input cap. This aligns the native input affordance with the Flutter digits-only fields; calculation behavior is unchanged.

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
@@ -1075,6 +1077,7 @@ private fun ExamPercentageCalculatorCard() {
                     value = correct,
                     onValueChange = { correct = sanitize(it) },
                     modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text("درست") },
                     singleLine = true,
                 )
@@ -1082,6 +1085,7 @@ private fun ExamPercentageCalculatorCard() {
                     value = wrong,
                     onValueChange = { wrong = sanitize(it) },
                     modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text("غلط") },
                     singleLine = true,
                 )
@@ -1089,6 +1093,7 @@ private fun ExamPercentageCalculatorCard() {
                     value = unanswered,
                     onValueChange = { unanswered = sanitize(it) },
                     modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text("بی‌پاسخ") },
                     singleLine = true,
                 )
