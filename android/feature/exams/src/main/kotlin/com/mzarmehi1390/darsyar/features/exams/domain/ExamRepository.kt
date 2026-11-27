@@ -19,7 +19,10 @@ data class ExamSessionSnapshot(
         require(examId.isNotBlank())
         require(currentQuestionNumber >= 1)
         require(remainingSeconds in 0..86_400)
-        require(isPaused == (deadlineEpochMillis == null) || remainingSeconds == 0)
+        // Paused sessions have no deadline; running and expired sessions retain
+        // their deadline. A zero remaining-time value must not mask an
+        // inconsistent snapshot that cannot be resumed or ticked.
+        require(isPaused == (deadlineEpochMillis == null))
     }
 }
 
