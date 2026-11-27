@@ -593,7 +593,7 @@ private fun WeeklyPlannerReport(summary: PlannerSummary) {
                 WeeklyMetric("برنامه‌ریزی‌شده", summary.plannedMinutes, Modifier.weight(1f))
                 WeeklyMetric("تکمیل‌شده", summary.completedMinutes, Modifier.weight(1f))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(if (summary.plannedMinutes == 0) "—" else "${(progress * 100).toInt()}٪", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text("${PersianDigits.format(kotlin.math.round(progress * 100).toInt().coerceIn(0, 100))}٪", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Text("پیشرفت", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
             }
@@ -604,7 +604,7 @@ private fun WeeklyPlannerReport(summary: PlannerSummary) {
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
             Text(
-                if (summary.totalSessionCount == 0) "برای دیدن گزارش، جلسهٔ مطالعه اضافه کن."
+                if (summary.totalSessionCount == 0) "با افزودن جلسه‌ها، گزارش اینجا نمایش داده می‌شود."
                 else "${summary.completedSessionCount} از ${summary.totalSessionCount} جلسه تکمیل شده است.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
