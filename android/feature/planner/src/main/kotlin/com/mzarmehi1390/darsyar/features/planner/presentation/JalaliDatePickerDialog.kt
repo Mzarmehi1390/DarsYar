@@ -60,8 +60,11 @@ internal fun JalaliDatePickerDialog(
         (JalaliDate.toGregorian(nextMonth).toEpochDay() - firstDay.toEpochDay()).toInt()
     }
     val leadingCells = (firstDay.dayOfWeek.value + 1) % 7
+    // Dates are consecutive Gregorian days inside a Jalali month. Derive them
+    // from the first day instead of repeating the year-boundary conversion for
+    // every cell during each recomposition.
     val cells = List(leadingCells) { null } + (1..daysInMonth).map { day ->
-        JalaliDate.toGregorian(JalaliDate(year, month, day))
+        firstDay.plusDays((day - 1).toLong())
     }
     val paddedCells = cells + List((7 - cells.size % 7) % 7) { null }
 
