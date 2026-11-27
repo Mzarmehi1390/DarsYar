@@ -20,5 +20,14 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL(
             "ALTER TABLE app_state ADD COLUMN activeExamIsPaused INTEGER NOT NULL DEFAULT 0",
         )
+        // Version 1 stored the selected exam but had no durable timer snapshot.
+        // Mark those rows as paused so restoreExamSession starts a fresh countdown
+        // instead of treating a null deadline as a running timer that can never tick.
+        db.execSQL(
+            "UPDATE app_state SET activeExamIsPaused = 1 " +
+                "WHERE activeExamId IS NOT NULL " +
+                "AND activeExamDeadlineEpochMillis IS NULL " +
+                "AND activeExamRemainingSeconds = 0",
+        )
     }
 }

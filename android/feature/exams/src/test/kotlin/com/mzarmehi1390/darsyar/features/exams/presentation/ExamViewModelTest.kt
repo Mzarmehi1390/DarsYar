@@ -110,6 +110,33 @@ class ExamViewModelTest {
     }
 
     @Test
+    fun restoringLegacyActiveExamWithoutTimerSnapshotStartsFreshCountdown() = runTest(mainDispatcher) {
+        val duration = 25 * 60
+        val repository = FakeExamRepository(
+            initialSheets = listOf(
+                ExamSheet(id = "legacy-exam", name = "آزمون قدیمی", questionCount = 20, durationSeconds = duration),
+            ),
+        )
+        // The v1-to-v2 database migration marks an old active-exam row as paused
+        // with no deadline or remaining time because v1 did not persist timer state.
+        repository.setActiveExam("legacy-exam")
+        val viewModel = ExamViewModel(repository)
+        val stateJob = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        viewModel.nowEpochMillis = { 100_000L }
+        advanceUntilIdle()
+
+        val restored = viewModel.uiState.value.takingState
+        assertEquals("legacy-exam", restored.examId)
+        assertTrue(restored.isTaking)
+        assertEquals(duration, restored.remainingSeconds)
+        assertEquals(100_000L + duration * 1_000L, restored.deadlineEpochMillis)
+        assertEquals(false, repository.examSession.value?.isPaused)
+        stateJob.cancel()
+    }
+
+    @Test
     fun manualFinishKeepsTimerRunningAndCanBeCancelled() = runTest(mainDispatcher) {
         val repository = FakeExamRepository(
             initialSheets = listOf(ExamSheet(id = "exam-1", name = "آزمون زمان‌دار", questionCount = 1, durationSeconds = 10)),
