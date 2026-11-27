@@ -21,9 +21,9 @@ permissions:
 
 jobs:
   build-and-test:
-    # macOS 14 was retired by GitHub Actions; macOS 15 is Apple Silicon.
-    # Use the matching API 35 ARM64 Google APIs image for hardware acceleration.
-    runs-on: macos-15
+    # Use the supported Intel macOS runner: hosted Apple Silicon VMs do not
+    # expose nested virtualization required by the Android ARM64 emulator.
+    runs-on: macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
         with:
           api-level: 35
           target: google_apis
-          arch: arm64-v8a
+          arch: x86_64
           profile: pixel_2
           script: gradle --no-daemon --stacktrace :macrobenchmark:connectedCheck
 
