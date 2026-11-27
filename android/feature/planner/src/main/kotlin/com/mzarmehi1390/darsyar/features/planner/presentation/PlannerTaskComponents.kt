@@ -17,12 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,9 +31,7 @@ import com.mzarmehi1390.darsyar.core.common.JalaliDate
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 @Composable
@@ -80,14 +74,6 @@ fun TaskEditorDialog(task: StudyTask?, initialDueDate: LocalDate, onDismiss: () 
     var subject by remember(task?.id) { mutableStateOf(task?.subject.orEmpty()) }
     var dueDate by remember(task?.id, initialDueDate) { mutableStateOf<String?>(task?.dueDate ?: initialDueDate.toString()) }
     var showDatePicker by remember { mutableStateOf(false) }
-    val pickerState = key(dueDate) {
-        rememberDatePickerState(
-            initialSelectedDateMillis = dueDate?.let { date ->
-                runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
-            },
-        )
-    }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (task == null) "کار جدید" else "ویرایش کار") },
@@ -142,21 +128,14 @@ fun TaskEditorDialog(task: StudyTask?, initialDueDate: LocalDate, onDismiss: () 
     )
 
     if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        dueDate = pickerState.selectedDateMillis?.let { millis ->
-                            Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
-                        }
-                        showDatePicker = false
-                    },
-                    enabled = pickerState.selectedDateMillis != null,
-                ) { Text("تأیید") }
+        JalaliDatePickerDialog(
+            initialIsoDate = dueDate,
+            onDismiss = { showDatePicker = false },
+            onDateSelected = { selected ->
+                dueDate = selected
+                showDatePicker = false
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } },
-        ) { DatePicker(state = pickerState) }
+        )
     }
 }
 

@@ -18,8 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -30,11 +28,9 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,9 +50,7 @@ import com.mzarmehi1390.darsyar.features.planner.domain.TaskStatusFilter
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.util.UUID
 
 @Composable
@@ -629,13 +623,6 @@ private fun SessionEditorDialog(
         mutableStateOf<String?>(session?.scheduledDate ?: initialDate.toString())
     }
     var showDatePicker by remember { mutableStateOf(false) }
-    val pickerState = key(scheduledDate) {
-        rememberDatePickerState(
-            initialSelectedDateMillis = scheduledDate?.let { date ->
-                runCatching { LocalDate.parse(date).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrNull()
-            },
-        )
-    }
     val parsedTime = parseTime(startTime)
     val parsedDuration = PersianDigits.toLatinDigits(duration).toIntOrNull()
     val validTime = parsedTime != null && parsedDuration != null && parsedDuration > 0 &&
@@ -725,24 +712,17 @@ private fun SessionEditorDialog(
     )
 
     if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scheduledDate = pickerState.selectedDateMillis?.let { millis ->
-                            Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate().toString()
-                        }
-                        scheduledDate?.let(PlannerCalendar::parseDateKey)?.let(PlannerCalendar::weekdayForDate)?.let {
-                            weekday = it
-                        }
-                        showDatePicker = false
-                    },
-                    enabled = pickerState.selectedDateMillis != null,
-                ) { Text("تأیید") }
+        JalaliDatePickerDialog(
+            initialIsoDate = scheduledDate,
+            onDismiss = { showDatePicker = false },
+            onDateSelected = { selected ->
+                scheduledDate = selected
+                scheduledDate?.let(PlannerCalendar::parseDateKey)
+                    ?.let(PlannerCalendar::weekdayForDate)
+                    ?.let { weekday = it }
+                showDatePicker = false
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("انصراف") } },
-        ) { DatePicker(state = pickerState) }
+        )
     }
 }
 
