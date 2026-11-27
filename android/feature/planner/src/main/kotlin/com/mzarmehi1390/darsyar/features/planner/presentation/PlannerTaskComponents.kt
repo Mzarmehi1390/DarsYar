@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.mzarmehi1390.darsyar.core.common.JalaliDate
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
@@ -159,7 +160,5 @@ fun TaskEditorDialog(task: StudyTask?, initialDueDate: LocalDate, onDismiss: () 
     }
 }
 
-private fun formatTaskDueDate(value: String): String = runCatching {
-    val date = LocalDate.parse(value)
-    PersianDigits.toPersianDigits("%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth))
-}.getOrDefault(PersianDigits.toPersianDigits(value))
+private fun formatTaskDueDate(value: String): String =
+    PersianDigits.toPersianDigits(JalaliDate.formatIsoDateKey(value))
