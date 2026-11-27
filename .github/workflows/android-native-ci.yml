@@ -49,6 +49,24 @@ jobs:
         working-directory: android
         run: gradle --no-daemon --stacktrace :app:assembleDebug test lint
 
+      - name: Verify Room schema export
+        working-directory: android
+        run: |
+          mapfile -t schemas < <(find core/database/schemas -type f -name '*.json' -print)
+          if [ "${#schemas[@]}" -eq 0 ]; then
+            echo "Room did not export any schema snapshots."
+            exit 1
+          fi
+          printf 'Exported Room schemas:\n%s\n' "${schemas[@]}"
+
+      - name: Upload Room schema snapshots
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: darsyar-room-schemas
+          path: android/core/database/schemas/**/*.json
+          if-no-files-found: error
+
       - name: Upload debug APK
         if: success()
         uses: actions/upload-artifact@v4
