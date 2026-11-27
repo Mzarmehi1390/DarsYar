@@ -91,6 +91,17 @@ jobs:
           # The action executes from the repository root; the Gradle build lives in android/.
           script: gradle --no-daemon --stacktrace -p android :macrobenchmark:connectedCheck
 
+      - name: Upload emulator test diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: darsyar-emulator-test-diagnostics
+          path: |
+            android/macrobenchmark/build/reports/androidTests/connected/debug/**
+            android/macrobenchmark/build/outputs/androidTest-results/connected/debug/**
+            android/macrobenchmark/build/outputs/logs/**
+          if-no-files-found: warn
+
       - name: Verify Room schema export
         working-directory: android
         run: |
