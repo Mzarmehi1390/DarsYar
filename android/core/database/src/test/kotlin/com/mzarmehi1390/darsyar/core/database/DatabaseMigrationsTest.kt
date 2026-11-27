@@ -116,6 +116,12 @@ class DatabaseMigrationsTest {
                 assertEquals(1, cursor.getInt(5))
                 assertEquals(123456789L, cursor.getLong(6))
             }
+            listOf("study_tasks", "study_sessions", "exam_sheets", "exam_results").forEach { table ->
+                database.query("SELECT COUNT(*) FROM $table").use { cursor ->
+                    assertTrue(cursor.moveToFirst())
+                    assertEquals("Legacy rows must survive migration in $table", 1, cursor.getInt(0))
+                }
+            }
         } finally {
             roomDatabase.close()
             context.deleteDatabase(name)
@@ -203,6 +209,40 @@ class DatabaseMigrationsTest {
                             INSERT INTO app_state (
                                 id, activeExamId, legacyImportCompleted, updatedAtEpochMillis
                             ) VALUES (0, 'legacy-active-exam', 1, 123456789)
+                            """.trimIndent(),
+                        )
+                        db.execSQL(
+                            """
+                            INSERT INTO study_tasks (id, title, subject, isDone, dueDate)
+                            VALUES ('task-1', 'Legacy task', 'Math', 0, '2026-11-28')
+                            """.trimIndent(),
+                        )
+                        db.execSQL(
+                            """
+                            INSERT INTO study_sessions (
+                                id, title, subject, weekday, startMinutes,
+                                durationMinutes, completed, scheduledDate
+                            ) VALUES ('session-1', 'Legacy session', 'Science', 2, 540, 45, 0, NULL)
+                            """.trimIndent(),
+                        )
+                        db.execSQL(
+                            """
+                            INSERT INTO exam_sheets (
+                                id, name, questionCount, durationSeconds, negativeMarking,
+                                isCompleted, answersJson, answerKeyJson, markedJson
+                            ) VALUES ('sheet-1', 'Legacy exam', 10, 1800, 0, 0, '{}', '{}', '[]')
+                            """.trimIndent(),
+                        )
+                        db.execSQL(
+                            """
+                            INSERT INTO exam_results (
+                                id, examId, examName, completedAt, questionCount,
+                                correct, wrong, unanswered, keyedQuestions, percentage,
+                                negativeMarking, answersJson, answerKeyJson
+                            ) VALUES (
+                                'result-1', 'sheet-1', 'Legacy exam', '2026-11-27',
+                                10, 7, 2, 1, 10, 70.0, 0, '{}', '{}'
+                            )
                             """.trimIndent(),
                         )
                     }
