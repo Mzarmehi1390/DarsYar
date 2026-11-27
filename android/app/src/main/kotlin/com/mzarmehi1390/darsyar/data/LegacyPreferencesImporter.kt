@@ -49,6 +49,7 @@ class LegacyPreferencesImporter @Inject constructor(
             database.appStateDao().upsert(
                 AppStateEntity(
                     activeExamId = current?.activeExamId,
+                    activeExamIsPaused = true,
                     legacyImportCompleted = true,
                     updatedAtEpochMillis = System.currentTimeMillis(),
                 ),
@@ -82,6 +83,9 @@ class LegacyPreferencesImporter @Inject constructor(
         database.appStateDao().upsert(
             AppStateEntity(
                 activeExamId = activeExamId,
+                // A migrated active exam has no persisted deadline yet; it must
+                // enter the native flow as a valid paused session snapshot.
+                activeExamIsPaused = true,
                 legacyImportCompleted = true,
                 updatedAtEpochMillis = System.currentTimeMillis(),
             ),

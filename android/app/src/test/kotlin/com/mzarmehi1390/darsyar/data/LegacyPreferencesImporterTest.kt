@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
+import com.mzarmehi1390.darsyar.core.database.entity.AppStateEntity
 import com.mzarmehi1390.darsyar.core.database.entity.StudyTaskEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -84,6 +85,7 @@ class LegacyPreferencesImporterTest {
         assertEquals("{\"1\":2,\"2\":0}", exam?.answerKeyJson)
         assertEquals("[2]", exam?.markedJson)
         assertEquals("exam-1", database.appStateDao().get()?.activeExamId)
+        assertTrue(database.appStateDao().get()?.activeExamIsPaused == true)
 
         // Import must be read-only with respect to the Flutter source file.
         assertTrue(preferences.contains("flutter.darsyar.tasks"))
@@ -400,6 +402,9 @@ class LegacyPreferencesImporterTest {
                 ),
             ),
         )
+        database.appStateDao().upsert(
+            AppStateEntity(activeExamId = "native-exam", updatedAtEpochMillis = 1L),
+        )
         preferences.edit()
             .putString(
                 "flutter.darsyar.tasks",
@@ -414,7 +419,10 @@ class LegacyPreferencesImporterTest {
         assertEquals(1, database.studyTaskDao().count())
         assertEquals(null, database.studyTaskDao().findById("legacy-task"))
         assertTrue(database.appStateDao().get()?.legacyImportCompleted == true)
+        assertEquals("native-exam", database.appStateDao().get()?.activeExamId)
+        assertTrue(database.appStateDao().get()?.activeExamIsPaused == true)
     }
+
     @Test
     fun recalculatesPercentageWhenLegacyValueIsMissingOrInvalid() = runBlocking {
         preferences.edit()
