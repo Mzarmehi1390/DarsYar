@@ -88,7 +88,8 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-linux-hw-accel: false
-          script: gradle --no-daemon --stacktrace :macrobenchmark:connectedCheck
+          # The action executes from the repository root; the Gradle build lives in android/.
+          script: gradle --no-daemon --stacktrace -p android :macrobenchmark:connectedCheck
 
       - name: Verify Room schema export
         working-directory: android
