@@ -11,11 +11,17 @@ android {
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // This suite validates process recovery on a debug APK; it is not used
-        // to publish performance numbers.
-        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "DEBUGGABLE"
+        // to publish performance numbers. The emulator warning is therefore
+        // suppressed only for this functional recovery check.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] =
+            "DEBUGGABLE,EMULATOR"
     }
 
     targetProjectPath = ":app"
+    // A macrobenchmark test APK must instrument itself, not the target app.
+    // This keeps the test runner in a separate process so Macrobenchmark can
+    // kill and relaunch the application under test.
+    experimentalProperties["android.experimental.self-instrumenting"] = true
 }
 
 dependencies {
