@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.KeyboardType
+import com.mzarmehi1390.darsyar.core.common.JalaliDate
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamPercentageCalculator
@@ -62,7 +63,6 @@ import kotlinx.coroutines.delay
 import java.util.UUID
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun ExamsScreen(viewModel: ExamViewModel) {
@@ -403,14 +403,15 @@ private fun formatExamDuration(durationSeconds: Int): String {
     }
 }
 
-private val historyDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm").withZone(ZoneId.systemDefault())
-
 private fun historyTimestamp(value: String): Long =
     runCatching { Instant.parse(value).toEpochMilli() }.getOrDefault(0L)
 
-private fun formatHistoryDate(value: String): String =
-    runCatching { historyDateFormatter.format(Instant.parse(value)) }.getOrElse { value }
+private fun formatHistoryDate(value: String): String = runCatching {
+    val localDateTime = Instant.parse(value).atZone(ZoneId.systemDefault())
+    val jalaliDate = JalaliDate.fromGregorian(localDateTime.toLocalDate()).toDisplayString()
+    val localTime = "%02d:%02d".format(localDateTime.hour, localDateTime.minute)
+    PersianDigits.toPersianDigits("$jalaliDate $localTime")
+}.getOrElse { value }
 
 @Composable
 private fun RenameExamDialog(

@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mzarmehi1390.darsyar.core.designsystem.darsYarAnimateContentSize
+import com.mzarmehi1390.darsyar.core.common.JalaliDate
 import com.mzarmehi1390.darsyar.core.common.PersianDigits
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerCalendar
 import com.mzarmehi1390.darsyar.features.planner.domain.PlannerOperations
@@ -756,10 +757,8 @@ private fun parseTime(value: String): Int? {
     if (hour !in 0..23 || minute !in 0..59) return null
     return hour * 60 + minute
 }
-private fun formatDueDate(value: String): String = runCatching {
-    val date = LocalDate.parse(value)
-    PersianDigits.toPersianDigits("%04d/%02d/%02d".format(date.year, date.monthValue, date.dayOfMonth))
-}.getOrDefault(PersianDigits.toPersianDigits(value))
+private fun formatDueDate(value: String): String =
+    PersianDigits.toPersianDigits(JalaliDate.formatIsoDateKey(value))
 
 fun PlannerActionResult.toUserMessage(): String = when (this) {
     PlannerActionResult.Success -> "عملیات با موفقیت انجام شد"
