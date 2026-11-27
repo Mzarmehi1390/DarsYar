@@ -1,4 +1,8 @@
+@file:SuppressLint("NewApi")
+
 package com.mzarmehi1390.darsyar.core.common
+
+import android.annotation.SuppressLint
 
 import java.time.LocalDate
 
