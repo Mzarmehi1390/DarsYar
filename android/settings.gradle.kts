@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 rootProject.name = "DarsYar"
 
 include(":app")
+include(":macrobenchmark")
 include(":core:common")
 include(":core:designsystem")
 include(":core:graphics")
