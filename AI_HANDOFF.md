@@ -107,3 +107,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Planner parity refinement: the seven-day overview now restores the Flutter per-day summary behavior with session count, planned minutes, and completion progress. The seven cards are backed by a single-pass cached aggregation that handles dated and legacy weekday-only sessions while excluding malformed/out-of-week dates. Regression coverage verifies aggregation and filtering.
+
+
+- Planner destructive-action parity: task and study-session deletion now require an explicit confirmation dialog, matching the Flutter planner's destructive confirmation flow. Cancelling leaves the persisted records untouched; confirming delegates to the existing ViewModel/repository delete path and reports the operation result through the snackbar. This is a presentation-level safety correction; persistence and task/session ordering are unchanged.

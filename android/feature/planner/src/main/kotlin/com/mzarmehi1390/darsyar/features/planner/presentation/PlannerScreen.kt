@@ -65,6 +65,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     val scope = rememberCoroutineScope()
     var showTaskEditor by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<StudyTask?>(null) }
+    var pendingTaskDeletion by remember { mutableStateOf<StudyTask?>(null) }
     var taskSearchQuery by remember { mutableStateOf("") }
     var taskStatusFilter by remember { mutableStateOf(TaskStatusFilter.ALL) }
     var showSessionEditor by remember { mutableStateOf(false) }
@@ -74,6 +75,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
     var isCopyingDay by remember { mutableStateOf(false) }
     var isCopyingWeek by remember { mutableStateOf(false) }
     var editingSession by remember { mutableStateOf<StudySession?>(null) }
+    var pendingSessionDeletion by remember { mutableStateOf<StudySession?>(null) }
     var weekStart by remember { mutableStateOf(PlannerCalendar.startOfWeek(LocalDate.now())) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val weekDates = remember(weekStart) { PlannerCalendar.days(weekStart) }
@@ -301,11 +303,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                     editingTask = task
                                     showTaskEditor = true
                                 },
-                                onDelete = {
-                                    viewModel.deleteTask(task.id) { result ->
-                                        if (result !is PlannerActionResult.Success) scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
-                                    }
-                                },
+                                onDelete = { pendingTaskDeletion = task },
                             )
                         }
                     }
@@ -368,11 +366,7 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                     editingSession = session
                                     showSessionEditor = true
                                 },
-                                onDelete = {
-                                    viewModel.deleteSession(session.id) { result ->
-                                        scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
-                                    }
-                                },
+                                onDelete = { pendingSessionDeletion = session },
                             )
                         }
                     }
@@ -446,6 +440,48 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 TextButton(enabled = !isCopyingWeek, onClick = { showWeekCopyConfirmation = false }) {
                     Text("انصراف")
                 }
+            },
+        )
+    }
+
+    pendingTaskDeletion?.let { task ->
+        AlertDialog(
+            onDismissRequest = { pendingTaskDeletion = null },
+            title = { Text("حذف وظیفه") },
+            text = { Text("وظیفه «${task.title}» حذف شود؟") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingTaskDeletion = null
+                        viewModel.deleteTask(task.id) { result ->
+                            scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
+                        }
+                    },
+                ) { Text("حذف", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingTaskDeletion = null }) { Text("انصراف") }
+            },
+        )
+    }
+
+    pendingSessionDeletion?.let { session ->
+        AlertDialog(
+            onDismissRequest = { pendingSessionDeletion = null },
+            title = { Text("حذف جلسه مطالعه") },
+            text = { Text("جلسه «${session.title}» حذف شود؟") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingSessionDeletion = null
+                        viewModel.deleteSession(session.id) { result ->
+                            scope.launch { snackbar.showSnackbar(result.toUserMessage()) }
+                        }
+                    },
+                ) { Text("حذف", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingSessionDeletion = null }) { Text("انصراف") }
             },
         )
     }
