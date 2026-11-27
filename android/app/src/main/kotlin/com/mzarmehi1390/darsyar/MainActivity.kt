@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -144,11 +143,11 @@ private fun NativeAppNavigation(
     }
 
     val destinations = listOf(
-        AppDestination("خانه", "⌂", currentDestination?.hasRoute<HomeRoute>() == true, ::navigateHome),
-        AppDestination("برنامه‌ریز", "▦", currentDestination?.hasRoute<PlannerRoute>() == true, ::navigatePlanner),
-        AppDestination("آزمون‌ها", "✓", currentDestination?.hasRoute<ExamsRoute>() == true, ::navigateExams),
-        AppDestination("آمار", "▤", currentDestination?.hasRoute<StatisticsRoute>() == true, ::navigateStatistics),
-        AppDestination("تنظیمات", "⚙", currentDestination?.hasRoute<SettingsRoute>() == true, ::navigateSettings),
+        AppDestination("خانه", "⌂", currentDestination?.route == HomeRoute::class.qualifiedName, ::navigateHome),
+        AppDestination("برنامه‌ریز", "▦", currentDestination?.route == PlannerRoute::class.qualifiedName, ::navigatePlanner),
+        AppDestination("آزمون‌ها", "✓", currentDestination?.route == ExamsRoute::class.qualifiedName, ::navigateExams),
+        AppDestination("آمار", "▤", currentDestination?.route == StatisticsRoute::class.qualifiedName, ::navigateStatistics),
+        AppDestination("تنظیمات", "⚙", currentDestination?.route == SettingsRoute::class.qualifiedName, ::navigateSettings),
     )
     Scaffold(bottomBar = {
         NavigationBar {
