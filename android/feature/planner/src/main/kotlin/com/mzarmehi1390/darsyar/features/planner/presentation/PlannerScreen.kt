@@ -168,6 +168,13 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         }
                     }
                     item {
+                        PlannerQuickStats(
+                            totalSessions = weeklySummary.totalSessionCount,
+                            completedSessions = weeklySummary.completedSessionCount,
+                            selectedDayMinutes = selectedDaySessions.sumOf(StudySession::durationMinutes),
+                        )
+                    }
+                    item {
                         val copyableSessionCount = sessionsInWeek.size
                         TextButton(
                             enabled = !isCopyingWeek && copyableSessionCount + datedTaskCount > 0,
@@ -507,6 +514,66 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun PlannerQuickStats(
+    totalSessions: Int,
+    completedSessions: Int,
+    selectedDayMinutes: Int,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        PlannerQuickStat(
+            label = "جلسه‌ها",
+            value = totalSessions,
+            modifier = Modifier.weight(1f),
+        )
+        PlannerQuickStat(
+            label = "انجام‌شده",
+            value = completedSessions,
+            modifier = Modifier.weight(1f),
+        )
+        PlannerQuickStat(
+            label = "دقیقهٔ روز",
+            value = selectedDayMinutes,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun PlannerQuickStat(
+    label: String,
+    value: Int,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                PersianDigits.format(value),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
+        }
     }
 }
 
