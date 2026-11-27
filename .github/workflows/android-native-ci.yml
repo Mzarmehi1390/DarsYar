@@ -21,7 +21,9 @@ permissions:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    # macOS hosted runners provide Hypervisor.framework acceleration; Linux runners
+    # without KVM cannot boot the x86_64 API 35 image used by this recovery test.
+    runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,7 +44,7 @@ jobs:
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | sort -V | tail -n 1)"
           test -x "$SDKMANAGER"
-          printf 'y\n%.0s' {1..100} | "$SDKMANAGER" --licenses
+          yes | "$SDKMANAGER" --licenses
           "$SDKMANAGER" --install "platforms;android-37.0" "build-tools;37.0.0" "platform-tools"
 
       - name: Build, test and lint native Android project
@@ -51,15 +53,11 @@ jobs:
 
       - name: Verify process-death recovery on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
-        env:
-          # GitHub-hosted Linux runners lack KVM; allow the emulator's TCG software backend.
-          ANDROID_I_WANT_MY_TCG: "yes"
         with:
           api-level: 35
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          disable-linux-hw-accel: false
           script: gradle --no-daemon --stacktrace :macrobenchmark:connectedCheck
 
       - name: Verify Room schema export
