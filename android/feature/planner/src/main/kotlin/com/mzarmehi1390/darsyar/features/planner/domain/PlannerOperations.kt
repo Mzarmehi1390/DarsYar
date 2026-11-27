@@ -4,6 +4,15 @@ import com.mzarmehi1390.darsyar.features.planner.domain.models.StudySession
 import com.mzarmehi1390.darsyar.features.planner.domain.models.StudyTask
 import java.time.LocalDate
 
+data class PlannerDaySummary(
+    val sessionCount: Int = 0,
+    val plannedMinutes: Int = 0,
+    val completedSessionCount: Int = 0,
+) {
+    val completion: Float
+        get() = if (sessionCount == 0) 0f else completedSessionCount.toFloat() / sessionCount
+}
+
 object PlannerOperations {
     /**
      * Counts occurrences for a seven-day planner strip in one pass.
@@ -32,6 +41,36 @@ object PlannerOperations {
             }
         }
         return dates.associateWith { counts[it] ?: 0 }
+    }
+
+    /**
+     * Aggregates count, planned minutes, and completion for each date in one pass.
+     * Legacy weekday-only sessions are projected onto the matching day in [dates].
+     */
+    fun sessionSummariesByDate(
+        sessions: Iterable<StudySession>,
+        dates: List<LocalDate>,
+    ): Map<LocalDate, PlannerDaySummary> {
+        if (dates.isEmpty()) return emptyMap()
+        val validDates = dates.toHashSet()
+        val dateByWeekday = dates.associateBy { PlannerCalendar.weekdayForDate(it) }
+        val summaries = HashMap<LocalDate, PlannerDaySummary>(dates.size)
+
+        for (session in sessions) {
+            val occurrenceDate = if (session.scheduledDate == null) {
+                dateByWeekday[session.weekday]
+            } else {
+                PlannerCalendar.parseDateKey(session.scheduledDate)
+                    ?.takeIf(validDates::contains)
+            } ?: continue
+            val current = summaries[occurrenceDate] ?: PlannerDaySummary()
+            summaries[occurrenceDate] = current.copy(
+                sessionCount = current.sessionCount + 1,
+                plannedMinutes = current.plannedMinutes + session.durationMinutes.coerceAtLeast(0),
+                completedSessionCount = current.completedSessionCount + if (session.completed) 1 else 0,
+            )
+        }
+        return dates.associateWith { summaries[it] ?: PlannerDaySummary() }
     }
 
     /**

@@ -138,6 +138,27 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun sessionSummariesAggregateMinutesAndCompletionInOneWeekStrip() {
+        val monday = LocalDate.parse("2026-11-23")
+        val dates = PlannerCalendar.days(monday)
+        val sessions = listOf(
+            StudySession("a", "A", "Math", 1, 600, 55, completed = true, scheduledDate = "2026-11-23"),
+            StudySession("b", "B", "Math", 1, 660, 45, scheduledDate = "2026-11-23"),
+            StudySession("legacy", "Legacy", "Science", 1, 720, 30, completed = true),
+            StudySession("bad", "Bad", "Math", 1, 720, 90, scheduledDate = "2026-02-30"),
+            StudySession("outside", "Outside", "Math", 1, 720, 90, scheduledDate = "2026-11-30"),
+        )
+
+        val summary = PlannerOperations.sessionSummariesByDate(sessions, dates).getValue(monday)
+
+        assertEquals(3, summary.sessionCount)
+        assertEquals(130, summary.plannedMinutes)
+        assertEquals(2, summary.completedSessionCount)
+        assertEquals(2f / 3f, summary.completion, 0.0001f)
+        assertEquals(0, PlannerOperations.sessionSummariesByDate(emptyList(), emptyList()).size)
+    }
+
+    @Test
     fun overlapUsesOccurrenceDateWhenBothDatesExist() {
         val monday = StudySession("a", "A", "Math", 1, 600, 60, scheduledDate = "2026-11-23")
         val otherMonday = StudySession("b", "B", "Math", 1, 630, 60, scheduledDate = "2026-11-30")

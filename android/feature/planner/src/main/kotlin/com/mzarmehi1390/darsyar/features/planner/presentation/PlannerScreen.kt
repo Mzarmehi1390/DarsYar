@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -110,9 +111,9 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                 ?.let { PlannerCalendar.isInWeek(it, weekStart) } == true
         }
     }
-    // Aggregate the week strip in O(n), parsing each session date once.
-    val sessionCountsByDate = remember(state.sessions, weekDates) {
-        PlannerOperations.sessionCountsByDate(state.sessions, weekDates)
+    // Aggregate the seven overview cards in one pass; no per-day list filtering.
+    val sessionSummariesByDate = remember(state.sessions, weekDates) {
+        PlannerOperations.sessionSummariesByDate(state.sessions, weekDates)
     }
 
     Scaffold(
@@ -177,20 +178,55 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                         ) { Text(if (isCopyingWeek) "در حال کپی…" else "کپی برنامه به هفتهٔ بعد") }
                     }
                     item {
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(weekDates, key = { it.toString() }) { date ->
                                 val day = PlannerCalendar.weekdayForDate(date)
-                                val count = sessionCountsByDate[date] ?: 0
-                                FilterChip(
-                                    selected = selectedDate == date,
+                                val summary = sessionSummariesByDate.getValue(date)
+                                Card(
                                     onClick = { selectedDate = date },
-                                    label = {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(weekdayName(day))
-                                            Text("${PersianDigits.format(date.dayOfMonth)} · ${PersianDigits.format(count)} جلسه", style = MaterialTheme.typography.labelSmall)
+                                    modifier = Modifier.width(168.dp).heightIn(min = 126.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (selectedDate == date) {
+                                            MaterialTheme.colorScheme.secondaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        },
+                                    ),
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(7.dp),
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            Text(weekdayName(day), fontWeight = FontWeight.SemiBold)
+                                            Text(
+                                                PersianDigits.format(date.dayOfMonth),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
                                         }
-                                    },
-                                )
+                                        Text(
+                                            "${PersianDigits.format(summary.sessionCount)} جلسه · ${PersianDigits.format(summary.plannedMinutes)} دقیقه",
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
+                                        androidx.compose.material3.LinearProgressIndicator(
+                                            progress = summary.completion,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.surface,
+                                        )
+                                        Text(
+                                            if (summary.sessionCount == 0) "بدون برنامه"
+                                            else "${PersianDigits.format(summary.completedSessionCount)} از ${PersianDigits.format(summary.sessionCount)} انجام‌شده",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

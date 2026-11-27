@@ -104,3 +104,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Planner week navigation regression: the previous/next callbacks now calculate the target Saturday once and assign both the visible week and selected date from that same value. This avoids reading the old Compose state immediately after scheduling its update. The `PlannerCalendar.shiftWeek` helper centralizes Saturday-boundary normalization and has forward/backward regression coverage in `PlannerCalendarTest`.
+
+
+- Planner parity refinement: the seven-day overview now restores the Flutter per-day summary behavior with session count, planned minutes, and completion progress. The seven cards are backed by a single-pass cached aggregation that handles dated and legacy weekday-only sessions while excluding malformed/out-of-week dates. Regression coverage verifies aggregation and filtering.
