@@ -31,4 +31,41 @@ class PlannerSummaryTest {
         assertEquals(0, summary.totalSessionCount)
         assertEquals(0.0, summary.completion, 0.0)
     }
+
+    @Test
+    fun malformedDatedSessionsRemainInGlobalTotalsButAreExcludedFromDayBuckets() {
+        val malformed = StudySession(
+            "bad-date", "جلسه با تاریخ نامعتبر", "علوم",
+            weekday = 2, startMinutes = 540, durationMinutes = 45,
+            completed = true, scheduledDate = "24/11/2026",
+        )
+        val validLegacy = StudySession(
+            "legacy", "جلسه هفتگی", "ریاضی",
+            weekday = 2, startMinutes = 600, durationMinutes = 30,
+        )
+
+        val summary = PlannerSummary.fromSessions(listOf(malformed, validLegacy))
+
+        assertEquals(2, summary.totalSessionCount)
+        assertEquals(1, summary.completedSessionCount)
+        assertEquals(75, summary.plannedMinutes)
+        assertEquals(45, summary.completedMinutes)
+        assertEquals(listOf("legacy"), summary.sessionsByDay[2]?.map { it.id })
+        assertEquals(30, summary.minutesByDay[2])
+    }
+
+    @Test
+    fun invalidLegacyWeekdayIsExcludedFromDayBuckets() {
+        val invalidWeekday = StudySession(
+            "bad-weekday", "جلسه با روز نامعتبر", "عمومی",
+            weekday = 7, startMinutes = 540, durationMinutes = 20,
+        )
+
+        val summary = PlannerSummary.fromSessions(listOf(invalidWeekday))
+
+        assertEquals(1, summary.totalSessionCount)
+        assertEquals(20, summary.plannedMinutes)
+        assertEquals(emptyMap<Int, List<StudySession>>(), summary.sessionsByDay)
+        assertEquals(emptyMap<Int, Int>(), summary.minutesByDay)
+    }
 }

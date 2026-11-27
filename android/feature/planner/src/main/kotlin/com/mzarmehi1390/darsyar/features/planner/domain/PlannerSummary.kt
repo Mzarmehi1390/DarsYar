@@ -29,8 +29,17 @@ data class PlannerSummary(
                     completedCount++
                     completed += session.durationMinutes
                 }
-                val date = PlannerCalendar.parseDateKey(session.scheduledDate)
-                val day = date?.let(PlannerCalendar::weekdayForDate) ?: session.weekday
+
+                // A concrete date is authoritative. Never reinterpret malformed
+                // dated records as legacy weekday-only sessions.
+                val day = when {
+                    session.scheduledDate != null ->
+                        PlannerCalendar.parseDateKey(session.scheduledDate)
+                            ?.let(PlannerCalendar::weekdayForDate)
+                    session.weekday in 0..6 -> session.weekday
+                    else -> null
+                } ?: return@forEach
+
                 byDay.getOrPut(day) { mutableListOf() }.add(session)
                 minutesByDay[day] = (minutesByDay[day] ?: 0) + session.durationMinutes
             }
