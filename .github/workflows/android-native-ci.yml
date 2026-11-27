@@ -52,13 +52,14 @@ jobs:
       - name: Verify process-death recovery on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          # GitHub-hosted Linux runners lack KVM; Android Emulator requires TCG explicitly.
+          # GitHub-hosted Linux runners lack KVM; allow the emulator's TCG software backend.
           ANDROID_I_WANT_MY_TCG: "yes"
         with:
           api-level: 35
           target: google_apis
           arch: x86_64
           profile: pixel_2
+          disable-linux-hw-accel: false
           script: gradle --no-daemon --stacktrace :macrobenchmark:connectedCheck
 
       - name: Verify Room schema export
