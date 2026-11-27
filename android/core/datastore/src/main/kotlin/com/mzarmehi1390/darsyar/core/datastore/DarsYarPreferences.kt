@@ -1,7 +1,6 @@
 package com.mzarmehi1390.darsyar.core.datastore
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -35,9 +34,8 @@ internal data class LegacyAppearancePreferences(
  * nullable typed reads and keeping appearance migration non-blocking.
  */
 internal fun readLegacyAppearancePreferences(
-    legacy: SharedPreferences,
+    values: Map<String, *>,
 ): LegacyAppearancePreferences {
-    val values = legacy.all
     return LegacyAppearancePreferences(
         themeMode = values[LEGACY_THEME_KEY] as? String,
         animationsEnabled = values[LEGACY_ANIMATIONS_KEY] as? Boolean,
@@ -75,7 +73,7 @@ private val Context.darsYarPreferencesDataStore: DataStore<Preferences> by prefe
                 sharedPreferencesName = LEGACY_PREFERENCES_FILE,
                 keysToMigrate = setOf(LEGACY_THEME_KEY, LEGACY_ANIMATIONS_KEY),
                 migrate = { legacy, current ->
-                    val appearance = readLegacyAppearancePreferences(legacy)
+                    val appearance = readLegacyAppearancePreferences(legacy.getAll())
                     migrateLegacyAppearancePreferences(
                         legacyThemeMode = appearance.themeMode,
                         legacyAnimationsEnabled = appearance.animationsEnabled,
