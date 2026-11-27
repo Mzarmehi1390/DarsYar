@@ -72,7 +72,9 @@ class DarsYarRepository @Inject constructor(
                 currentQuestionNumber = state.activeExamQuestionNumber,
                 deadlineEpochMillis = state.activeExamDeadlineEpochMillis,
                 remainingSeconds = state.activeExamRemainingSeconds,
-                isPaused = state.activeExamIsPaused,
+                // The deadline is authoritative for timer state. Older native
+                // installs may contain the pre-fix flag/deadline mismatch.
+                isPaused = state.activeExamDeadlineEpochMillis == null,
             )
         }
 
