@@ -48,7 +48,7 @@ class DarsYarPreferencesRepositoryTest {
             .putBoolean("flutter.darsyar.animationsEnabled", false)
             .commit()
 
-        val appearance = readLegacyAppearancePreferences(legacy)
+        val appearance = readLegacyAppearancePreferences(legacy.all)
         val migrated = migrateLegacyAppearancePreferences(
             legacyThemeMode = appearance.themeMode,
             legacyAnimationsEnabled = appearance.animationsEnabled,
@@ -71,7 +71,7 @@ class DarsYarPreferencesRepositoryTest {
             androidx.datastore.preferences.core.stringPreferencesKey("theme_mode") to "dark",
             androidx.datastore.preferences.core.booleanPreferencesKey("animations_enabled") to true,
         )
-        val appearance = readLegacyAppearancePreferences(legacy)
+        val appearance = readLegacyAppearancePreferences(legacy.all)
         val migrated = migrateLegacyAppearancePreferences(
             legacyThemeMode = appearance.themeMode,
             legacyAnimationsEnabled = appearance.animationsEnabled,
@@ -90,7 +90,7 @@ class DarsYarPreferencesRepositoryTest {
             .putString("flutter.darsyar.animationsEnabled", "false")
             .commit()
 
-        val appearance = readLegacyAppearancePreferences(legacy)
+        val appearance = readLegacyAppearancePreferences(legacy.all)
 
         assertNull(appearance.themeMode)
         assertNull(appearance.animationsEnabled)
