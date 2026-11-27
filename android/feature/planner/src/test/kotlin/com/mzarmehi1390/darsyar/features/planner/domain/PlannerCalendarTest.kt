@@ -20,6 +20,19 @@ class PlannerCalendarTest {
     }
 
     @Test
+    fun shiftWeekMovesToAdjacentSaturdayAndNormalizesInput() {
+        val midweek = LocalDate.parse("2026-11-25")
+        assertEquals(LocalDate.parse("2026-11-14"), PlannerCalendar.shiftWeek(midweek, -1))
+        assertEquals(LocalDate.parse("2026-11-28"), PlannerCalendar.shiftWeek(midweek, 1))
+    }
+
+    @Test
+    fun shiftWeekSupportsReturningToTheOriginalWeek() {
+        val weekStart = LocalDate.parse("2026-11-21")
+        assertEquals(weekStart, PlannerCalendar.shiftWeek(PlannerCalendar.shiftWeek(weekStart, 1), -1))
+    }
+
+    @Test
     fun dartWeekdayKeysMapToSaturdayBasedDates() {
         val saturday = LocalDate.parse("2026-11-21")
         assertEquals(LocalDate.parse("2026-11-22"), PlannerCalendar.dateForWeekday(saturday, 0))

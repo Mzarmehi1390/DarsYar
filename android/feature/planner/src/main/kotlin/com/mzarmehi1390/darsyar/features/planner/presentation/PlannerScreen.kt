@@ -150,8 +150,9 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             TextButton(onClick = {
-                                weekStart = weekStart.minusDays(7)
-                                selectedDate = weekStart
+                                val previousWeekStart = PlannerCalendar.shiftWeek(weekStart, -1)
+                                weekStart = previousWeekStart
+                                selectedDate = previousWeekStart
                             }) { Text("هفتهٔ قبل") }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("نمای هفتگی", fontWeight = FontWeight.Bold)
@@ -162,8 +163,9 @@ fun PlannerScreen(viewModel: PlannerViewModel) {
                                 )
                             }
                             TextButton(onClick = {
-                                weekStart = weekStart.plusDays(7)
-                                selectedDate = weekStart
+                                val nextWeekStart = PlannerCalendar.shiftWeek(weekStart, 1)
+                                weekStart = nextWeekStart
+                                selectedDate = nextWeekStart
                             }) { Text("هفتهٔ بعد") }
                         }
                     }

@@ -101,3 +101,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Exam percentage calculator numeric fields now request the platform number keyboard, while retaining the existing Persian/Arabic digit normalization and three-digit input cap. This aligns the native input affordance with the Flutter digits-only fields; calculation behavior is unchanged.
+
+
+- Planner week navigation regression: the previous/next callbacks now calculate the target Saturday once and assign both the visible week and selected date from that same value. This avoids reading the old Compose state immediately after scheduling its update. The `PlannerCalendar.shiftWeek` helper centralizes Saturday-boundary normalization and has forward/backward regression coverage in `PlannerCalendarTest`.

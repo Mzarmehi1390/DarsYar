@@ -12,6 +12,10 @@ object PlannerCalendar {
     fun startOfWeek(value: LocalDate): LocalDate =
         value.with(TemporalAdjusters.previousOrSame(DayOfWeek.SATURDAY))
 
+    /** Returns the Saturday boundary for a relative week navigation action. */
+    fun shiftWeek(currentWeekStart: LocalDate, offsetWeeks: Long): LocalDate =
+        startOfWeek(currentWeekStart).plusWeeks(offsetWeeks)
+
     /** Dart-compatible weekday keys: Sunday=0 ... Saturday=6. */
     fun weekdayForDate(value: LocalDate): Int = value.dayOfWeek.value % 7
 
