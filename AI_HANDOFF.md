@@ -110,3 +110,6 @@ Do not guess these. Investigate and document decisions before implementation.
 
 
 - Planner destructive-action parity: task and study-session deletion now require an explicit confirmation dialog, matching the Flutter planner's destructive confirmation flow. Cancelling leaves the persisted records untouched; confirming delegates to the existing ViewModel/repository delete path and reports the operation result through the snackbar. This is a presentation-level safety correction; persistence and task/session ordering are unchanged.
+
+
+- Planner task-editor resilience: the task form now uses a bounded, vertically scrollable content area, matching the session editor's small-screen strategy. This prevents due-date controls and form actions from being pushed beyond the visible dialog area on short displays or enlarged font settings; it does not change task validation or persistence.
