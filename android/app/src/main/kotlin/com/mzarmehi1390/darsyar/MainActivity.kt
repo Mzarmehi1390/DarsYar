@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -48,6 +49,7 @@ import com.mzarmehi1390.darsyar.features.settings.presentation.BackupSettingsScr
 import com.mzarmehi1390.darsyar.features.statistics.presentation.StatisticsScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -81,6 +83,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Serializable
+private data object HomeRoute
+
+@Serializable
+private data object PlannerRoute
+
+@Serializable
+private data object ExamsRoute
+
+@Serializable
+private data object StatisticsRoute
+
+@Serializable
+private data object SettingsRoute
+
 @Composable
 private fun NativeAppNavigation(
     backupSettingsGateway: AppBackupSettingsGateway,
@@ -88,64 +105,100 @@ private fun NativeAppNavigation(
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route ?: "home"
+    val currentDestination = backStackEntry?.destination
+
+    fun navigateHome() {
+        navController.navigate(HomeRoute) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    fun navigatePlanner() {
+        navController.navigate(PlannerRoute) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    fun navigateExams() {
+        navController.navigate(ExamsRoute) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    fun navigateStatistics() {
+        navController.navigate(StatisticsRoute) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    fun navigateSettings() {
+        navController.navigate(SettingsRoute) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     val destinations = listOf(
-        AppDestination("home", "خانه", "⌂"),
-        AppDestination("planner", "برنامه‌ریز", "▦"),
-        AppDestination("exams", "آزمون‌ها", "✓"),
-        AppDestination("statistics", "آمار", "▤"),
-        AppDestination("settings", "تنظیمات", "⚙"),
+        AppDestination("خانه", "⌂", currentDestination?.hasRoute<HomeRoute>() == true, ::navigateHome),
+        AppDestination("برنامه‌ریز", "▦", currentDestination?.hasRoute<PlannerRoute>() == true, ::navigatePlanner),
+        AppDestination("آزمون‌ها", "✓", currentDestination?.hasRoute<ExamsRoute>() == true, ::navigateExams),
+        AppDestination("آمار", "▤", currentDestination?.hasRoute<StatisticsRoute>() == true, ::navigateStatistics),
+        AppDestination("تنظیمات", "⚙", currentDestination?.hasRoute<SettingsRoute>() == true, ::navigateSettings),
     )
     Scaffold(bottomBar = {
         NavigationBar {
             destinations.forEach { destination ->
                 NavigationBarItem(
-                    selected = currentRoute == destination.route,
-                    onClick = {
-                        navController.navigate(destination.route) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+                    selected = destination.selected,
+                    onClick = destination.onClick,
                     icon = { Text(destination.symbol, style = MaterialTheme.typography.titleLarge) },
                     label = { Text(destination.label) },
                 )
             }
         }
     }) { padding ->
-        NavHost(navController, startDestination = "home", modifier = Modifier.padding(padding)) {
-            composable("home") {
+        NavHost(navController, startDestination = HomeRoute, modifier = Modifier.padding(padding)) {
+            composable<HomeRoute> {
                 val plannerViewModel: PlannerViewModel = hiltViewModel()
                 val plannerState by plannerViewModel.uiState.collectAsStateWithLifecycle()
                 DashboardScreen(
                     state = plannerState,
-                    onPlanner = { navController.navigate("planner") },
-                    onExams = { navController.navigate("exams") },
+                    onPlanner = ::navigatePlanner,
+                    onExams = ::navigateExams,
                     onToggleTask = plannerViewModel::toggleTask,
                     onSaveTask = plannerViewModel::saveTask,
                     onDeleteTask = plannerViewModel::deleteTask,
                 )
             }
-            composable("planner") {
+            composable<PlannerRoute> {
                 val viewModel: PlannerViewModel = hiltViewModel()
                 PlannerScreen(viewModel)
             }
-            composable("exams") {
+            composable<ExamsRoute> {
                 val viewModel: ExamViewModel = hiltViewModel()
                 ExamsScreen(viewModel)
             }
-            composable("statistics") {
+            composable<StatisticsRoute> {
                 val plannerViewModel: PlannerViewModel = hiltViewModel()
                 val plannerState by plannerViewModel.uiState.collectAsStateWithLifecycle()
                 StatisticsScreen(sessions = plannerState.sessions, tasks = plannerState.tasks)
             }
-            composable("settings") { BackupSettingsScreen(backupSettingsGateway, preferencesRepository) }
+            composable<SettingsRoute> { BackupSettingsScreen(backupSettingsGateway, preferencesRepository) }
         }
     }
 }
 
-private data class AppDestination(val route: String, val label: String, val symbol: String)
+private data class AppDestination(
+    val label: String,
+    val symbol: String,
+    val selected: Boolean,
+    val onClick: () -> Unit,
+)
 
 @Composable
 private fun StartupLoadingContent() {
