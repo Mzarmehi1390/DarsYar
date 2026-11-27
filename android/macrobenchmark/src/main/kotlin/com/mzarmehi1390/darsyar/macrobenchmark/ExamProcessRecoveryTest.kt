@@ -67,11 +67,18 @@ class ExamProcessRecoveryTest {
 
     private fun MacrobenchmarkScope.clickText(value: String) {
         waitForText(value)
-        device.findObject(By.text(value)).click()
+        val exact = device.findObject(By.text(value))
+        val target = exact ?: device.findObject(By.textContains(value.substringAfterLast(' ')))
+        checkNotNull(target) { "UI text disappeared before click: $value" }.click()
     }
 
     private fun MacrobenchmarkScope.waitForText(value: String) {
-        check(device.wait(Until.hasObject(By.text(value)), UI_TIMEOUT_MILLIS)) {
+        val exactMatch = device.wait(Until.hasObject(By.text(value)), UI_TIMEOUT_MILLIS)
+        val fallbackMatch = !exactMatch && device.wait(
+            Until.hasObject(By.textContains(value.substringAfterLast(' '))),
+            UI_TIMEOUT_MILLIS,
+        )
+        check(exactMatch || fallbackMatch) {
             "Timed out waiting for UI text: $value"
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mzarmehi1390.darsyar.core.database.DarsYarDatabase
+import com.mzarmehi1390.darsyar.core.database.entity.AppStateEntity
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamResult
 import com.mzarmehi1390.darsyar.features.exams.domain.ExamResultOperations
 import com.mzarmehi1390.darsyar.features.exams.domain.models.ExamSheet
@@ -50,6 +51,28 @@ class DarsYarRepositoryTest {
         database.close()
     }
 
+
+    @Test
+    fun observeExamSession_normalizesLegacyRunningFlagWhenDeadlineIsMissing() = runBlocking {
+        database.appStateDao().upsert(
+            AppStateEntity(
+                activeExamId = "legacy-active-exam",
+                activeExamQuestionNumber = 1,
+                activeExamDeadlineEpochMillis = null,
+                activeExamRemainingSeconds = 0,
+                activeExamIsPaused = false,
+                legacyImportCompleted = true,
+                updatedAtEpochMillis = 1L,
+            ),
+        )
+
+        val snapshot = repository.observeExamSession().first()
+
+        assertNotNull(snapshot)
+        assertEquals("legacy-active-exam", snapshot?.examId)
+        assertNull(snapshot?.deadlineEpochMillis)
+        assertTrue(snapshot?.isPaused == true)
+    }
 
     @Test
     fun plannerRecords_supportCreateObserveUpdateAndDelete() = runBlocking {
